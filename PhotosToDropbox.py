@@ -41,7 +41,6 @@ import PIL
 import string
 import re
 import pexif
-#import traceback
 from DropboxLogin import get_client
 
 # Global arrays for photos that will require manual processing
@@ -212,17 +211,6 @@ def main():
 		# Metadata
 		meta=photo[1]
 		#print meta
-		#sys.exit()
-		
-		# Lines below for debugging
-		#try:
-			#ef=pexif.JpegFile.fromString(img)
-			#ef.dump()
-		#except TypeError:
-			#exc_type, exc_value, exc_traceback=sys.exc_info()
-		
-			#print '*** print_exception:'
-			#traceback.print_exception(exc_type,exc_value, exc_traceback,limit=2,file=sys.stdout)
 		#sys.exit()
 		
 		# Get date and time info of photo
