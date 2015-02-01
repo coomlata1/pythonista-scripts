@@ -1,9 +1,11 @@
 # coding: utf-8
 # Name: Search IMDB.py
 # Author: John Coomler
-# Creation Date: 11/18/2014
-# Version: v1.0
-
+# v1.0: 11/18/2014-Created
+# v1.1: 02/01/2015-Added 'getNameID'
+# function to return IMDB name id's for
+# use with director & actor hypertexts.
+# Added 'while True' loops for user input.
 '''
 This Pythonista script uses the api
 available at www.omdbapi.com to search
@@ -22,16 +24,19 @@ will return a list of titles and their
 release year that match or are close to
 matching the desired title. When you
 select a title from the list you will
-get the same results as listed above.
+get a new set of results for that title.
 You can keep refining your search until
 you get the results you are looking for.
 The info is displayed on the console
 screen and formatted for Markdown and
 copied to the clipboard so it can be
 posted to your text editor or journal of
-choice.
+choice. When copied to a Markdown
+capable editor, the movie title, director,
+stars, and poster all appear in hypertext
+with a direct link to the IMDB database if
+more info is desired.
 '''
-
 import sys
 import urllib2
 import re
@@ -39,10 +44,10 @@ import json
 import console
 import string
 import clipboard
-import editor
 
 # Initialize global variable
 d='';
+
 # Routine to capitialize first letter of each word
 def titleCase(s):
 	newText = re.sub(r"[A-Za-z]+('[A-Za-z]+)?",lambda mo: mo.group(0)[0].upper() + mo.group(0)[1:].lower(),s)
@@ -52,11 +57,13 @@ def titleCase(s):
 def queryData(s):
 	request=urllib2.Request(s)
 	response=json.load(urllib2.urlopen(request))
-	console.clear()
+	
 	d=json.dumps(response,indent=-10)
-	
-	# Reformat data, stripping out extra spaces, quotation marks, commas, etc as necessary
-	
+	'''
+	# Reformat data, stripping out extra
+	spaces, quotation marks, commas, etc as
+	necessary
+	'''
 	d=d.replace('"',' ');
 	d=d.replace('{',' ');
 	d=d.replace('}',' ');
@@ -82,26 +89,53 @@ def queryData(s):
 	
 	return d
 
-# Function to return a Markdown list of actor(s) listed in d
-def actorsMD(d):
+# Function to return a Markdown list of movie names(actors & directors) listed in d
+def movieNamesMD(d,header):
 	b=''
-	a=re.findall(r"(Actors: .*)",d);
-	a[0]=a[0].replace('Actors: ','').strip()
-	theActors= a[0].split(',');
+	a=re.findall(r'('+header+' .*)',d);
+	a[0]=a[0].replace(header+' ','').strip()
+	theNames= a[0].split(',');
 	
-	# Loop through list of actors appending markdown syntax to each one
-	for index, item in enumerate(theActors):
-		theActors[index]=theActors[index].strip()
-		theActors[index]='['+theActors[index]+'](http://www.imdb.com/find?ref_=nv_sr_fn&q='+theActors[index]+ '), '
-		# If first actor in list...
+	# Loop through list of movie names, appending markdown syntax to each one
+	for index, item in enumerate(theNames):
+		theNames[index]=theNames[index].strip()
+		
+		# Call function to return the IMDB name ID for this name
+		nameID=getNameID(theNames[index])
+		
+		# Append Markdown code
+		# The old way
+		#theNames[index]='['+theNames[index]+'](http://www.imdb.com/find?ref_=nv_sr_fn&q='+theNames[index]+ '), '
+		# The new way with name ids
+		theNames[index]='['+theNames[index]+'](http://www.imdb.com/name/'+nameID+'), '
+		
+		# If first movie name in list...
 		if index==0:
 			# Append back the header
-			theActors[index]='Actors: '+theActors[index]
-		# Consecrate each markdown actor into a return variable
-		b=b+theActors[index]
+			theNames[index]=header+' ' +theNames[index]
+		# Consecrate each markdown movie name into a return variable
+		b=b+theNames[index]
 	#print b
 	#sys.exit()
 	return b
+
+# Function to return the IMDB id number of passed movie name...director or actors
+def getNameID(name):
+	raw_string=re.compile(r' ')
+	searchstring=raw_string.sub('+',name)
+	
+	url='http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q='+searchstring
+	
+	d=queryData(url)
+	d=d.replace("\n","");
+	nameID=re.findall(r"(name_popular:.*)",d) or re.findall(r"(name_exact:.*)",d)
+	nameID=re.findall(r"(nm.*)",nameID[0]);
+	
+	nameID=nameID[0].split()
+	nameID=nameID[0].strip()
+	
+	print name+' IMDB Id: '+nameID
+	return nameID
 
 # Routine to mine data for desired strings
 def mineData(d):
@@ -136,9 +170,14 @@ def mineData(d):
 					# Add hashtag and make type string proper case
 					found=re.sub('Type: ','Type: #',found)
 					found=titleCase(found)
+				if headers[index]=='(Director: .*)':
+					# Return a Markdown list of director(s)
+					found=movieNamesMD(d,'Director:')
+					print ''		
 				if headers[index]=='(Actors: .*)':
 					# Return a Markdown list of actors
-					found=actorsMD(d)
+					found=movieNamesMD(d,'Actors:')
+					print ''
 				# If this is poster info then add Markdown syntax
 				if headers[index]=='(Poster: .*)':
 					found='[Poster:]('+re.sub("Poster: ","",found)+")"
@@ -187,24 +226,36 @@ def listData(d):
 			# Add imdbID to this array
 			theID.append(theIds[index])
 			
-	# Print out a new list of film choices
-	for index, item in enumerate(theFilm):
-		print index, item
-	try:
-		print ''
-		# Number of film selected will match the  index number of that film's imdbID in the id array
-		idx=int(raw_input("Enter the number of your desired film or TV series: "))
-	except ValueError:
-		print ''
-		print "Number doesn't exist."
-		sys.exit()
-	try:
-		testID=theID[idx]
-	except IndexError:
-		print ''
-		print "Try a number in range next time."
-		print
-		sys.exit()
+	while True:
+		# Print out a new list of film choices
+		for index, item in enumerate(theFilm):
+			print index, item
+		try:
+			print ''
+			'''
+			Number of film selected will
+			match the  index number of that
+			film's imdbID in the id array.
+			'''
+			idx=int(raw_input("Enter the number of your desired film or TV series: "))
+			testID=theID[idx]
+			break
+		except:
+			print ''
+			msg='Invalid entry...Continue? (y/n): '
+			choice=raw_input(msg)
+			if choice.upper()=='Y':
+				msg=''
+				console.clear()
+			else:
+				console.clear()
+				clipboard.set('')
+				theFilm=''
+				theID=''
+				print ''
+				msg='Process cancelled...Goodbye'
+				print msg
+				sys.exit()
 		
 	# Return the imdbID to the caller
 	return theID[idx]
@@ -217,47 +268,16 @@ def refineData(s):
 	d=queryData(url)
 	#print d
 	id=listData(d)
-	console.clear()
 	print ''
 	print "Retrieving data from new query..."
 	if url<>' ':
 		# Use ?i for an exact query on unique imdbID
 		url="http://www.omdbapi.com/?i=" + id + "&y=&plot=full&tomatoes=true&r=json"
 		d=queryData(url);
+		console.clear()
 		mineData(d)
 	else:
 		sys.exit()
-
-# Routine to append data to open doc
-def writeData():
-	console.clear()
-	film=clipboard.get()
-	if film=='':
-		sys.exit()
-	# Store contents of open doc in variable
-	old_text=editor.get_text()
-	# If open doc is not empty...
-	if old_text<>'':
-		'''
-		Copy contents of the open doc to a new
-		file. If back up file doesn't exist it
-		will be created. If it exists, it will
-		be overwritten.
-		'''
-		editor.set_file_contents('back_up.txt',old_text,'local')
-		replacement = ''
-		# Clear contents of current doc
-		editor.replace_text(0,len(old_text), replacement)
-		# Append new imdb data to text in current open doc
-		concat=old_text +'\n'+'\n'+film
-	else:
-		# Query results only
-		concat=film
-	# Copy results to clipboard
-	clipboard.set(concat)
-	#editor.set_file_contents('Notepad.txt','','local')
-	# Write results to open document in Editorial
-	editor.replace_text(0,0,concat)
 	
 def main():
 	console.clear()
@@ -270,7 +290,6 @@ def main():
 	
 	raw_string=re.compile(r' ')
 	searchstring=raw_string.sub('+',myTitle)
-	
 	'''
 	Use ?t to search for one item...this
 	first pass will give you the most
@@ -278,29 +297,27 @@ def main():
 	the one you desire when there are
 	multiple titles with the same name
 	'''
-	
 	url="http://www.omdbapi.com/?t=" +searchstring + "&y=&plot=full&tomatoes=true&r=json"
 
 	# Call subroutines
 	d=queryData(url);
+	console.clear()
 	mineData(d)
-
+	
 	while True:
 		# Give user a choice to refine search
-		print ''
-		print "Refine your search? \n"
-		print "[y] Yes"
-		print "[n] No \n"
-	
-		choice=raw_input("Make a choice: ")
-
-		if choice == 'y':
+		msg='Refine your search? (y/n): '
+		choice=raw_input(msg)
+		if choice.upper() == 'Y':
+			console.clear()
 			refineData(searchstring)
 		else:
-			print''
-			print 'Results of your search were copied\nto the clipboard in MD for use with\nthe MD text editor of your choice.'
+			print ''
+			print 'Results of your search were copied\nto the clipboard in MD for use with\nthe MD text editor or journaling app\nof your choice.'
 			break
-
+	print ''
+	print ''
+	print ''
 	sys.exit()
 
 if __name__ == '__main__':
