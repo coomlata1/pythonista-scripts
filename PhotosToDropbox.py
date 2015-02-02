@@ -1,8 +1,10 @@
 # coding: utf-8
 # Name: PhotoToDropbox2.py
 # Author: John Coomler
-# Creation Date: 01.28.2015
-# Version: v1.0
+# v1.0: 01/28/2015-Created
+# v1.1: 02/01/2015-Fixed bug in
+# 'GetDimensions()' function for square
+# photos.
 '''
 This Pythonista script will RESIZE,
 RENAME, & UPLOAD all selected photos in
@@ -41,6 +43,7 @@ import PIL
 import string
 import re
 import pexif
+#import traceback
 from DropboxLogin import get_client
 
 # Global arrays for photos that will require manual processing
@@ -54,31 +57,33 @@ resizeOk=True
 keepMeta=True
 
 def GetDateTimeInfo(meta):
-	old_filename=str(meta.get('filename'))
-	exif=meta.get('{Exif}')
-	try:
-		if not exif=='None':
-			theDatetime=str(exif.get('DateTimeOriginal'))
+		old_filename=str(meta.get('filename'))
+		exif=meta.get('{Exif}')
+		try:
+			if not exif=='None':
+				theDatetime=str(exif.get('DateTimeOriginal'))
 			
-			theDatetime=theDatetime.split(" ")
+				theDatetime=theDatetime.split(" ")
 		
-			theDate=theDatetime[0]
-			theDate=theDate.split(':')
+				theDate=theDatetime[0]
+				theDate=theDate.split(':')
 		
-			theTime=theDatetime[1]
-			theTime=theTime.replace(':','.')+'.'
-			folder_name=theDate[0]+'/'+theDate[1]+'.'+theDate[2]+'.'+theDate[0]
-			new_filename=theTime+old_filename
-	except:
-		new_filename=old_filename
-		folder_name='NoDates'
-		no_exif.append(old_filename)
+				theTime=theDatetime[1]
+				theTime=theTime.replace(':','.')+'.'
+				folder_name=theDate[0]+'/'+theDate[1]+'.'+theDate[2]+'.'+theDate[0]
+				new_filename=theTime+old_filename
+		except:
+				new_filename=old_filename
+				folder_name='NoDates'
+				no_exif.append(old_filename)
 	
-	return old_filename,new_filename,folder_name
+		return old_filename,new_filename,folder_name
 
 def GetDimensions(meta,resize,img_name,min):
 	# Original size
 	exif=meta.get('{Exif}')
+	new_width=0
+	new_height=0
 	img_width=int(exif.get('PixelXDimension'))
 	img_height=int(exif.get('PixelYDimension'))
 	
@@ -95,24 +100,24 @@ def GetDimensions(meta,resize,img_name,min):
 		new_height=img_height
 		no_resize.append(img_name)
 		resizeOk=False
-		return (new_width,new_height,img_width,img_height,resizeOk)
-	# Don't resize a photo smaller than the desired minumum size.
-	elif int(resize*(img_width))*int(resize*(img_height))<int(min_width*min_height):
+	# Don't resize a non-square photo smaller than the desired minumum size.
+	elif img_width<>img_height and int(resize*(img_width))*int(resize*(img_height))<int(min_width*min_height):
 		new_width=img_width
 		new_height=img_height
 		no_resize.append(img_name)
-		resizeOk=False
-		return (new_width,new_height,img_width,img_height,resizeOk)
-			
+		resizeOk=False	
 	# Square
 	elif img_width==img_height:
-		# Don't resize square photos smaller than width of desired minumum size
-		if img_width<min_width:
+		# Don't resize square photos with a height smaller than height of desired minumum size
+		if img_width<min_height:
 			new_width=img_width
 			new_height=img_height
 			no_resize.append(img_name)
 			resizeOk=False
-		return (new_width,new_height,img_width,img_height,resizeOk)
+		else:
+			new_width=int(resize*img_width)
+			new_height=int(resize*img_height)
+			resizeOk=True
 	else:
 		new_width=int(resize*img_width)
 		new_height=int(resize*img_height)
@@ -122,35 +127,35 @@ def GetDimensions(meta,resize,img_name,min):
 	return (new_width,new_height,img_width,img_height,resizeOk)
 
 def CopyMeta(meta_src,meta_dst,x,y):
-	'''
-	Copy metadata from original photo to a
-	resized photo that has no media
-	metadata and write the results to a
-	new photo that is resized with the
-	media metadata.
-	'''
-	# Source photo
-	img_src=pexif.JpegFile.fromFile(meta_src)
-	# Destination photo
-	img_dst=pexif.JpegFile.fromFile(meta_dst)
-	img_dst.import_metadata(img_src)
+		'''
+		Copy metadata from original photo to a
+		resized photo that has no media
+		metadata and write the results to a
+		new photo that is resized with the
+		media metadata.
+		'''
+		# Source photo
+		img_src=pexif.JpegFile.fromFile(meta_src)
+		# Destination photo
+		img_dst=pexif.JpegFile.fromFile(meta_dst)
+		img_dst.import_metadata(img_src)
 		
-	# Results photo
-	'''
-	After importing metadata from source
-	we need to update the metadata to the
-	new resize dimensions. Thanks to Ben
-	Leslie for updating Pexif to
-	accomodate this. 
-	'''
-	img_dst.exif.primary.ExtendedEXIF.PixelXDimension = [x]
-	img_dst.exif.primary.ExtendedEXIF.PixelYDimension = [y]
+		# Results photo
+		'''
+		After importing metadata from source
+		we need to update the metadata to the
+		new resize dimensions. Thanks to Ben
+		Leslie for updating Pexif to
+		accomodate this. 
+		'''
+		img_dst.exif.primary.ExtendedEXIF.PixelXDimension = [x]
+		img_dst.exif.primary.ExtendedEXIF.PixelYDimension = [y]
 		
-	# Now write the updated metadata to the resized photo
-	img_dst.writeFile('meta_resized.jpg')
+		# Now write the updated metadata to the resized photo
+		img_dst.writeFile('meta_resized.jpg')
 		
-	img_src=''
-	img_dst=''
+		img_src=''
+		img_dst=''
 
 def main():
 	console.clear()
@@ -211,6 +216,17 @@ def main():
 		# Metadata
 		meta=photo[1]
 		#print meta
+		#sys.exit()
+		
+		# Lines below for debugging
+		#try:
+			#ef=pexif.JpegFile.fromString(img)
+			#ef.dump()
+		#except TypeError:
+			#exc_type, exc_value, exc_traceback=sys.exc_info()
+		
+			#print '*** print_exception:'
+			#traceback.print_exception(exc_type,exc_value, exc_traceback,limit=2,file=sys.stdout)
 		#sys.exit()
 		
 		# Get date and time info of photo
