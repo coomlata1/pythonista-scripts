@@ -57,27 +57,27 @@ resizeOk=True
 keepMeta=True
 
 def GetDateTimeInfo(meta):
-		old_filename=str(meta.get('filename'))
-		exif=meta.get('{Exif}')
-		try:
-			if not exif=='None':
-				theDatetime=str(exif.get('DateTimeOriginal'))
+	old_filename=str(meta.get('filename'))
+	exif=meta.get('{Exif}')
+	try:
+		if not exif=='None':
+			theDatetime=str(exif.get('DateTimeOriginal'))
 			
-				theDatetime=theDatetime.split(" ")
+			theDatetime=theDatetime.split(" ")
 		
-				theDate=theDatetime[0]
-				theDate=theDate.split(':')
+			theDate=theDatetime[0]
+			theDate=theDate.split(':')
 		
-				theTime=theDatetime[1]
-				theTime=theTime.replace(':','.')+'.'
-				folder_name=theDate[0]+'/'+theDate[1]+'.'+theDate[2]+'.'+theDate[0]
-				new_filename=theTime+old_filename
-		except:
-				new_filename=old_filename
-				folder_name='NoDates'
-				no_exif.append(old_filename)
+			theTime=theDatetime[1]
+			theTime=theTime.replace(':','.')+'.'
+			folder_name=theDate[0]+'/'+theDate[1]+'.'+theDate[2]+'.'+theDate[0]
+			new_filename=theTime+old_filename
+	except:
+		new_filename=old_filename
+		folder_name='NoDates'
+		no_exif.append(old_filename)
 	
-		return old_filename,new_filename,folder_name
+	return old_filename,new_filename,folder_name
 
 def GetDimensions(meta,resize,img_name,min):
 	# Original size
@@ -127,35 +127,35 @@ def GetDimensions(meta,resize,img_name,min):
 	return (new_width,new_height,img_width,img_height,resizeOk)
 
 def CopyMeta(meta_src,meta_dst,x,y):
-		'''
-		Copy metadata from original photo to a
-		resized photo that has no media
-		metadata and write the results to a
-		new photo that is resized with the
-		media metadata.
-		'''
-		# Source photo
-		img_src=pexif.JpegFile.fromFile(meta_src)
-		# Destination photo
-		img_dst=pexif.JpegFile.fromFile(meta_dst)
-		img_dst.import_metadata(img_src)
+	'''
+	Copy metadata from original photo to a
+	resized photo that has no media
+	metadata and write the results to a
+	new photo that is resized with the
+	media metadata.
+	'''
+	# Source photo
+	img_src=pexif.JpegFile.fromFile(meta_src)
+	# Destination photo
+	img_dst=pexif.JpegFile.fromFile(meta_dst)
+	img_dst.import_metadata(img_src)
 		
-		# Results photo
-		'''
-		After importing metadata from source
-		we need to update the metadata to the
-		new resize dimensions. Thanks to Ben
-		Leslie for updating Pexif to
-		accomodate this. 
-		'''
-		img_dst.exif.primary.ExtendedEXIF.PixelXDimension = [x]
-		img_dst.exif.primary.ExtendedEXIF.PixelYDimension = [y]
+	# Results photo
+	'''
+	After importing metadata from source
+	we need to update the metadata to the
+	new resize dimensions. Thanks to Ben
+	Leslie for updating Pexif to
+	accomodate this. 
+	'''
+	img_dst.exif.primary.ExtendedEXIF.PixelXDimension = [x]
+	img_dst.exif.primary.ExtendedEXIF.PixelYDimension = [y]
 		
-		# Now write the updated metadata to the resized photo
-		img_dst.writeFile('meta_resized.jpg')
+	# Now write the updated metadata to the resized photo
+	img_dst.writeFile('meta_resized.jpg')
 		
-		img_src=''
-		img_dst=''
+	img_src=''
+	img_dst=''
 
 def main():
 	console.clear()
@@ -216,17 +216,6 @@ def main():
 		# Metadata
 		meta=photo[1]
 		#print meta
-		#sys.exit()
-		
-		# Lines below for debugging
-		#try:
-			#ef=pexif.JpegFile.fromString(img)
-			#ef.dump()
-		#except TypeError:
-			#exc_type, exc_value, exc_traceback=sys.exc_info()
-		
-			#print '*** print_exception:'
-			#traceback.print_exception(exc_type,exc_value, exc_traceback,limit=2,file=sys.stdout)
 		#sys.exit()
 		
 		# Get date and time info of photo
