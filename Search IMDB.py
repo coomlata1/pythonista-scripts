@@ -48,19 +48,19 @@ import clipboard
 # Initialize global variable
 d='';
 
-# Routine to capitialize first letter of each word
+# Funtion that returns a string with first letter of each word capitalized.
 def titleCase(s):
 	newText = re.sub(r"[A-Za-z]+('[A-Za-z]+)?",lambda mo: mo.group(0)[0].upper() + mo.group(0)[1:].lower(),s)
 	return newText 
 	
-# Routine to query IMDB database
+# Function that returns a query to IMDB database
 def queryData(s):
 	request=urllib2.Request(s)
 	response=json.load(urllib2.urlopen(request))
 	
 	d=json.dumps(response,indent=-10)
 	'''
-	# Reformat data, stripping out extra
+	Reformat data, stripping out extra
 	spaces, quotation marks, commas, etc as
 	necessary
 	'''
@@ -89,7 +89,7 @@ def queryData(s):
 	
 	return d
 
-# Function to return a Markdown list of movie names(actors & directors) listed in d
+# Function that returns a Markdown list of movie names(actors & directors) listed in query
 def movieNamesMD(d,header):
 	b=''
 	a=re.findall(r'('+header+' .*)',d);
@@ -119,7 +119,7 @@ def movieNamesMD(d,header):
 	#sys.exit()
 	return b
 
-# Function to return the IMDB id number of passed movie name...director or actors
+# Function to return the IMDB id number of a director or actors name
 def getNameID(name):
 	raw_string=re.compile(r' ')
 	searchstring=raw_string.sub('+',name)
@@ -137,7 +137,7 @@ def getNameID(name):
 	print name+' IMDB Id: '+nameID
 	return nameID
 
-# Routine to mine data for desired strings
+# Routine to mine query results for desired strings & copies a Markdown text of those strings to the clipboard.
 def mineData(d):
 	#john=re.findall(r"(.*: .*)",d);
 	
@@ -189,13 +189,13 @@ def mineData(d):
 	# Append a title string and poster string in Markdown
 	new_data='**Title:** [' +re.sub("Title: ","",title)+ '](http://www.imdb.com/title/' + re.sub("imdbID: ","",imdb_ID)+'/)\n\n' + new_data + poster
 	
-	# Clear clipboard, then add formatted info
+	# Clear clipboard, then add formatted text
 	clipboard.set('')
 	clipboard.set(new_data)
 	
-# Routine to give user more choices if not satisfied with the results of first query
+# Funtion that provides list of multiple title choices if not satisfied with results of 1st query & returns the IMDB id for the movie title chosen.
 def listData(d):
-	# create list objects from the passed data d
+	# Create list objects from the query results
 	theTitles=re.findall(r"(Title: .*)",d);
 	theYears=re.findall(r"(Year: .*)",d);
 	theTypes=re.findall(r"(Type: .*)",d);
@@ -260,13 +260,14 @@ def listData(d):
 	# Return the imdbID to the caller
 	return theID[idx]
 	
-# Routine to refine your search if not happy with results of previous search
+# Routine to refine query for mulitple titles if not happy with results of previous query
 def refineData(s):
 	clipboard.set('')
 	# Use ?s for a query that yields multiple titles
 	url="http://www.omdbapi.com/?s=" +s+ "&y=&plot=full&tomatoes=true&r=json"
 	d=queryData(url)
 	#print d
+	# List all the titles that match query and return IMDB id for movie title chosen from list
 	id=listData(d)
 	print ''
 	print "Retrieving data from new query..."
