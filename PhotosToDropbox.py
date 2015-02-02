@@ -43,7 +43,6 @@ import PIL
 import string
 import re
 import pexif
-#import traceback
 from DropboxLogin import get_client
 
 # Global arrays for photos that will require manual processing
