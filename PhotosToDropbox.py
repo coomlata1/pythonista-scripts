@@ -1,24 +1,27 @@
 # coding: utf-8
-# Name: PhotoToDropbox2.py
+# Name: PhotoToDropbox.py
 # Author: John Coomler
 # v1.0: 01/28/2015-Created
 # v1.1: 02/01/2015-Fixed bug in
 # 'GetDimensions()' function for square
 # photos.
+# v1.2: 02/05/2015-Added code to geo-tag
+# photos with date, time, and place that
+# photo was taken
 '''
 This Pythonista script will RESIZE,
-RENAME, & UPLOAD all selected photos in
-the iPhone camera roll to new folders
-in your Dropbox account. The main folder
-will be named after the year the photo was
-taken in the format 'yyyy', & the
-subfolders will be named for the date the
-photo was taken in the format mm.dd.yyyy.
-The photos themselves will have the exact
-time the photo was taken amended to the
-front of their names in the format
-hh.mm.ss.XXXX.jpg, where XXXX is the
-original name. All metadata in the
+RENAME, GEO-TAG & UPLOAD all selected
+photos in the iPhone camera roll to new
+folders in your Dropbox account. The main
+folder will be named after the year the
+photo was taken in the format 'yyyy', &
+the subfolders will be named for the date
+the photo was taken in the format
+mm.dd.yyyy. The photos themselves will
+have the exact time the photo was taken
+amended to the front of their names in the
+format hh.mm.ss.XXXX.jpg, where XXXX is
+the original name. All metadata in the
 original photo will be copied to the
 resized & renamed copy if desired. The
 script allows you to select your desired
@@ -36,18 +39,21 @@ module at github.
 '''
 import photos
 import time
-import Image
 import sys
 import console
-import PIL
 import string
 import re
 import pexif
+import location
+from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw
 from DropboxLogin import get_client
 
 # Global arrays for photos that will require manual processing
 no_exif=[]
 no_resize=[]
+no_gps=[]
 
 # Global processing flags
 resizeOk=True
@@ -55,8 +61,10 @@ resizeOk=True
 # Set this flag to false to resize photos without the metadata
 keepMeta=True
 
-def GetDateTimeInfo(meta):
-	old_filename=str(meta.get('filename'))
+# Set this flag to false to not stamp geo tags on photos
+geoTag=True
+
+def GetDateTime(meta):
 	exif=meta.get('{Exif}')
 	try:
 		if not exif=='None':
@@ -66,17 +74,17 @@ def GetDateTimeInfo(meta):
 		
 			theDate=theDatetime[0]
 			theDate=theDate.split(':')
+			theYear=theDate[0]
+			theDate=theDate[1]+'.'+theDate[2]+'.'+theDate[0]
 		
 			theTime=theDatetime[1]
-			theTime=theTime.replace(':','.')+'.'
-			folder_name=theDate[0]+'/'+theDate[1]+'.'+theDate[2]+'.'+theDate[0]
-			new_filename=theTime+old_filename
+			theTime=theTime.replace(':','.')		
 	except:
-		new_filename=old_filename
-		folder_name='NoDates'
-		no_exif.append(old_filename)
+		theYear=''
+		theDate=''
+		theTime=''
 	
-	return old_filename,new_filename,folder_name
+	return theYear,theDate,theTime
 
 def GetDimensions(meta,resize,img_name,min):
 	# Original size
@@ -128,10 +136,9 @@ def GetDimensions(meta,resize,img_name,min):
 def CopyMeta(meta_src,meta_dst,x,y):
 	'''
 	Copy metadata from original photo to a
-	resized photo that has no media
-	metadata and write the results to a
-	new photo that is resized with the
-	media metadata.
+	resized photo that has no media metadata
+	and write the results to a new photo
+	that is resized with the media metadata.
 	'''
 	# Source photo
 	img_src=pexif.JpegFile.fromFile(meta_src)
@@ -155,6 +162,77 @@ def CopyMeta(meta_src,meta_dst,x,y):
 		
 	img_src=''
 	img_dst=''
+
+def GetDegreesToRotate(d):
+	d=str(d)
+	if d=='1':
+		degreesToRotate=0
+		orientation='landscape'
+	elif d=='3':
+		degreesToRotate=-180
+		orientation='landscape'
+	elif d=='6':
+		degreesToRotate=-90
+		orientation='portrait'
+	elif d=='8':
+		degreesToRotate=90
+		orientation='portrait'
+	else:
+		degreesToRotate=0
+		orientation='unknown'
+	return degreesToRotate, orientation
+
+def GetLocation(meta):
+	gps=meta.get('{GPS}')
+	if gps:
+		lat=gps.get('Latitude',0.0)
+		long=gps.get('Longitude',0.0)
+		lat_ref=gps.get('LatitudeRef', '')
+		long_ref=gps.get('LongitudeRef', '')
+		# Southern hemisphere
+		if lat_ref=='S':
+			lat=-lat
+		# Western hemisphere
+		if long_ref=='W':
+			long=-long
+			
+		coordinates={'latitude': lat, 'longitude':long}
+			
+		# Dictionary of location data
+		results=location.reverse_geocode(coordinates)
+		
+		theValues=list(results[0].values())
+		theKeys=list(results[0].keys())
+		
+		for idx,ref in enumerate(theKeys):
+			if ref=='Name':
+				name=theValues[idx]
+			if ref=='City':
+				city=theValues[idx]
+			if ref=='Thoroughfare':
+				street=theValues[idx]
+			if ref=='State':
+				state=theValues[idx]
+		# If address then use street name only
+		if find_number(name):
+			name=street
+		else:
+			name=name
+		
+		theLocation=city+', '+state+' @ '+name
+	else:
+		theLocation=''
+			
+	results=''
+	theValues=''
+	theKeys=''
+	lat=''
+	long=''
+	gps=''
+	return theLocation
+		
+def find_number(a):
+	return re.findall(r'^\.?\d+',a)
 
 def main():
 	console.clear()
@@ -217,14 +295,25 @@ def main():
 		#print meta
 		#sys.exit()
 		
-		# Get date and time info of photo
-		old_filename,new_filename,folder_name=GetDateTimeInfo(meta)
+		# Get date & time photo was taken
+		theYear,theDate,theTime=GetDateTime(meta)
 		
-		# Use info to rename photo
+		# Formulate file name for photo
+		old_filename=str(meta.get('filename'))
+		if theDate<>'':
+			folder_name=theYear+'/'+theDate
+			new_filename=theTime+'.'+old_filename
+		else:
+			folder_name='NoDates'
+			new_filename=old_filename
+		
 		new_filename=dest_dir+'/'+folder_name+'/'+new_filename
 		
+		if folder_name=='NoDates':
+			no_exif.append(new_filename)
+			
 		# Get dimensions for resize based on size of original photo
-		new_width,new_height,old_width,old_height,resizeOk=GetDimensions(meta,resizePercent,old_filename,minumum_size)
+		new_width,new_height,old_width,old_height,resizeOk=GetDimensions(meta,resizePercent,new_filename,minumum_size)
 		
 		print ''
 		print 'Original Name: '+old_filename
@@ -251,28 +340,68 @@ def main():
 		addToMsg=''
 		
 		# Write string image of original photo to Pythonista script dir
-		with open('meta_with.jpg', 'wb') as out_file:
+		with open('with_meta.jpg', 'wb') as out_file:
 			out_file.write(img)
 		
 		# Open image, resize it, and write new image to scripts dir
-		img=Image.open('meta_with.jpg')
+		img=Image.open('with_meta.jpg')
+		
+		if geoTag:
+			# Get geo-tagging info
+			theLocation=GetLocation(meta)
+			if theLocation<>'':
+				print ''
+				print 'Geo-tagging photo...'
+				# Find out if photo is oriented for landscape or portrait
+				orientation=meta.get('Orientation')
+				
+				'''
+				Get degrees needed to rotate photo
+				for it's proper orientation. See
+				www.impulsesdventue.com/photo
+				exif-orientation.html for more
+				details.	
+				'''
+				degrees,oriented=GetDegreesToRotate(orientation)
+				
+				print ''
+				print 'The orientation for photo is '+oriented+'.'
+				theTime=theTime.replace('.',':')
+				theLocation=theDate+' @ '+theTime+' in '+theLocation
+				# Rotate so tag is on bottom of photo regardless of orientation
+				img=img.rotate(degrees)
+				w,h=img.size
+				img=img.convert('RGBA')
+				draw=ImageDraw.Draw(img)
+				# Font for tag will be 56 point Helvetica
+				font=ImageFont.truetype('Helvetica',56)
+				# Put cyan text @ bottom left of photo
+				draw.text((25,h-75),theLocation,(0,255,255),font=font)
+				# Rotate back to original position
+				img=img.rotate(-degrees)
+			else:
+				print ''
+				print 'No gps metadata for photo.'
+				no_gps.append(new_filename)
+		
+		meta=''
 		resized=img.resize((new_width,new_height),Image.ANTIALIAS)
-		resized.save('meta_without.jpg')
+		resized.save('without_meta.jpg')
 		resized=''
 		
 		if keepMeta:
 			'''
-			Copy metadata from 'meta_with.jpg'
-			to 'meta_without.jpg and call this
+			Copy metadata from 'with_meta.jpg'
+			to 'without_meta.jpg and call this
 			reprocessed image file
 			'meta_resized.jpg'. 
 			'''
-			CopyMeta('meta_with.jpg','meta_without.jpg',new_width,new_height)
+			CopyMeta('with_meta.jpg','without_meta.jpg',new_width,new_height)
 		
 			jpgFile='meta_resized.jpg'
 		else:
 			# Use resized photo that has not had metadata added back into it
-			jpgFile='meta_without.jpg'
+			jpgFile='without_meta.jpg'
 			
 		print ''
 		print 'Uploading photo to Dropbox...'
@@ -289,8 +418,16 @@ def main():
 		
 		# Give Dropbox server time to process
 		time.sleep(5)
+		
 		response=''
 		jpgFile=''
+		theLocation=''
+		img=''
+		theDate=''
+		theTime=''
+		theYear=''
+		new_filename=''
+		old_filename=''
 		
 		print ''
 		print 'Upload successful.'
@@ -309,6 +446,12 @@ def main():
 		print 'Photos that did not get resized because either you chose not to resize, or they were smaller than the minumum size of 1600x1200:'
 		print '\n'.join(no_resize)
 
+	if len(no_gps)>0:
+		print ''
+		print 'Photos that did not get geo-tagged because there was no gps info in the photos metadata:'
+		print '\n'.join(no_gps)
+	
 	sys.exit()
 if __name__ == '__main__':
 			main()
+		
