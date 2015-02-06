@@ -7,8 +7,8 @@
 # photos.
 # v1.2: 02/05/2015-Added code to geo-tag
 # photos with date, time, and place that
-# photo was taken and a timer function
-# to get processing time for script.
+# photo was taken & a timer function to
+# track the processing time for script.
 '''
 This Pythonista script will RESIZE,
 RENAME, GEO-TAG & UPLOAD all selected
