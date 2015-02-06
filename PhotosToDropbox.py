@@ -1,5 +1,5 @@
 # coding: utf-8
-# Name: PhotoToDropbox3.py
+# Name: PhotoToDropbox.py
 # Author: John Coomler
 # v1.0: 01/28/2015-Created
 # v1.1: 02/01/2015-Fixed bug in
