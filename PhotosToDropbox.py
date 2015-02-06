@@ -87,7 +87,13 @@ def GetDateTime(meta):
 	
 	return theYear,theDate,theTime
 
-def GetDimensions(w,h,scale,img_name,min):
+def GetDimensions(meta,scale,img_name,min):
+	# Original dimensions
+	exif=meta.get('{Exif}')
+	w=int(exif.get('PixelXDimension'))
+	h=int(exif.get('PixelYDimension'))
+	
+	Minumum photo size
 	if min:
 		min_w=1600
 		min_h=1200
@@ -316,10 +322,8 @@ def main():
 			no_exif.append(new_filename)
 			
 		# Get dimensions for resize based on size of original photo
-		exif=meta.get('{Exif}')
-		w=int(exif.get('PixelXDimension'))
-		h=int(exif.get('PixelYDimension'))
-		new_w,new_h,resizeOk=GetDimensions(w,h,scale,new_filename,minumum_size)
+		
+		new_w,new_h,w,h,resizeOk=GetDimensions(meta,scale,new_filename,minumum_size)
 		
 		print ''
 		print 'Original Name: '+old_filename
