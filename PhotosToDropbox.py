@@ -93,7 +93,7 @@ def GetDimensions(meta,scale,img_name,min):
 	w=int(exif.get('PixelXDimension'))
 	h=int(exif.get('PixelYDimension'))
 	
-	Minumum photo size
+	# Minumum dimensions
 	if min:
 		min_w=1600
 		min_h=1200
@@ -127,8 +127,8 @@ def GetDimensions(meta,scale,img_name,min):
 		new_w=w
 		new_h=h
 		
-	# Return resize dimensions	
-	return new_w,new_h,resizeOk
+	# Return new & original dimensions, & resize flag	
+	return new_w,new_h,w,h,resizeOk
 
 def CopyMeta(meta_src,meta_dst,x,y):
 	'''
