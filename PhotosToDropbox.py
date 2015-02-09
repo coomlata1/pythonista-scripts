@@ -229,6 +229,7 @@ def Timer(start, end, count):
 	process, based on start and finish
 	"""
 	elapsed = end - start
+	# Add 5 seconds to time for each photo's dropbox upload pause
 	elapsed=elapsed+(5*count)
 	# Convert process time, if needed
 	if elapsed <= 59:
