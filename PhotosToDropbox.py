@@ -9,6 +9,8 @@
 # photos with date, time, and place that
 # photo was taken & a timer function to
 # track the processing time for script.
+# v1.3: 02/09/2015-Reduced geo-tag font
+# size for smaller photos.
 '''
 This Pythonista script will RESIZE,
 RENAME, GEO-TAG & UPLOAD all selected
@@ -384,8 +386,17 @@ def main():
 				w,h=img.size
 				img=img.convert('RGBA')
 				draw=ImageDraw.Draw(img)
-				# Font for tag will be 56 point Helvetica
-				font=ImageFont.truetype('Helvetica',56)
+				'''
+				Font for geo-tag of smaller photos
+				will be 28 point Helvetica, while
+				the rest will be 56 point.
+				'''
+				if w>1200:
+					fontsize=56
+				else:
+					fontsize=28
+				
+				font=ImageFont.truetype('Helvetica',fontsize)
 				# Put red text @ bottom left of photo
 				draw.text((25,h-75),theLocation,(255,0,0),font=font)
 				# Rotate back to original position
