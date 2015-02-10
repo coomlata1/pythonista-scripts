@@ -11,8 +11,8 @@
 # track the processing time for script.
 # v1.3: 02/09/2015-Reduced geo-tag font
 # size for smaller photos.
-# v1.4: 02/09/2015-Many thanks to ccc
-# for detailed code cleanup and insightful
+# v1.4: 02/09/2015-Many thanks to cclaus
+# for detailed code cleanup & insightful
 # comments.
 '''
 This Pythonista script will RESIZE,
