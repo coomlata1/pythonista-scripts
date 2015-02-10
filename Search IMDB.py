@@ -6,6 +6,8 @@
 # function to return IMDB name id's for
 # use with director & actor hypertexts.
 # Added 'while True' loops for user input.
+# v1.2: 02/09/2015-Many thanks to cclaus
+# for code cleanup & great comments.
 '''
 This Pythonista script uses the api
 available at www.omdbapi.com to search
@@ -253,14 +255,6 @@ def listData(d):
             choice=raw_input(msg)
             console.clear()
             if not choice.upper().startswith('Y'):  # ccc: accept 'Yes', etc.
-                #    msg=''
-                #else:
-                #clipboard.set('')  # why remove the clipboard?
-                #theFilm=''
-                #theID=''
-                #print ''
-                #msg='Process cancelled...Goodbye'
-                #print msg
                 sys.exit('Process cancelled...Goodbye')
 
     # Return the imdbID to the caller
@@ -321,7 +315,6 @@ def main(args):
         else:
             print '\nResults of your search were copied\nto the clipboard in MD for use with\nthe MD text editor or journaling app\nof your choice.\n\n'
             break
-    #sys.exit()  # ccc: not required
-
+    
 if __name__ == '__main__':
     main(sys.argv[1:])  # strip off script name
