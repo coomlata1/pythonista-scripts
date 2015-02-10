@@ -80,11 +80,15 @@ def queryData(url):
     #sys.exit()
 
     # Trap errors in user input, if any
-    error=re.search("(Error: .*)",d);
+    #error=re.search("(Error: .*)",d);
+    #if error:
+    #    error=error.group(1)
+    #    print error
+    #    sys.exit()
+    error=d.partition('Error: ')[2]  # ccc: simplify with str.partition()
+    # Trap errors in user input, if any
     if error:
-        error=error.group(1)
-        print error
-        sys.exit()
+        sys.exit(error)
 
     return d
 
