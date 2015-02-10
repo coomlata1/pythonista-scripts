@@ -11,6 +11,9 @@
 # track the processing time for script.
 # v1.3: 02/09/2015-Reduced geo-tag font
 # size for smaller photos.
+# v1.4: 02/09/2015-Many thanks to ccc
+# for detailed code cleanup and insightful
+# comments.
 '''
 This Pythonista script will RESIZE,
 RENAME, GEO-TAG & UPLOAD all selected
@@ -147,8 +150,6 @@ def CopyMeta(meta_src,meta_dst,x,y):
     # Now write the updated metadata to the resized photo
     img_dst.writeFile('meta_resized.jpg')
 
-    img_src = img_dst = ''  # why do this?  Python has automatic garbage collection.
-
 def GetDegreesToRotate(d):  # ccc: rewrite to used dict.get() with default
     # returns degreesToRotate, orientation
     rotate_dict = { '1' : (   0, 'landscape'),
@@ -161,17 +162,17 @@ def GetLocation(meta):
     gps=meta.get('{GPS}')
     if gps:
         lat=gps.get('Latitude',0.0)
-        long=gps.get('Longitude',0.0)  # ccc: 'long' is a python reserved word.  Use 'lon' instead?
+        lon=gps.get('Longitude',0.0)  # ccc: 'long' is a python reserved word.  Use 'lon' instead?
         lat_ref=gps.get('LatitudeRef', '')
-        long_ref=gps.get('LongitudeRef', '')
+        lon_ref=gps.get('LongitudeRef', '')
         # Southern hemisphere
         if lat_ref=='S':
             lat=-lat
         # Western hemisphere
-        if long_ref=='W':
-            long=-long
+        if lon_ref=='W':
+            lon=-lon
 
-        coordinates={'latitude': lat, 'longitude':long}
+        coordinates={'latitude': lat, 'longitude':lon}
 
         # Dictionary of location data
         results=location.reverse_geocode(coordinates)[0]  # ccc: pick results[0] right away
@@ -180,20 +181,17 @@ def GetLocation(meta):
         street=results['Thoroughfare']
         city=results['City']
         state=results['State']
-        zip=results['ZIP']
+        zipcode=results['ZIP']
 
         # If name is an address then use street name only
         if find_number(name):
             name=street
-        #else:  ccc: not needed
-        #    name=name
         
         # ccc: use str.format() for complex string assembly
-        theLocation='{}, {} {} @ {}'.format(city, state, zip, name)
+        theLocation='{}, {} {} @ {}'.format(city, state, zipcode, name)
     else:
         theLocation=''
-
-    results = lat = long = gps= ''  # ccc: why do this?
+    
     return theLocation
 
 def find_number(a):
@@ -210,7 +208,7 @@ def Timer(start, end, count):
     # Convert process time, if needed
     if elapsed < 60:
         time = str(round(elapsed,2)) + " seconds\n"
-    if 60 <= elapsed <= 3590:  # ccc: slightly faster to state the variable only once
+    if 60 <= elapsed <= 3599:  # ccc: slightly faster to state the variable only once
         min = elapsed / 60
         time = str(round(min,2)) + " minutes\n"
     if elapsed >= 3600:        # ccc: what happens if elapsed is 3591, 3592, 3593, etc.?
@@ -311,8 +309,6 @@ def main():
             msg='\nCreating copy of original photo '+addToMsg+' the metadata from original.'
 
         print msg
-
-        msg = addToMsg = ''  # ccc: why do this
 
         # Write string image of original photo to Pythonista script dir
         with open('with_meta.jpg', 'wb') as out_file:
@@ -415,7 +411,5 @@ def main():
         print '\nPhotos that did not get geo-tagged because there was no gps info in the photos metadata:'
         print '\n'.join(no_gps)
 
-    # sys.exit()  # ccc: not required
-
-if __name__ == '__main__':
+    if __name__ == '__main__':
     main()
