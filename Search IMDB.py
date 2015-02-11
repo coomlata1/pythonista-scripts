@@ -42,6 +42,7 @@ more info is desired.
 import clipboard
 import console
 import json
+import pprint
 import re
 import requests  # use requests to simplify
 import string
@@ -60,11 +61,12 @@ url_fmt='http://www.omdbapi.com/?{}={}&y=&plot=full&tomatoes=true&r=json'
 
 # Function that returns a query to IMDB database
 def queryData(url):
-    #request=urllib2.Request(s)
-    #response=json.load(urllib2.urlopen(request))
-    response = requests.get(url).json()  # use requests module to simplify
+    movie_dict = requests.get(url).json()
+    pprint.pprint(movie_dict)  # debugging code
+    if 'Error' in movie_dict  # halt if there are errors in the response
+        sys.exit(movie_dict['Error'])
 
-    d=json.dumps(response,indent=-10)
+    d=json.dumps(movie_dict,indent=-10)
     '''
     Reformat data, stripping out extra
     spaces, quotation marks, commas, etc as
@@ -85,10 +87,10 @@ def queryData(url):
     #    error=error.group(1)
     #    print error
     #    sys.exit()
-    error=d.partition('Error: ')[2]  # ccc: simplify with str.partition()
+    #error=d.partition('Error: ')[2]  # ccc: simplify with str.partition()
     # Trap errors in user input, if any
-    if error:
-        sys.exit(error)
+    #if error:
+    #    sys.exit(error)
 
     return d
 
