@@ -55,9 +55,8 @@ def city_ids(filename='cities.csv'):
     while True:
         try:
             ans = int(raw_input('\nEnter number of desired city: '))
-            if ans in range(len(ids)):
-                city, country, id = ids[ans]
-                return city, country, id
+            city, country, id = ids[ans]
+            return city, country, id
         except (IndexError, ValueError):
             pass
         print('Please enter a vaild number.')
