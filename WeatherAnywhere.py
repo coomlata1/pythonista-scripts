@@ -11,7 +11,11 @@ located at, using the api available from
 www.openweathermap.org. The inspiration
 for this script came from https://
 github.com/cclaus/
-weather_where_you_are.py.
+weather_where_you_are/
+weather_where_you_are.py. The conversion
+functions used here were found at
+http://jim-easterbrook.github.io/pywws/
+doc/en/html/_modules/pywws/conversions.html
 '''
 import location
 import requests
