@@ -6,16 +6,12 @@
 '''
 This script provides current and multi day
 weather forecasts for any city you name,
-or coordinates you are currently located
-in, using the api available from
+you select, or coordinates you are currently
+located at, using the api available from
 www.openweathermap.org. The inspiration
 for this script came from https://
 github.com/cclaus/
 weather_where_you_are.py.
-
-Print out current weather at your
-current location. Display geared for
-iPhone in portrait mode.
 '''
 import location
 import requests
