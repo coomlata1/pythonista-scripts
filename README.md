@@ -1,5 +1,5 @@
 # pythonista-scripts
-Useful scripts to be run in Pythonista for iOS.  Kudos to @cclauss for line by line code cleanup and helpful comments on improving these scripts.
+Useful scripts to be run in Pythonista for iOS.  Kudos to [cclauss](https://github.com/cclauss) for line by line code cleanup and helpful comments on improving these scripts.
 
 - **Search IMDB.py** - A script that I find useful to quickly look up info on a movie title or a TV series.  The results of the query are displayed on the console screen and a Markdown version is copied to the clipboard for pasting to a text editor, etc.
 
