@@ -1,6 +1,6 @@
 #coding: utf-8
 
-# Name: WeatherAnywhere3.py
+# Name: WeatherAnywhere.py
 # Author: John Coomler
 # v1.0: 02/07/2015 to 02/15/2015-Created
 # v1.1: 02/19/2015-Tightened up code and
