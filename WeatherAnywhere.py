@@ -32,10 +32,12 @@ import csv
 from PIL import Image
 
 # Global variables
-missing_icons=[]
 icons=[]
+missing_icons=[]
 # Number of days in advaced forecast
 day_count=7
+# Change to 'metric' if desired
+units='imperial'
 
 def get_current_lat_lon():
 	# Retrieve lat & lon from current locale
@@ -51,16 +53,19 @@ def get_current_lat_lon():
 def city_ids(filename='cities.csv'):
 	try:
 		with open(filename) as in_file:
+			# Read each line and store in list
 			ids = [row for row in csv.reader(in_file)]
 	except IOError as e:
 		sys.exit('IOError in city_ids(): {}'.format(e))
 	if not ids:
 		sys.exit('No cities found in: {}'.format(filename))
 	for i, id in enumerate(ids):
+		# Align numbers neatly in printed list of cities & countries
 		print('{:>7}. {}, {}'.format(i, id[0], id[1]))
 	while True:
 		try:
 			ans = int(raw_input('\nEnter number of desired city: '))
+			# Retrieve data from proper row,
 			city, country, id = ids[ans]
 			return city, country, id
 		except (IndexError, ValueError):
@@ -71,15 +76,16 @@ def get_weather_dicts(lat,lon,city,id):
 	base_url='http://api.openweathermap.org/data/2.5/'
 	
 	# Current weather conditions
+	fmt_url='weather?{}={}&type=accurate&units={}'
 	if city:
 		# From entered city
-		fmt_url = 'weather?q='+city+'&type=accurate&units=imperial'
+		fmt_url=fmt_url.format('q',city,units)
 	elif id:
 		# From list
-		fmt_url = 'weather?id='+id+'&type=accurate&units=imperial'
+		fmt_url=fmt_url.format('id',id,units)
 	else:
 		# From where you are now
-		fmt_url = 'weather?lat={0}&lon={1}&type=accurate&units=imperial'.format (lat,lon)
+		fmt_url = 'weather?lat={}&lon={}&type=accurate&units={}'.format (lat,lon,units)
 	
 	url=base_url+fmt_url
 	try:
@@ -92,18 +98,15 @@ def get_weather_dicts(lat,lon,city,id):
 		sys.exit('Weather servers are busy. Try again in 5 minutes...')
 	
 	# Extended forecast
+	fmt_url='forecast/daily?{}={}&type=accurate&units={}&cnt={}'
 	if city:
-		# From an entered city
-		fmt_url = 'forecast/daily?q='+city+'&units=imperial&cnt={}'.format(day_count)
+		fmt_url=fmt_url.format('q',city,units,day_count)
 	elif id:
-		# From list
-		fmt_url = 'forecast/daily?id='+id+'&units=imperial&cnt={}'.format(day_count)
+		fmt_url=fmt_url.format('id',id,units,day_count)
 	else:
-		# From where you are now
-		fmt_url='forecast/daily?lat={0}&lon={1}&type=accurate&units=imperial&cnt={2}'.format(lat,lon,day_count)
+		fmt_url='forecast/daily?lat={}&lon={}&type=accurate&units={}&cnt={}'.format(lat,lon,units,day_count)
 	
 	url=base_url+fmt_url
-	
 	try:
 		f=requests.get(url).json()
 		#import pprint;pprint.pprint(f)
@@ -111,7 +114,6 @@ def get_weather_dicts(lat,lon,city,id):
 	except:
 		console.clear()
 		sys.exit('Weather servers are busy. Try again in a minute...')
-	
 	return w,f
 
 def precip_inch(mm):
@@ -175,27 +177,6 @@ def pressure_inhg(hPa):
 	# Convert pressure from hectopascals/millibar to inches of mecury
 	return str(round(float(hPa/33.86389),2))
 
-def Timer(start, end):
-	"""
-	Calculates the time it takes to run
-	process, based on start and finish
-	"""
-	elapsed = end - start
-	# Convert process time, if needed
-	if elapsed < 60:
-		time = str(round(elapsed,2)) + " seconds\n"
-	
-	if 60 <= elapsed <= 3599:  # ccc: slightly faster to state the variable only once
-		min = elapsed / 60
-		time = str(round(min,2)) + " minutes\n"
-	
-	if elapsed >= 3600:        # ccc: what happens if elapsed is 3591, 3592, 3593, etc.?
-		hour = elapsed / 3600
-		time = str(round(hour,2)) + " hours\n"
-	
-	return time
-
-
 def get_current_weather(w):
 	# Current weather conditions
 	#for item in ('temp_min', 'temp_max'):
@@ -231,8 +212,8 @@ def get_current_weather(w):
 		gusts=''
 	# Convert timestamp to date of weather
 	w['dt']=datetime.datetime.fromtimestamp(int(w['dt'])).strftime('%A\n  %m-%d-%Y @ %I:%M %p:')
-	# Do same for sunrise,sunset timestamps
 	
+	# Do same for sunrise,sunset timestamps
 	for item in ('sunrise', 'sunset'):
 		w['sys'][item]=datetime.datetime.fromtimestamp(int(w['sys'][item])).strftime('%I:%M %p')
 	
@@ -270,6 +251,7 @@ def get_forecast(f):
 	
 	# Loop thru each day
 	for i in range(day_count):
+		# Get icon name and store in list
 		ico=str(f['list'][i]['weather'][0]['icon'])+'.png'
 		icons.append(ico)
 		
@@ -309,6 +291,7 @@ def get_forecast(f):
 		
 		# Wind direction and speed
 		forecast=forecast+'\n'+sp+'Wind: '+str(wind_dir(f['list'][i]['deg']))+' @ '+str(wind_mph(f['list'][i]['speed']))+' mph'
+		# Blank line between forecasted days
 		forecast=forecast+'\n'
 		
 	return forecast
@@ -354,8 +337,7 @@ def main():
 	
 	# Call api from www.openweathermap.org
 	w,f=get_weather_dicts(lat,lon,city,id)
-	
-	#start = time.clock()
+
 	#console.clear()
 	print('='*20)
 	# Print current conditions to console
@@ -390,9 +372,6 @@ def main():
 	print 'Weather information provided by openweathermap.org'
 	if missing_icons:
 		print '\n*Some or all weather icons are missing. There are 18 in all but some are duplicates and not needed. Make sure all needed icons are in the same folder as this script. Weather icons are available at http://www.openweathermap.org/weather-conditions'
-	
-	#finish = time.clock()
-	#print Timer(start, finish)
 
 if __name__ == '__main__':
 	main()
