@@ -1,6 +1,6 @@
 #coding: utf-8
 
-# Name: WeatherAnywhere.py
+# Name: WeatherAnywhere3.py
 # Author: John Coomler
 # v1.0: 02/07/2015 to 02/15/2015-Created
 # v1.1: 02/19/2015-Tightened up code and
@@ -16,20 +16,19 @@ or coordinates you are currently located
 in, using the api available from
 www.openweathermap.org. The inspiration
 for this script came from https://
-github.com/cclaus/weather_where_you_are/
+github.com/cclauss/weather_where_you_are/
 weather_where_you_are.py. The conversion
 functions used here were found at http://
 jim-easterbrook.github.io/pywws/doc/en/
 html/_modules/pywws/conversions.html
 '''
-import location
-import requests
-#import time
-import datetime
 import console
-import sys
 import csv
+import datetime
+import location
 from PIL import Image
+import requests
+import sys
 
 # Global variables
 icons=[]
@@ -37,7 +36,7 @@ missing_icons=[]
 # Number of days in advaced forecast
 day_count=7
 # Change to 'metric' if desired
-units='imperial'
+imperial_or_metric='imperial'
 
 def get_current_lat_lon():
 	# Retrieve lat & lon from current locale
@@ -46,9 +45,7 @@ def get_current_lat_lon():
 	#time.sleep(1)
 	address_dict = location.get_location()
 	location.stop_updates()
-	lat = address_dict['latitude']
-	lon = address_dict['longitude']
-	return lat,lon
+	return address_dict['latitude'],address_dict['longitude']
 
 def city_ids(filename='cities.csv'):
 	try:
@@ -69,27 +66,27 @@ def city_ids(filename='cities.csv'):
 			city, country, id = ids[ans]
 			return city, country, id
 		except (IndexError, ValueError):
-			pass
 			print('Please enter a vaild number.')
 
 def get_weather_dicts(lat,lon,city,id):
 	base_url='http://api.openweathermap.org/data/2.5/'
 	
 	# Current weather conditions
-	fmt_url='weather?{}={}&type=accurate&units={}'
 	if city:
 		# From entered city
-		fmt_url=fmt_url.format('q',city,units)
+		fmt='weather?q={}&type=accurate&units={}'
+		query=fmt.format(city,imperial_or_metric)
 	elif id:
 		# From list
-		fmt_url=fmt_url.format('id',id,units)
+		fmt='weather?id={}&type=accurate&units={}'
+		query=fmt.format(id,imperial_or_metric)
 	else:
 		# From where you are now
-		fmt_url = 'weather?lat={}&lon={}&type=accurate&units={}'.format (lat,lon,units)
+		fmt = 'weather?lat={}&lon={}&type=accurate&units={}'
+		query=fmt.format (lat,lon,imperial_or_metric)
 	
-	url=base_url+fmt_url
 	try:
-		w = requests.get(url).json()
+		w = requests.get(base_url+query).json()
 		#import pprint;pprint.pprint(w)
 		#See: http://bugs.openweathermap.org/projects/api/wiki
 		#sys.exit()
@@ -98,17 +95,17 @@ def get_weather_dicts(lat,lon,city,id):
 		sys.exit('Weather servers are busy. Try again in 5 minutes...')
 	
 	# Extended forecast
-	fmt_url='forecast/daily?{}={}&type=accurate&units={}&cnt={}'
 	if city:
-		fmt_url=fmt_url.format('q',city,units,day_count)
+		fmt='forecast/daily?q={}&type=accurate&units={}&cnt={}'
+		query=fmt.format(city,imperial_or_metric,day_count)
 	elif id:
-		fmt_url=fmt_url.format('id',id,units,day_count)
+		fmt='forecast/daily?id={}&type=accurate&units={}&cnt={}'
+		query=fmt.format(id,imperial_or_metric,day_count)
 	else:
-		fmt_url='forecast/daily?lat={}&lon={}&type=accurate&units={}&cnt={}'.format(lat,lon,units,day_count)
-	
-	url=base_url+fmt_url
+		fmt='forecast/daily?lat={}&lon={}&type=accurate&units={}&cnt={}'
+		query=fmt.format(lat,lon,imperial_or_metric,day_count)
 	try:
-		f=requests.get(url).json()
+		f=requests.get(base_url+query).json()
 		#import pprint;pprint.pprint(f)
 		#sys.exit()
 	except:
@@ -250,7 +247,7 @@ def get_forecast(f):
 	forecast= 'Extended '+str(day_count)+' Day Forecast for '+str(f['city']['name'])+':\n'
 	
 	# Loop thru each day
-	for i in range(day_count):
+	for i in xrange(day_count):
 		# Get icon name and store in list
 		ico=str(f['list'][i]['weather'][0]['icon'])+'.png'
 		icons.append(ico)
@@ -298,6 +295,8 @@ def get_forecast(f):
 
 def main():
 	console.clear()
+	city = country = id =''
+	lat = lon = 0
 	# Pick a weather source
 	try:
 		ans=console.alert('Choose Your Weather Source:','','From Your Current Location','From Entering a City Name','From A Pick List of Cities')
@@ -314,31 +313,21 @@ def main():
 			msg='Enter a city and country in format "'"New York, US"'": '
 			ans=console.input_alert(msg)
 			if ans:
-				#console.clear()
 				print('='*20)
 				print 'Gathering weather data for '+str.title(ans)
 				city=ans.replace(' ','+')
-				lat=0
-				lon=0
-				id=''		
 		elif ans==3:
 			# Pick from list
 			theCity,country,id=city_ids()
-			#console.clear()
 			print('='*20)
 			if id:
 				print 'Gathering weather data for '+theCity+', '+country
-				city=''
-				lat=0
-				lon=0		
 	except Exception as e:
-		msg='Error: '+str(e)
-		sys.exit(msg)
+		sys.exit('Error: {}'.format(e))
 	
 	# Call api from www.openweathermap.org
 	w,f=get_weather_dicts(lat,lon,city,id)
-
-	#console.clear()
+	
 	print('='*20)
 	# Print current conditions to console
 	print(get_current_weather(w))
@@ -365,13 +354,15 @@ def main():
 				img.show()
 			except:
 			 	missing_icons.append(ico)
-			 	pass
-			count=count+1
+			count += 1
 		print line
 	
 	print 'Weather information provided by openweathermap.org'
 	if missing_icons:
 		print '\n*Some or all weather icons are missing. There are 18 in all but some are duplicates and not needed. Make sure all needed icons are in the same folder as this script. Weather icons are available at http://www.openweathermap.org/weather-conditions'
+	
+	#finish = time.clock()
+	#print Timer(start, finish)
 
 if __name__ == '__main__':
 	main()
