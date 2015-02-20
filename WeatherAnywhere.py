@@ -303,9 +303,6 @@ def main():
 		if ans==1:
 			# Weather where you are
 			print 'Gathering weather data from where you are...'
-			city=''
-			country=''
-			id=''
 			# Get lat & lon of where you are
 			lat,lon=get_current_lat_lon()
 		elif ans==2:
