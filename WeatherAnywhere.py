@@ -3,19 +3,24 @@
 # Name: WeatherAnywhere.py
 # Author: John Coomler
 # v1.0: 02/07/2015 to 02/15/2015-Created
+# v1.1: 02/19/2015-Tightened up code and
+# made function calls to retrieve weather
+# data for printing from main(). Many
+# thanks to @cclauss for his continued
+# expertise, input, & support in sorting
+# out and improving the code.
 '''
 This script provides current and multi day
 weather forecasts for any city you name,
-you select, or coordinates you are currently
-located at, using the api available from
+or coordinates you are currently located
+in, using the api available from
 www.openweathermap.org. The inspiration
 for this script came from https://
-github.com/cclaus/
-weather_where_you_are/
+github.com/cclaus/weather_where_you_are/
 weather_where_you_are.py. The conversion
-functions used here were found at
-http://jim-easterbrook.github.io/pywws/
-doc/en/html/_modules/pywws/conversions.html
+functions used here were found at http://
+jim-easterbrook.github.io/pywws/doc/en/
+html/_modules/pywws/conversions.html
 '''
 import location
 import requests
@@ -28,10 +33,11 @@ from PIL import Image
 
 # Global variables
 missing_icons=[]
+icons=[]
 # Number of days in advaced forecast
 day_count=7
 
-def place():
+def get_current_lat_lon():
 	# Retrieve lat & lon from current locale
 	location.start_updates()
 	# Delay sometimes improves accuracy
@@ -43,56 +49,25 @@ def place():
 	return lat,lon
 
 def city_ids(filename='cities.csv'):
-    try:
-        with open(filename) as in_file:
-            ids = [row for row in csv.reader(in_file)]
-    except IOError as e:
-        sys.exit('IOError in city_ids(): {}'.format(e))
-    if not ids:
-        sys.exit('No cities found in: {}'.format(filename))
-    for i, id in enumerate(ids):
-        print('{:>7}. {}, {}'.format(i, id[0], id[1]))
-    while True:
-        try:
-            ans = int(raw_input('\nEnter number of desired city: '))
-            city, country, id = ids[ans]
-            return city, country, id
-        except (IndexError, ValueError):
-            pass
-        print('Please enter a vaild number.')
-
-'''
-def city_ids():
-	count=0
-	ids=[]
 	try:
-		# Open csv file in same folder as this script
-		with open('cities.csv') as f:
-			# Read each line and store in list
-			csv_f=csv.reader(f)
-			for row in csv_f:
-				ids.append(row)
-				count=count+1
-				# Align number spacing neatly in our list of cities
-				if count<10:
-					sp='     '
-				else:
-					sp='    '
-				# Print city & country
-				print sp+str(count)+'. '+row[0]+', '+row[1]
-	
-		ans=int(raw_input('\nEnter number of desired city: '))
-	
-		# Retrive our data from proper row, subtract 1 for zero based array
-		city,country,id=ids[ans-1]
-	except Exception as e:
-		console.clear()
-		msg='Error: '+str(e)
-		sys.exit(msg)
-	return city,country,id
-'''
+		with open(filename) as in_file:
+			ids = [row for row in csv.reader(in_file)]
+	except IOError as e:
+		sys.exit('IOError in city_ids(): {}'.format(e))
+	if not ids:
+		sys.exit('No cities found in: {}'.format(filename))
+	for i, id in enumerate(ids):
+		print('{:>7}. {}, {}'.format(i, id[0], id[1]))
+	while True:
+		try:
+			ans = int(raw_input('\nEnter number of desired city: '))
+			city, country, id = ids[ans]
+			return city, country, id
+		except (IndexError, ValueError):
+			pass
+			print('Please enter a vaild number.')
 
-def api(latitude,longitude,city,id):
+def get_weather_dicts(lat,lon,city,id):
 	base_url='http://api.openweathermap.org/data/2.5/'
 	
 	# Current weather conditions
@@ -104,7 +79,7 @@ def api(latitude,longitude,city,id):
 		fmt_url = 'weather?id='+id+'&type=accurate&units=imperial'
 	else:
 		# From where you are now
-		fmt_url = 'weather?lat={0}&lon={1}&type=accurate&units=imperial'.format (latitude, longitude)
+		fmt_url = 'weather?lat={0}&lon={1}&type=accurate&units=imperial'.format (lat,lon)
 	
 	url=base_url+fmt_url
 	try:
@@ -125,7 +100,7 @@ def api(latitude,longitude,city,id):
 		fmt_url = 'forecast/daily?id='+id+'&units=imperial&cnt={}'.format(day_count)
 	else:
 		# From where you are now
-		fmt_url='forecast/daily?lat={0}&lon={1}&type=accurate&units=imperial&cnt={2}'.format(latitude, longitude,day_count)
+		fmt_url='forecast/daily?lat={0}&lon={1}&type=accurate&units=imperial&cnt={2}'.format(lat,lon,day_count)
 	
 	url=base_url+fmt_url
 	
@@ -145,39 +120,39 @@ def precip_inch(mm):
 
 def wind_dir(deg):
 	# Convert degrees to wind direction
-	if deg>=0 and deg<11.25:
+	if 0<=deg<11.25:
 		dir='N'
-	elif deg>=11.25 and deg<33.75:
+	elif 11.25<=deg<33.75:
 		dir='NNE'
-	elif deg>=33.75 and deg<56.25:
+	elif 33.75<=deg<56.25:
 		dir='NE'
-	elif deg>=56.25 and deg<78.75:
+	elif 56.25<=deg<78.75:
 		dir='ENE'
-	elif deg>=78.75 and deg<101.25:
+	elif 78.75<=deg<101.25:
 		dir='E'
-	elif deg>=101.25 and deg<123.75:
+	elif 101.25<=deg<123.75:
 		dir='ESE'
-	elif deg>=123.75 and deg<146.25:
+	elif 123.75<=deg<146.25:
 		dir='SE'
-	elif deg>=146.25 and deg<168.75:
+	elif 146.25<=deg<168.75:
 		dir='SSE'
-	elif deg>=168.75 and deg<191.25:
+	elif 168.75<=deg<191.25:
 		dir='S'
-	elif deg>=191.25 and deg<213.75:
+	elif 191.25<=deg<213.75:
 		dir='SSW'
-	elif deg>=213.75 and deg<236.25:
+	elif 213.75<=deg<236.25:
 		dir='SW'
-	elif deg>=236.25 and deg<258.75:
+	elif 236.25<=deg<258.75:
 		dir='WSW'
-	elif deg>=258.75 and deg<281.25:
+	elif 258.75<=deg<281.25:
 		dir='W'
-	elif deg>=281.25 and deg<303.75:
+	elif 281.25<=deg<303.75:
 		dir='WNW'
-	elif deg>=303.75 and deg<326.25:
+	elif 303.75<=deg<326.25:
 		dir='NW'
-	elif deg>=326.25 and deg<348.75:
+	elif 326.25<=deg<348.75:
 		dir='NNW'
-	elif deg>=348.75 and deg<=360:
+	elif 348.75<=deg<=360:
 		dir='N'
 	return dir
 
@@ -200,7 +175,28 @@ def pressure_inhg(hPa):
 	# Convert pressure from hectopascals/millibar to inches of mecury
 	return str(round(float(hPa/33.86389),2))
 
-def print_w(w):
+def Timer(start, end):
+	"""
+	Calculates the time it takes to run
+	process, based on start and finish
+	"""
+	elapsed = end - start
+	# Convert process time, if needed
+	if elapsed < 60:
+		time = str(round(elapsed,2)) + " seconds\n"
+	
+	if 60 <= elapsed <= 3599:  # ccc: slightly faster to state the variable only once
+		min = elapsed / 60
+		time = str(round(min,2)) + " minutes\n"
+	
+	if elapsed >= 3600:        # ccc: what happens if elapsed is 3591, 3592, 3593, etc.?
+		hour = elapsed / 3600
+		time = str(round(hour,2)) + " hours\n"
+	
+	return time
+
+
+def get_current_weather(w):
 	# Current weather conditions
 	#for item in ('temp_min', 'temp_max'):
 		#if item not in w['main']:
@@ -252,8 +248,8 @@ def print_w(w):
 		# Don't stop the show for missing icons
 		pass
 	
-	# Print the reformated data
-	print('''Today's Weather in {name}:
+	# Return the reformated data
+	weather=('''Today's Weather in {name}:\n
   Current Conditions for {dt}
   	{weather[0][description]}
   	Clouds: {clouds[all]}%
@@ -264,31 +260,24 @@ def print_w(w):
   	Feels Like: {}° F
   	Sunrise: {sys[sunrise]}
   	Sunset: {sys[sunset]}\n'''.format(gusts,chill,**w))
+	return weather
 
-
-def print_f(f):
+def get_forecast(f):
 	# Extended forecast
 	sp='     '
 
-	print 'Extended '+day_count+' Day Forecast for '+str(f['city']['name'])+':'
+	forecast= 'Extended '+str(day_count)+' Day Forecast for '+str(f['city']['name'])+':\n'
 	
 	# Loop thru each day
 	for i in range(day_count):
 		ico=str(f['list'][i]['weather'][0]['icon'])+'.png'
-		try:
-			#Open, resize and show weather icon
-			img=Image.open(ico).resize((25,25),Image.ANTIALIAS)
-			img.show()
-		except:
-			 missing_icons.append(ico)
-			 # Leave space between forecasts
-			 print ''
-			 pass
+		icons.append(ico)
+		
 		# Timestamp of forecast day formatted to m-d-y
-		print 'Forecast for '+datetime.datetime.fromtimestamp(int(f['list'][i]['dt'])).strftime('%A %m-%d-%Y')
+		forecast=forecast+'\nForecast for '+datetime.datetime.fromtimestamp(int(f['list'][i]['dt'])).strftime('%A %m-%d-%Y')
 	
 		# Capitalize weather description
-		print sp+str.title(str(f['list'][i]['weather'][0]['description']))
+		forecast=forecast+'\n'+sp+str.title(str(f['list'][i]['weather'][0]['description']))
 	
 		# Get type of preciptation
 		precip_type=f['list'][i]['weather'][0]['main']
@@ -296,31 +285,33 @@ def print_f(f):
 		if precip_type=='Rain' or precip_type=='Snow':
 			try:
 				# Convert precip amt to inches
-				print sp+'Expected '+precip_type+' Vol for 3 hrs: '+precip_inch(f['list'][i][precip_type.lower()])+' in'
+				forecast=forecast+'\n'+sp+'Expected '+precip_type+' Vol for 3 hrs: '+precip_inch(f['list'][i][precip_type.lower()])+' in'
 			except:
 				# Sometimes precip amts aren't listed
 				pass
 		elif precip_type=='Clouds':
-				print sp+'No Rain Expected'
+				forecast=forecast+'\n'+sp+'No Rain Expected'
 		
 		# Cloudiness percentage
-		print sp+'Clouds: '+str(f['list'][i]['clouds'])+'%'
+		forecast=forecast+'\n'+sp+'Clouds: '+str(f['list'][i]['clouds'])+'%'
 		
 		# High temp rounded to whole number
-		print sp+'High: '+str(round(float(f['list'][i]['temp']['max']),0))+'° F'
+		forecast=forecast+'\n'+sp+'High: '+str(round(float(f['list'][i]['temp']['max']),0))+'° F'
 		
 		# Low temp rounded the same
-		print sp+'Low: '+str(round(float(f['list'][i]['temp']['min']),0))+'° F'
+		forecast=forecast+'\n'+sp+'Low: '+str(round(float(f['list'][i]['temp']['min']),0))+'° F'
 		
 		# Humidity
-		print sp+'Humidity: '+str(f['list'][i]['humidity'])+'%'
+		forecast=forecast+'\n'+sp+'Humidity: '+str(f['list'][i]['humidity'])+'%'
 		
 		# Pressure formatted to inches
-		print sp+'Barometric Pressure: '+str(pressure_inhg(f['list'][i]['pressure']))+' in'
+		forecast=forecast+'\n'+sp+'Barometric Pressure: '+str(pressure_inhg(f['list'][i]['pressure']))+' in'
 		
 		# Wind direction and speed
-		print sp+'Wind: '+str(wind_dir(f['list'][i]['deg']))+' @ '+str(wind_mph(f['list'][i]['speed']))+' mph'
-		#print '\n'
+		forecast=forecast+'\n'+sp+'Wind: '+str(wind_dir(f['list'][i]['deg']))+' @ '+str(wind_mph(f['list'][i]['speed']))+' mph'
+		forecast=forecast+'\n'
+		
+	return forecast
 
 def main():
 	console.clear()
@@ -334,13 +325,14 @@ def main():
 			country=''
 			id=''
 			# Get lat & lon of where you are
-			lat,lon=place()
+			lat,lon=get_current_lat_lon()
 		elif ans==2:
 			# Enter a city & country
 			msg='Enter a city and country in format "'"New York, US"'": '
 			ans=console.input_alert(msg)
 			if ans:
-				console.clear()
+				#console.clear()
+				print('='*20)
 				print 'Gathering weather data for '+str.title(ans)
 				city=ans.replace(' ','+')
 				lat=0
@@ -349,7 +341,8 @@ def main():
 		elif ans==3:
 			# Pick from list
 			theCity,country,id=city_ids()
-			console.clear()
+			#console.clear()
+			print('='*20)
 			if id:
 				print 'Gathering weather data for '+theCity+', '+country
 				city=''
@@ -360,17 +353,46 @@ def main():
 		sys.exit(msg)
 	
 	# Call api from www.openweathermap.org
-	w,f=api(lat,lon,city,id)
+	w,f=get_weather_dicts(lat,lon,city,id)
 	
-	console.clear()
+	#start = time.clock()
+	#console.clear()
+	print('='*20)
 	# Print current conditions to console
-	print_w(w)
-	# Print extended forecast to console
-	print_f(f)
+	print(get_current_weather(w))
+	'''
+	Printing the extended forecast to the
+	console involves a bit more code because
+	we are inserting a weather icon at each
+	blank line.
+	'''
+	extended_f=get_forecast(f).split('\n')
+	count=0
+	for line in extended_f:
+		'''
+		Look for blank lines and don't exceed
+		the number of forecasted days -1 for
+		zero base in array holding icon names
+		'''
+		if not line and count<=(day_count-1):
+			ico=icons[count]
+			try:
+				# Open, resize and show weather icon
+				img=Image.open(ico).resize((25,25),Image.ANTIALIAS)
+			
+				img.show()
+			except:
+			 	missing_icons.append(ico)
+			 	pass
+			count=count+1
+		print line
 	
-	print '\nWeather information provided by openweathermap.org'
+	print 'Weather information provided by openweathermap.org'
 	if missing_icons:
 		print '\n*Some or all weather icons are missing. There are 18 in all but some are duplicates and not needed. Make sure all needed icons are in the same folder as this script. Weather icons are available at http://www.openweathermap.org/weather-conditions'
 	
+	#finish = time.clock()
+	#print Timer(start, finish)
+
 if __name__ == '__main__':
 	main()
