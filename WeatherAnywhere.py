@@ -42,6 +42,26 @@ def place():
 	lon = address_dict['longitude']
 	return lat,lon
 
+def city_ids(filename='cities.csv'):
+    try:
+        with open(filename) as in_file:
+            ids = [row for row in csv.reader(in_file)]
+    except IOError as e:
+        sys.exit('IOError in city_ids(): {}'.format(e))
+    if not ids:
+        sys.exit('No cities found in: {}'.format(filename))
+    for i, id in enumerate(ids):
+        print('{:>7}. {}, {}'.format(i, id[0], id[1]))
+    while True:
+        try:
+            ans = int(raw_input('\nEnter number of desired city: '))
+            city, country, id = ids[ans]
+            return city, country, id
+        except (IndexError, ValueError):
+            pass
+        print('Please enter a vaild number.')
+
+'''
 def city_ids():
 	count=0
 	ids=[]
@@ -70,6 +90,7 @@ def city_ids():
 		msg='Error: '+str(e)
 		sys.exit(msg)
 	return city,country,id
+'''
 
 def api(latitude,longitude,city,id):
 	base_url='http://api.openweathermap.org/data/2.5/'
