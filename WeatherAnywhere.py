@@ -96,7 +96,8 @@ def get_weather_dicts(lat,lon,city,id):
 
 def precip_inch(mm):
 	# Convert rain or snowfall from mm to in
-	return str(round(float(mm/25.4),2))
+	#return str(round(float(mm/25.4),2))
+	return '{:.2f}'.format(mm/25.4)
 
 def wind_dir(deg):
 	# Convert degrees to wind direction
