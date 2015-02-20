@@ -69,49 +69,30 @@ def city_ids(filename='cities.csv'):
 			print('Please enter a vaild number.')
 
 def get_weather_dicts(lat,lon,city,id):
-	base_url='http://api.openweathermap.org/data/2.5/'
-	
-	# Current weather conditions
-	if city:
-		# From entered city
-		fmt='weather?q={}&type=accurate&units={}'
-		query=fmt.format(city,imperial_or_metric)
-	elif id:
-		# From list
-		fmt='weather?id={}&type=accurate&units={}'
-		query=fmt.format(id,imperial_or_metric)
-	else:
-		# From where you are now
-		fmt = 'weather?lat={}&lon={}&type=accurate&units={}'
-		query=fmt.format (lat,lon,imperial_or_metric)
-	
-	try:
-		w = requests.get(base_url+query).json()
-		#import pprint;pprint.pprint(w)
-		#See: http://bugs.openweathermap.org/projects/api/wiki
-		#sys.exit()
-	except:
-		console.clear()
-		sys.exit('Weather servers are busy. Try again in 5 minutes...')
-	
-	# Extended forecast
-	if city:
-		fmt='forecast/daily?q={}&type=accurate&units={}&cnt={}'
-		query=fmt.format(city,imperial_or_metric,day_count)
-	elif id:
-		fmt='forecast/daily?id={}&type=accurate&units={}&cnt={}'
-		query=fmt.format(id,imperial_or_metric,day_count)
-	else:
-		fmt='forecast/daily?lat={}&lon={}&type=accurate&units={}&cnt={}'
-		query=fmt.format(lat,lon,imperial_or_metric,day_count)
-	try:
-		f=requests.get(base_url+query).json()
-		#import pprint;pprint.pprint(f)
-		#sys.exit()
-	except:
-		console.clear()
-		sys.exit('Weather servers are busy. Try again in a minute...')
-	return w,f
+        url_fmt = 'http://api.openweathermap.org/data/2.5/{}?{}'
+        if city: # From entered city
+                fmt = 'q={}&type=accurate&units={}'
+                query = fmt.format(city, imperial_or_metric)
+        elif id: # From list
+                fmt = 'id={}&type=accurate&units={}'
+                query = fmt.format(id, imperial_or_metric)
+        else: # From where you are now
+                fmt = 'lat={}&lon={}&type=accurate&units={}'
+                query = fmt.format(lat, lon, imperial_or_metric)
+        w_url = url_fmt.format('weather', query)
+        query += '&cnt={}'.format(day_count)
+        f_url = url_fmt.format('forecast/daily', query)
+        try:
+                weather = requests.get(w_url).json()
+                forecast = requests.get(f_url).json()
+                #import pprint;pprint.pprint(weather)
+                #import pprint;pprint.pprint(forecast)
+                #See: http://bugs.openweathermap.org/projects/api/wiki
+                #sys.exit()
+        except requests.ConnectionError:
+                print('=' * 20) # console.clear()
+                sys.exit('Weather servers are busy. Try again in a few minutes...')
+        return weather, forecast
 
 def precip_inch(mm):
 	# Convert rain or snowfall from mm to in
@@ -295,7 +276,7 @@ def get_forecast(f):
 
 def main():
 	console.clear()
-	city = country = id =''
+	city = country = id = ''
 	lat = lon = 0
 	# Pick a weather source
 	try:
