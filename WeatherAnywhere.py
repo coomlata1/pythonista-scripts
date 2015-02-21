@@ -11,7 +11,7 @@
 # out and improving the code.
 # v1.2: 02/20/2015-More code cleanup,
 # improved string formatting techniques,
-# and much improved error handling
+# and much improved error handling, all
 # provided by @cclauss.
 '''
 This script provides current and multi day
