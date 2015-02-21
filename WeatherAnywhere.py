@@ -9,6 +9,10 @@
 # thanks to @cclauss for his continued
 # expertise, input, & support in sorting
 # out and improving the code.
+# v1.2: 02/20/2015-More code cleanup,
+# improved string formatting techniques,
+# and much improved error handling
+# provided by @cclauss.
 '''
 This script provides current and multi day
 weather forecasts for any city you name,
