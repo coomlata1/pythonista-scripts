@@ -2,7 +2,7 @@ import requests
 
 def download_weather_icons():
     fmt = 'Downloading {} from {} ...'
-    for i in (1,2,3,4,9,10,11,13,50):  # xrange(51):
+    for i in (1,2,3,4,9,10,11,13,50):
         filenames = ('{:02}d.png'.format(i), '{:02}n.png'.format(i))
         for filename in filenames:
             url = 'http://openweathermap.org/img/w/' + filename
