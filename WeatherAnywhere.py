@@ -13,6 +13,10 @@
 # improved string formatting techniques,
 # and much improved error handling, all
 # provided by @cclauss.
+# v1.3: 02/21/2015-Added function to
+# download weather icons if any or all
+# are missing. Wind_dir() updated by
+# @cclauss
 '''
 This script provides current and multi day
 weather forecasts for any city you name,
@@ -105,25 +109,25 @@ def precip_inch(mm):
   return '{:.2f}'.format(mm/25.4)
 
 def wind_dir(deg):
-    # Convert degrees to wind direction
-    assert 0 <= deg <= 360, 'wind_dir({}): deg is out of bounds!'.format(deg)
-    if   deg < 11.25:   return 'N'
-    elif deg < 33.75:   return 'NNE'
-    elif deg < 56.25:   return 'NE'
-    elif deg < 78.75:   return 'ENE'
-    elif deg < 101.25:  return 'E'
-    elif deg < 123.75:  return 'ESE'
-    elif deg < 146.25:  return 'SE'
-    elif deg < 168.75:  return 'SSE'
-    elif deg < 191.25:  return 'S'
-    elif deg < 213.75:  return 'SSW'
-    elif deg < 236.25:  return 'SW'
-    elif deg < 258.75:  return 'WSW'
-    elif deg < 281.25:  return 'W'
-    elif deg < 303.75:  return 'WNW'
-    elif deg < 326.25:  return 'NW'
-    elif deg < 348.75:  return 'NNW'
-    return 'N'
+  # Convert degrees to wind direction
+  assert 0 <= deg <= 360, 'wind_dir({}): deg is out of bounds!'.format(deg)
+  if   deg < 11.25:   return 'N'
+  elif deg < 33.75:   return 'NNE'
+  elif deg < 56.25:   return 'NE'
+  elif deg < 78.75:   return 'ENE'
+  elif deg < 101.25:  return 'E'
+  elif deg < 123.75:  return 'ESE'
+  elif deg < 146.25:  return 'SE'
+  elif deg < 168.75:  return 'SSE'
+  elif deg < 191.25:  return 'S'
+  elif deg < 213.75:  return 'SSW'
+  elif deg < 236.25:  return 'SW'
+  elif deg < 258.75:  return 'WSW'
+  elif deg < 281.25:  return 'W'
+  elif deg < 303.75:  return 'WNW'
+  elif deg < 326.25:  return 'NW'
+  elif deg < 348.75:  return 'NNW'
+  return 'N'
 
 def wind_mph(mps):
   # Convert wind from meters/sec to mph
@@ -144,6 +148,27 @@ def pressure_inhg(hPa):
   # Convert pressure from hectopascals/millibar to inches of mecury
   return '{:.2f}'.format(hPa/33.86389)
 
+def download_weather_icons():
+  # Downloads any missing weather icons
+  # from www.openweathermap.org
+  # Thanks to @cclauss for providing this
+  # function
+  import os
+  fmt = 'Downloading {} from {} ...'
+  for i in (1,2,3,4,9,10,11,13,50):
+    filenames = ('{:02}d.png'.format(i), '{:02}n.png'.format(i))
+    for filename in filenames:
+      if os.path.exists(filename):
+        continue
+      url = 'http://openweathermap.org/img/w/' + filename
+      with open(filename, 'w') as out_file:
+        try:
+          print(fmt.format(filename, url))
+          out_file.write(requests.get(url).content)
+        except requests.ConnectionError as e:
+          print('ConnectionError on {}: {}'.format(i ,e))
+      print('Done.')
+
 def get_current_weather(w):
   # Current weather conditions
   #for item in ('temp_min', 'temp_max'):
@@ -162,7 +187,7 @@ def get_current_weather(w):
   # Capitalize weather description
   w['weather'][0]['description']=str.title(str(w['weather'][0]['description']))
 
-  # Conver wind degrees to wind direction
+  # Convert wind degrees to wind direction
   w['wind']['deg']=wind_dir(w['wind']['deg'])
 
   # Convert wind speed to mph
@@ -323,8 +348,11 @@ def main():
     print line
 
   print 'Weather information provided by openweathermap.org'
+
   if missing_icons:
-    print '\n*Some or all weather icons are missing. There are 18 in all but some are duplicates and not needed. Make sure all needed icons are in the same folder as this script. Weather icons are available at http://www.openweathermap.org/weather-conditions'
+    ans=console.alert('Weather Icon(s) Missing:','','Download Them Now')
+    if ans==1:
+      download_weather_icons()
 
 if __name__ == '__main__':
   main()
