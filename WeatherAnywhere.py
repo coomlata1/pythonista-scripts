@@ -195,7 +195,7 @@ def get_current_weather(w):
   try:
     # Get wind gusts and covert to mph, although they aren't always listed'
     w['wind']['gust']=float(wind_mph(w['wind']['gust']))+float(w['wind']['speed'])
-    gusts='Gusts to {:.0f} mph'.format(w['wind']['gust'])
+    gusts='w/ gusts to {:.0f} mph'.format(w['wind']['gust'])
   except:
     gusts=''
   # Convert timestamp to date of weather
