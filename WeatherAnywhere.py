@@ -336,7 +336,7 @@ def main():
       count += 1
     print line
 
-  print 'Weather information provided by openweathermap.org'
+  print '\nWeather information provided by openweathermap.org'
 
   if missing_icons:
     ans=console.alert('Weather Icon(s) Missing:','','Download Them Now')
