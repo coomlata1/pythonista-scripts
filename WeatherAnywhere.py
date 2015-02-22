@@ -105,42 +105,25 @@ def precip_inch(mm):
   return '{:.2f}'.format(mm/25.4)
 
 def wind_dir(deg):
-  # Convert degrees to wind direction
-  if 0<=deg<11.25:
-    dir='N'
-  elif 11.25<=deg<33.75:
-    dir='NNE'
-  elif 33.75<=deg<56.25:
-    dir='NE'
-  elif 56.25<=deg<78.75:
-    dir='ENE'
-  elif 78.75<=deg<101.25:
-    dir='E'
-  elif 101.25<=deg<123.75:
-    dir='ESE'
-  elif 123.75<=deg<146.25:
-    dir='SE'
-  elif 146.25<=deg<168.75:
-    dir='SSE'
-  elif 168.75<=deg<191.25:
-    dir='S'
-  elif 191.25<=deg<213.75:
-    dir='SSW'
-  elif 213.75<=deg<236.25:
-    dir='SW'
-  elif 236.25<=deg<258.75:
-    dir='WSW'
-  elif 258.75<=deg<281.25:
-    dir='W'
-  elif 281.25<=deg<303.75:
-    dir='WNW'
-  elif 303.75<=deg<326.25:
-    dir='NW'
-  elif 326.25<=deg<348.75:
-    dir='NNW'
-  elif 348.75<=deg<=360:
-    dir='N'
-  return dir
+    # Convert degrees to wind direction
+    assert 0 <= deg <= 360, 'wind_dir({}): deg is out of bounds!'.format(deg)
+    if   deg < 11.25:   return 'N'
+    elif deg < 33.75:   return 'NNE'
+    elif deg < 56.25:   return 'NE'
+    elif deg < 78.75:   return 'ENE'
+    elif deg < 101.25:  return 'E'
+    elif deg < 123.75:  return 'ESE'
+    elif deg < 146.25:  return 'SE'
+    elif deg < 168.75:  return 'SSE'
+    elif deg < 191.25:  return 'S'
+    elif deg < 213.75:  return 'SSW'
+    elif deg < 236.25:  return 'SW'
+    elif deg < 258.75:  return 'WSW'
+    elif deg < 281.25:  return 'W'
+    elif deg < 303.75:  return 'WNW'
+    elif deg < 326.25:  return 'NW'
+    elif deg < 348.75:  return 'NNW'
+    return 'N'
 
 def wind_mph(mps):
   # Convert wind from meters/sec to mph
