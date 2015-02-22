@@ -139,7 +139,7 @@ def wind_chill(temp,wind):
   temp=float(temp)
   wind=float(wind)
   if wind<=3 or temp>50:
-    return temp
+    return '{:.0f}'.format(temp)
   return '{:.0f}'.format(min(35.74+(temp*0.6215)+(((0.3965*temp)-35.75)*(wind**0.16)),temp))
 
 def pressure_inhg(hPa):
@@ -195,7 +195,7 @@ def get_current_weather(w):
   try:
     # Get wind gusts and covert to mph, although they aren't always listed'
     w['wind']['gust']=float(wind_mph(w['wind']['gust']))+float(w['wind']['speed'])
-    gusts='Gusts to {}'.format(w['wind']['gust'])
+    gusts='Gusts to {:.0f} mph'.format(w['wind']['gust'])
   except:
     gusts=''
   # Convert timestamp to date of weather
