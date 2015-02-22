@@ -14,7 +14,7 @@
 # and much improved error handling.
 # v1.3: 02/21/2015-Added function to
 # download weather icons if any or all
-# are missing.
+# are missing. More code cleanup.
 '''
 This script provides current and multi day
 weather forecasts for any city you name,
