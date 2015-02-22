@@ -11,12 +11,10 @@
 # out and improving the code.
 # v1.2: 02/20/2015-More code cleanup,
 # improved string formatting techniques,
-# and much improved error handling, all
-# provided by @cclauss.
+# and much improved error handling.
 # v1.3: 02/21/2015-Added function to
 # download weather icons if any or all
-# are missing. Wind_dir() updated by
-# @cclauss
+# are missing.
 '''
 This script provides current and multi day
 weather forecasts for any city you name,
@@ -151,8 +149,6 @@ def pressure_inhg(hPa):
 def download_weather_icons():
   # Downloads any missing weather icons
   # from www.openweathermap.org
-  # Thanks to @cclauss for providing this
-  # function
   import os
   fmt = 'Downloading {} from {} ...'
   for i in (1,2,3,4,9,10,11,13,50):
@@ -185,7 +181,7 @@ def get_current_weather(w):
   w['main']['pressure']=pressure_inhg(w['main']['pressure'])
 
   # Capitalize weather description
-  w['weather'][0]['description']=str.title(str(w['weather'][0]['description']))
+  w['weather'][0]['description']=w['weather'][0]['description'].title()
 
   # Convert wind degrees to wind direction
   w['wind']['deg']=wind_dir(w['wind']['deg'])
@@ -199,7 +195,7 @@ def get_current_weather(w):
   try:
     # Get wind gusts and covert to mph, although they aren't always listed'
     w['wind']['gust']=float(wind_mph(w['wind']['gust']))+float(w['wind']['speed'])
-    gusts='Gusts to '+w['wind']['gust']
+    gusts='Gusts to {}'.format(w['wind']['gust'])
   except:
     gusts=''
   # Convert timestamp to date of weather
@@ -235,54 +231,54 @@ Current Conditions for {dt}
 
 def get_forecast(f):
   # Extended forecast
-  sp='     '
+  sp=' ' * 4
 
   forecast= 'Extended '+str(day_count)+' Day Forecast for '+str(f['city']['name'])+':\n'
 
   # Loop thru each day
   for i in xrange(day_count):
     # Get icon name and store in list
-    ico=str(f['list'][i]['weather'][0]['icon'])+'.png'
+    ico=f['list'][i]['weather'][0]['icon']+'.png'
     icons.append(ico)
 
     # Timestamp of forecast day formatted to m-d-y
-    forecast=forecast+'\nForecast for '+datetime.datetime.fromtimestamp(int(f['list'][i]['dt'])).strftime('%A %m-%d-%Y')
+    forecast+='\nForecast for '+datetime.datetime.fromtimestamp(int(f['list'][i]['dt'])).strftime('%A %m-%d-%Y')
 
     # Capitalize weather description
-    forecast=forecast+'\n'+sp+str.title(str(f['list'][i]['weather'][0]['description']))
+    forecast+='\n'+sp+f['list'][i]['weather'][0]['description'].title()
 
     # Get type of preciptation
     precip_type=f['list'][i]['weather'][0]['main']
     # Get measured amts of precip
-    if precip_type=='Rain' or precip_type=='Snow':
+    if precip_type in ('Rain', 'Snow'):
       try:
         # Convert precip amt to inches
-        forecast=forecast+'\n'+sp+'Expected '+precip_type+' Vol for 3 hrs: '+precip_inch(f['list'][i][precip_type.lower()])+' in'
+        forecast+='\n'+sp+'Expected '+precip_type+' Vol for 3 hrs: '+precip_inch(f['list'][i][precip_type.lower()])+' in'
       except:
         # Sometimes precip amts aren't listed
         pass
     elif precip_type=='Clouds':
-      forecast=forecast+'\n'+sp+'No Rain Expected'
+      forecast+='\n'+sp+'No Rain Expected'
 
     # Cloudiness percentage
-    forecast=forecast+'\n'+sp+'Clouds: '+str(f['list'][i]['clouds'])+'%'
+    forecast+='\n'+sp+'Clouds: '+str(f['list'][i]['clouds'])+'%'
 
     # High temp rounded to whole number
-    forecast=forecast+'\n'+sp+'High: {:.0f}'.format(f['list'][i]['temp']['max'])+'° F'
+    forecast+='\n'+sp+'High: {:.0f}'.format(f['list'][i]['temp']['max'])+'° F'
 
     # Low temp rounded the same
-    forecast=forecast+'\n'+sp+'Low: {:.0f}'.format(f['list'][i]['temp']['min'])+'° F'
+    forecast+='\n'+sp+'Low: {:.0f}'.format(f['list'][i]['temp']['min'])+'° F'
 
     # Humidity
-    forecast=forecast+'\n'+sp+'Humidity: '+str(f['list'][i]['humidity'])+'%'
+    forecast+='\n'+sp+'Humidity: '+str(f['list'][i]['humidity'])+'%'
 
     # Pressure formatted to inches
-    forecast=forecast+'\n'+sp+'Barometric Pressure: '+str(pressure_inhg(f['list'][i]['pressure']))+' in'
+    forecast+='\n'+sp+'Barometric Pressure: '+str(pressure_inhg(f['list'][i]['pressure']))+' in'
 
     # Wind direction and speed
-    forecast=forecast+'\n'+sp+'Wind: '+str(wind_dir(f['list'][i]['deg']))+' @ '+str(wind_mph(f['list'][i]['speed']))+' mph'
+    forecast+='\n'+sp+'Wind: '+str(wind_dir(f['list'][i]['deg']))+' @ '+str(wind_mph(f['list'][i]['speed']))+' mph'
     # Blank line between forecasted days
-    forecast=forecast+'\n'
+    forecast+='\n'
 
   return forecast
 
@@ -301,10 +297,10 @@ def main():
     elif ans==2:
       # Enter a city & country
       msg='Enter a city and country in format "'"New York, US"'": '
-      ans=console.input_alert(msg)
+      ans=console.input_alert(msg).title()
       if ans:
         print('='*20)
-        print 'Gathering weather data for '+str.title(ans)
+        print 'Gathering weather data for '+ans
         city=ans.replace(' ','+')
     elif ans==3:
       # Pick from list
