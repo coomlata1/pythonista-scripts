@@ -216,7 +216,7 @@ def get_current_weather(w):
     missing_icons.append(ico)
 
   # Return the reformated data
-  weather=('''Today's Weather in {name}:\n
+  return '''Today's Weather in {name}:\n
 Current Conditions for {dt}
   {weather[0][description]}
   Clouds: {clouds[all]}%
@@ -226,61 +226,54 @@ Current Conditions for {dt}
   Wind: {wind[deg]} @ {wind[speed]} mph {}
   Feels Like: {}° F
   Sunrise: {sys[sunrise]}
-  Sunset: {sys[sunset]}\n'''.format(gusts,chill,**w))
-  return weather
+  Sunset: {sys[sunset]}\n'''.format(gusts,chill,**w)
+
+def get_day_forcast(f):
+  # Get icon name and store in list
+  icons.append(f['weather'][0]['icon']+'.png')
+
+  # Timestamp of forecast day formatted to day-of-week m-d-y
+  f['dt'] = datetime.datetime.fromtimestamp(int(f['dt'])).strftime('%A %m-%d-%Y')
+
+  # Capitalize weather description
+  f['weather'][0]['description'] = f['weather'][0]['description'].title()
+
+  # Get type of preciptation
+  precip_type=f['weather'][0]['main']
+  # Get measured amts of precip
+  if precip_type in ('Rain', 'Snow'):
+    try:
+      # Convert precip amt to inches
+      fmt = 'Expected {} Vol for 3 hrs: {} in'
+      precip_type = fmt.format(precip_type, precip_inch(f[precip_type.lower()]))
+    except:
+      # Sometimes precip amts aren't listed
+      pass
+  elif precip_type=='Clouds':
+    precip_type += '\n    No Rain Expected'
+
+  # Pressure formatted to inches
+  f['pressure'] = pressure_inhg(f['pressure'])
+
+  # Wind direction and speed
+  f['deg']   = wind_dir(f['deg'])
+  f['speed'] = wind_mph(f['speed'])
+    
+  return '''
+Forecast for {dt}
+    {weather[0][description]}
+    {}
+    Clouds:   {clouds:>3}%
+    High:     {temp[max]:>3.0f}° F
+    Low:      {temp[min]:>3.0f}° F
+    Humidity: {humidity:>3}%
+    Barometric Pressure: {pressure} in
+    Wind: {deg} @ {speed} mph'''.format(precip_type, **f)
 
 def get_forecast(f):
-  # Extended forecast
-  sp=' ' * 4
-
-  forecast= 'Extended '+str(day_count)+' Day Forecast for '+str(f['city']['name'])+':\n'
-
-  # Loop thru each day
-  for i in xrange(day_count):
-    # Get icon name and store in list
-    ico=f['list'][i]['weather'][0]['icon']+'.png'
-    icons.append(ico)
-
-    # Timestamp of forecast day formatted to m-d-y
-    forecast+='\nForecast for '+datetime.datetime.fromtimestamp(int(f['list'][i]['dt'])).strftime('%A %m-%d-%Y')
-
-    # Capitalize weather description
-    forecast+='\n'+sp+f['list'][i]['weather'][0]['description'].title()
-
-    # Get type of preciptation
-    precip_type=f['list'][i]['weather'][0]['main']
-    # Get measured amts of precip
-    if precip_type in ('Rain', 'Snow'):
-      try:
-        # Convert precip amt to inches
-        forecast+='\n'+sp+'Expected '+precip_type+' Vol for 3 hrs: '+precip_inch(f['list'][i][precip_type.lower()])+' in'
-      except:
-        # Sometimes precip amts aren't listed
-        pass
-    elif precip_type=='Clouds':
-      forecast+='\n'+sp+'No Rain Expected'
-
-    # Cloudiness percentage
-    forecast+='\n'+sp+'Clouds: '+str(f['list'][i]['clouds'])+'%'
-
-    # High temp rounded to whole number
-    forecast+='\n'+sp+'High: {:.0f}'.format(f['list'][i]['temp']['max'])+'° F'
-
-    # Low temp rounded the same
-    forecast+='\n'+sp+'Low: {:.0f}'.format(f['list'][i]['temp']['min'])+'° F'
-
-    # Humidity
-    forecast+='\n'+sp+'Humidity: '+str(f['list'][i]['humidity'])+'%'
-
-    # Pressure formatted to inches
-    forecast+='\n'+sp+'Barometric Pressure: '+str(pressure_inhg(f['list'][i]['pressure']))+' in'
-
-    # Wind direction and speed
-    forecast+='\n'+sp+'Wind: '+str(wind_dir(f['list'][i]['deg']))+' @ '+str(wind_mph(f['list'][i]['speed']))+' mph'
-    # Blank line between forecasted days
-    forecast+='\n'
-
-  return forecast
+  daily_forecasts = [get_day_forcast(daily) for daily in f['list']]
+  fmt = 'Extended {} Day Forecast for {city[name]}:\n{}'
+  return fmt.format(len(daily_forecasts), '\n'.join(daily_forecasts), **f)
 
 def main():
   console.clear()
