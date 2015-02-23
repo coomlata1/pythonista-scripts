@@ -1,4 +1,4 @@
-# coding: utf-8
+#coding: utf-8
 # Name: PhotoToDropbox.py
 # Author: John Coomler
 # v1.0: 01/28/2015-Created
@@ -14,6 +14,8 @@
 # v1.4: 02/09/2015-Many thanks to cclaus
 # for detailed code cleanup & insightful
 # comments.
+# v1.5: 02/22/2015-More code cleanup &
+# better string formatting
 '''
 This Pythonista script will RESIZE,
 RENAME, GEO-TAG & UPLOAD all selected
@@ -51,7 +53,6 @@ import string
 import sys
 import time
 import pexif
-
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
@@ -72,344 +73,352 @@ keepMeta=True
 geoTag=True
 
 def GetDateTime(meta):
-    theYear = theDate = theTime = ''  # ccc: set defaults
-    exif=meta.get('{Exif}', 'None')   # ccc: added default
-    if not exif=='None':
-        try:  # ccc: simplified to remove theDatetime
-            theDate,theTime=str(exif.get('DateTimeOriginal')).split()
-
-            theDate=theDate.split(':')
-            theYear=theDate[0]
-            theDate=theDate[1]+'.'+theDate[2]+'.'+theDate[0]
-
-            theTime=theTime.replace(':','.')
-        except:   # ccc: you should specify the errors you expect...
-            pass  # https://realpython.com/blog/python/the-most-diabolical-python-antipattern
-
-    return theYear,theDate,theTime
+  # The defaults
+  theYear = theDate = theTime = ''
+  # Added default
+  exif=meta.get('{Exif}', 'None')
+  if not exif=='None':
+    try:
+      theDate,theTime=str(exif.get('DateTimeOriginal')).split()
+      theDate=theDate.split(':')
+      theYear=theDate[0]
+      theDate='{}.{}.{}'.format(theDate[1],theDate[2],theYear)
+      theTime=theTime.replace(':','.')
+    except: # ccc: you should specify the errors you expect...
+      pass  # https://realpython.com/blog/python/the-most-diabolical-python-antipattern
+  return theYear,theDate,theTime
 
 def GetDimensions(meta,scale,img_name,min):
-    # Original dimensions
-    exif=meta.get('{Exif}', None)          # ccc: added the default
-    w=int(exif.get('PixelXDimension'), 0)  # ccc: added the default
-    h=int(exif.get('PixelYDimension'), 0)  # ccc: added the default
+  # Add default for exif
+  exif=meta.get('{Exif}', None)
+  # Original dimensions
+  w=int(exif.get('PixelXDimension'))
+  h=int(exif.get('PixelYDimension'))
 
-    # Minumum dimensions
-    min_w=1600 if min else 0  # ccc: trinary if statements
-    min_h=1200 if min else 0
+  # Minumum dimensions
+  min_w=1600 if min else 0
+  min_h=1200 if min else 0
 
-    if scale==1:
-        # If scaled at 100%...no resize
-        no_resize.append(img_name)
-        resizeOk=False
-    # Square
-    elif w==h:  # ccc: changed order to deal with square first
-        # Don't resize square photos with a height smaller than height of desired minumum size
-        if h<min_h:
-            no_resize.append(img_name)
-            resizeOk=False
-        else:
-            resizeOk=True
-    # Don't resize a non-square photo smaller than the desired minumum size.
-    elif int(scale*(w))*int(scale*(h))<int(min_w*min_h):
-        no_resize.append(img_name)
-        resizeOk=False
+  if scale==1:
+    # If scaled at 100%...no resize
+    no_resize.append(img_name)
+    resizeOk=False
+  # Square
+  elif w==h:
+  # Don't resize square photos with a height smaller than height of desired minumum size
+    if h<min_h:
+      no_resize.append(img_name)
+      resizeOk=False
     else:
-        resizeOk=True
+      resizeOk=True
+  # Don't resize a non-square photo smaller than the desired minumum size.
+  elif int(scale*(w))*int(scale*(h))<int(min_w*min_h):
+    no_resize.append(img_name)
+    resizeOk=False
+  else:
+    resizeOk=True
 
-    new_w=int(scale*w) if resizeOk else w  # ccc: trinary if statements
-    new_h=int(scale*h) if resizeOk else h
+  new_w=int(scale*w) if resizeOk else w
+  new_h=int(scale*h) if resizeOk else h
 
-    # Return new & original dimensions, & resize flag
-    return new_w,new_h,w,h,resizeOk
+  # Return new & original dimensions, & resize flag
+  return new_w,new_h,w,h,resizeOk
 
 def CopyMeta(meta_src,meta_dst,x,y):
-    '''
-    Copy metadata from original photo to a
-    resized photo that has no media metadata
-    and write the results to a new photo
-    that is resized with the media metadata.
-    '''
-    # Source photo
-    img_src=pexif.JpegFile.fromFile(meta_src)
-    # Destination photo
-    img_dst=pexif.JpegFile.fromFile(meta_dst)
-    img_dst.import_metadata(img_src)
+  '''
+  Copy metadata from original photo to a
+  resized photo that has no media metadata
+  and write the results to a new photo
+  that is resized with the media metadata.
+  '''
+  # Source photo
+  img_src=pexif.JpegFile.fromFile(meta_src)
+  # Destination photo
+  img_dst=pexif.JpegFile.fromFile(meta_dst)
+  img_dst.import_metadata(img_src)
+  # Results photo
+  '''
+  After importing metadata from source
+  we need to update the metadata to the
+  new resize dimensions. Thanks to Ben
+  Leslie for updating Pexif to
+  accomodate this.
+  '''
+  img_dst.exif.primary.ExtendedEXIF.PixelXDimension = [x]
+  img_dst.exif.primary.ExtendedEXIF.PixelYDimension = [y]
 
-    # Results photo
-    '''
-    After importing metadata from source
-    we need to update the metadata to the
-    new resize dimensions. Thanks to Ben
-    Leslie for updating Pexif to
-    accomodate this.
-    '''
-    img_dst.exif.primary.ExtendedEXIF.PixelXDimension = [x]
-    img_dst.exif.primary.ExtendedEXIF.PixelYDimension = [y]
+  # Now write the updated metadata to the resized photo
+  img_dst.writeFile('meta_resized.jpg')
 
-    # Now write the updated metadata to the resized photo
-    img_dst.writeFile('meta_resized.jpg')
-
-def GetDegreesToRotate(d):  # ccc: rewrite to used dict.get() with default
-    # returns degreesToRotate, orientation
-    rotate_dict = { '1' : (   0, 'landscape'),
-                    '3' : (-180, 'landscape'),
-                    '6' : ( -90, 'portrait'),
-                    '8' : (  90, 'portrait') }
-    return rotate_dict.get(str(d), (0, 'unknown'))
+# ccc: rewrite to use dict.get() with default...returns degreesToRotate, orientation
+def GetDegreesToRotate(d):
+  rotate_dict = {'1':(0,'landscape'),
+                 '3':(-180,'landscape'),
+                 '6':(-90,'portrait'),
+                 '8': (90,'portrait')}
+  return rotate_dict.get(str(d), (0, 'unknown'))
 
 def GetLocation(meta):
-    gps=meta.get('{GPS}')
-    if gps:
-        lat=gps.get('Latitude',0.0)
-        lon=gps.get('Longitude',0.0)  # ccc: 'long' is a python reserved word.  Use 'lon' instead?
-        lat_ref=gps.get('LatitudeRef', '')
-        lon_ref=gps.get('LongitudeRef', '')
-        # Southern hemisphere
-        if lat_ref=='S':
-            lat=-lat
-        # Western hemisphere
-        if lon_ref=='W':
-            lon=-lon
+  gps=meta.get('{GPS}')
+  if gps:
+    lat=gps.get('Latitude',0.0)
+    lon=gps.get('Longitude',0.0)
+    lat_ref=gps.get('LatitudeRef', '')
+    lon_ref=gps.get('LongitudeRef', '')
+    # Southern hemisphere
+    if lat_ref=='S':
+      lat=-lat
+    # Western hemisphere
+    if lon_ref=='W':
+      lon=-lon
 
-        coordinates={'latitude': lat, 'longitude':lon}
+    coordinates={'latitude': lat, 'longitude':lon}
 
-        # Dictionary of location data
-        results=location.reverse_geocode(coordinates)[0]  # ccc: pick results[0] right away
+    # Dictionary of location data
+    # ccc: pick results[0] right away
+    results=location.reverse_geocode(coordinates)[0]
+    name=results['Name']
+    street=results['Thoroughfare']
+    city=results['City']
+    state=results['State']
+    zipcode=results['ZIP']
 
-        name=results['Name']
-        street=results['Thoroughfare']
-        city=results['City']
-        state=results['State']
-        zipcode=results['ZIP']
+    # If name is an address then use street name only
+    if find_number(name):
+      name=street
 
-        # If name is an address then use street name only
-        if find_number(name):
-            name=street
-        
-        # ccc: use str.format() for complex string assembly
-        theLocation='{}, {} {} @ {}'.format(city, state, zipcode, name)
-    else:
-        theLocation=''
-    
-    return theLocation
+    theLocation='{}, {} {} @ {}'.format(city, state, zipcode, name)
+  else:
+    theLocation=''
+
+  return theLocation
 
 def find_number(a):
-    return re.findall(r'^\.?\d+',a)
+  return re.findall(r'^\.?\d+',a)
 
 def Timer(start, end, count):
-    """
-    Calculates the time it takes to run
-    process, based on start and finish
-    """
-    elapsed = end - start
-    # Add 5 seconds to time for each photo's dropbox upload pause
-    elapsed=elapsed+(5*count)
-    # Convert process time, if needed
-    if elapsed < 60:
-        time = str(round(elapsed,2)) + " seconds\n"
-    if 60 <= elapsed <= 3599:  # ccc: slightly faster to state the variable only once
-        min = elapsed / 60
-        time = str(round(min,2)) + " minutes\n"
-    if elapsed >= 3600:        # ccc: what happens if elapsed is 3591, 3592, 3593, etc.?
-        hour = elapsed / 3600
-        time = str(round(hour,2)) + " hours\n"
-    return time
+  """
+  Calculates the time it takes to run
+  process, based on start and finish
+  """
+  elapsed = end - start
+  # Add 5 seconds to time for each photo's dropbox upload pause
+  elapsed  += 5*count
+  # Convert process time, if needed
+  if elapsed < 60:
+    time = '{:.2f}'.format(elapsed) + " seconds\n"
+
+  if 60 <= elapsed <= 3599:
+    min = elapsed / 60
+    time = '{:.2f}'.format(min) + " minutes\n"
+
+  if elapsed >= 3600:
+    hour = elapsed / 3600
+    time = '{:.2f}'.format(hour) + " hours\n"
+
+  return time
 
 def main():
-    console.clear()
+  console.clear()
+  try:
+    '''
+    Here we are picking photos from the
+    camera roll which, in Pythonista,
+    allows us access to extra media data
+    in photo's metafile. Because raw data
+    is set to true, the image is a string
+    representing the image object, not the
+    object itself.
+    '''
+    choose=photos.pick_image(show_albums=True,multi=True,original=True,raw_data=True, include_metadata=True)
+  except:
+    sys.exit('No photos choosen...exiting.')
 
-    try:
+  minumum_size=True
+  resizePercent=0
+
+  # Pick a scaling percent for selected photo(s)
+  try:
+    ans=console.alert('Reduce the selected photo(s) by what percent of their original size?','','50% with a 1600x1200 minumum','Custom without a minumum','None')
+
+    if ans==1:
+      scale=float(50) /100
+    elif ans==2:
+      msg='Enter desired reduction percent for selected photo(s): '
+      scale=float(console.input_alert(msg,'Numbers only','35')) /100
+
+      # No minumums here...reduce all photos no matter what their size.
+      minumum_size=False
+    elif ans==3:
+      # Don't resize
+      scale=1
+  except (IndexError, ValueError):
+    sys.exit('No valid entry...Process cancelled.')
+
+  start = time.clock()
+
+  # Create an instance of Dropbox client
+  drop_client=get_client()
+
+  ans=''
+  dest_dir='/Photos'
+  '''
+  When metadata is returned with photo
+  the photo is a tuple, with one the
+  image, and the other the media
+  metadata.
+  '''
+
+  for count,photo in enumerate(choose):
+    print '\nProcessing photo...'
+    # Raw data string and Metadata
+    img, meta=photo
+    #print meta
+    #sys.exit()
+
+    # Get date & time photo was taken
+    theYear,theDate,theTime=GetDateTime(meta)
+
+    # Formulate file name for photo
+    old_filename=str(meta.get('filename'))
+
+    if theDate:
+      folder_name='{}/{}'.format(theYear,theDate)
+
+      new_filename='{}.{}'.format(theTime,old_filename)
+    else:
+      folder_name='NoDates'
+      new_filename=old_filename
+
+    new_filename='{}/{}/{}'.format(dest_dir,folder_name,new_filename)
+
+    if folder_name=='NoDates':
+      no_exif.append(new_filename)
+
+    # Get dimensions for resize based on size of original photo
+    new_w,new_h,w,h,resizeOk=GetDimensions(meta,scale,new_filename,minumum_size)
+
+    fmt='\nOriginal Name: {}\nNew Name: {}'
+
+    print fmt.format(old_filename, new_filename)
+
+    fmt='\nOriginal Size: {}x{}\nNew Size: {}x{}'
+    print fmt.format(w, h, new_w, new_h)
+
+    addToMsg='with' if keepMeta else 'without'
+
+    if resizeOk:
+      msg='\nCreating resized copy of original photo {} the metadata from original.'
+    else:
+      msg='\nCreating copy of original photo {} the metadata from original.'
+
+    print msg.format(addToMsg)
+
+    # Write string image of original photo to Pythonista script dir
+    with open('with_meta.jpg', 'wb') as out_file:
+      out_file.write(img)
+
+    # Open image, resize it, and write new image to scripts dir
+    img=Image.open('with_meta.jpg')
+
+    if geoTag:
+      # Get geo-tagging info
+      theLocation=GetLocation(meta)
+
+      if theLocation:
+        print '\nGeo-tagging photo...'
+
+        # Find out if photo is oriented for landscape or portrait
+        orientation=meta.get('Orientation')  # ccc: add a default?
+
         '''
-        Here we are picking photos from the
-        camera roll which, in Pythonista,
-        allows us access to extra media data
-        in photo's metafile. Because raw data
-        is set to true, the image is a string
-        representing the image object, not the
-        object itself.
+        Get degrees needed to rotate photo
+        for it's proper orientation. See
+        www.impulsesdventue.com/photo
+        exif-orientation.html for more
+        details.
         '''
-        choose=photos.pick_image(show_albums=True,multi=True,original=True,raw_data=True, include_metadata=True)
-    except:
-        sys.exit('No photos choosen...exiting.')  # put text directly in sys.exit()
+        degrees,oriented=GetDegreesToRotate(orientation)
 
-    minumum_size=True
-    resizePercent=0
+        print '\nThe orientation for photo is {}.'.format(oriented)
 
-    # Pick a scaling percent for selected photo(s)
-    try:
-        ans=console.alert('Reduce the selected photo(s) by what percent of their original size?','','50% with a 1600x1200 minumum','Custom without a minumum','None')
+        theTime=theTime.replace('.',':')
+        theLocation='{} @ {} in {}'.format(theDate, theTime, theLocation)
 
-        if ans==1:
-            scale=float(50) /100
-        elif ans==2:
-            msg='Enter desired reduction percent for selected photo(s): '
-            scale=float(console.input_alert(msg,'Numbers only','35')) /100
-            # No minumums here...reduce all photos no matter what their size.
-            minumum_size=False
-        elif ans==3:
-            # Don't resize
-            scale=1
-    except:
-        sys.exit('No valid entry...Process cancelled.')
+        # Rotate so tag is on bottom of photo regardless of orientation
+        img=img.rotate(degrees).convert('RGBA')
 
-    start = time.clock()
+        # Tuple
+        w,h=img.size
+        draw=ImageDraw.Draw(img)
+        '''
+        Font for geo-tag of smaller photos
+        will be 28 point Helvetica, while
+        the rest will be 56 point.
+        '''
+        fontsize=56 if w>1200 else 28
+        font=ImageFont.truetype('Helvetica',fontsize)
 
-    # Create an instance of Dropbox client
-    drop_client=get_client()
+        # Put red text @ bottom left of photo
+        draw.text((25,h-75),theLocation,(255,0,0),font=font)
 
-    ans=''
-    dest_dir='/Photos'
+        # Rotate back to original position
+        img=img.rotate(-degrees)
+    else:
+      print '\nNo gps metadata for photo.'
+      no_gps.append(new_filename)
+
+    meta=''
+    resized=img.resize((new_w,new_h),Image.ANTIALIAS)
+
+    resized.save('without_meta.jpg')
+    resized=''
+
+    if keepMeta:
+      '''
+      Copy metadata from 'with_meta.jpg'
+      to 'without_meta.jpg and call this
+      reprocessed image file
+      'meta_resized.jpg'.
+      '''
+      CopyMeta('with_meta.jpg','without_meta.jpg',new_w,new_h)
+
+      jpgFile='meta_resized.jpg'
+
+    else:
+      # Use resized photo that has not had metadata added back into it
+      jpgFile='without_meta.jpg'
+
+    print '\nUploading photo to Dropbox...'
 
     '''
-    When metadata is returned with photo the
-    photo is a tuple, with one the image,
-    and the other the media metadata.
+    Upload resized photo with or without
+    original metadata to Dropbox...use
+    with statement to open file so file
+    closes automatically at end of with.
     '''
+    with open(jpgFile,'r') as img:
+      response=drop_client.put_file(new_filename,img)
 
-    for count,photo in enumerate(choose):  # ccc: use enumerate() to count for you
-        print '\nProcessing photo...'
-        # Raw data string and Metadata
-        img, meta=photo
-        #print meta
-        #sys.exit()
+    # Give Dropbox server time to process
+      time.sleep(5)
+    response=jpgFile=theLocation=img=theDate=theTime=theYear=new_filename=old_filename=''
+    print '\nUpload successful.'
 
-        # Get date & time photo was taken
-        theYear,theDate,theTime=GetDateTime(meta)
+  finish = time.clock()
+  print '{} photos processed in {}'.format(count+1, Timer(start, finish, count+1))
 
-        # Formulate file name for photo
-        old_filename=str(meta.get('filename'))
-        if theDate:  # ccc: `<>''` is not required
-            folder_name=theYear+'/'+theDate
-            new_filename=theTime+'.'+old_filename
-        else:
-            folder_name='NoDates'
-            new_filename=old_filename
+  if no_exif:
+    print '\nPhotos with no DateTimeOriginal tag in their metadata and will need categorizing manually:'
+    print '\n'.join(no_exif)
 
-        new_filename=dest_dir+'/'+folder_name+'/'+new_filename
+  if no_resize:
+    print '\nPhotos that did not get resized because either you chose not to resize, or they were smaller than the minumum size of 1600x1200:'
+    print '\n'.join(no_resize)
 
-        if folder_name=='NoDates':
-            no_exif.append(new_filename)
+  if no_gps:
+    print '\nPhotos that did not get geo-tagged because there was no gps info in the photos metadata:'
+    print '\n'.join(no_gps)
 
-        # Get dimensions for resize based on size of original photo
-
-        new_w,new_h,w,h,resizeOk=GetDimensions(meta,scale,new_filename,minumum_size)
-
-        fmt='\nOriginal Name: {}\nNew Name: {}'  # ccc use str.format() to simplify
-        print fmt.format(old_filename, new_filename)
-        
-        fmt='\nOriginal Size: {}x{}\nNew Size: {}x{}'
-        print fmt.format(w, h, new_w, new_h)
-
-        addToMsg='with' if keepMeta else 'without'  # ccc: trinary conditional
-
-        if resizeOk:
-            msg='\nCreating resized copy of original photo '+addToMsg+' the metadata from original.'
-        else:
-            msg='\nCreating copy of original photo '+addToMsg+' the metadata from original.'
-
-        print msg
-
-        # Write string image of original photo to Pythonista script dir
-        with open('with_meta.jpg', 'wb') as out_file:
-            out_file.write(img)
-
-        # Open image, resize it, and write new image to scripts dir
-        img=Image.open('with_meta.jpg')
-
-        if geoTag:
-            # Get geo-tagging info
-            theLocation=GetLocation(meta)
-            if theLocation:  # ccc: `<>''` is not required:
-                print '\nGeo-tagging photo...'
-                # Find out if photo is oriented for landscape or portrait
-                orientation=meta.get('Orientation')  # ccc: add a default?
-
-                '''
-                Get degrees needed to rotate photo
-                for it's proper orientation. See
-                www.impulsesdventue.com/photo
-                exif-orientation.html for more
-                details.
-                '''
-                degrees,oriented=GetDegreesToRotate(orientation)
-
-                print '\nThe orientation for photo is {}.'.format(oriented)
-                theTime=theTime.replace('.',':')
-                theLocation='{} @ {} in {}'.format(theDate, theTime, theLocation)
-                # Rotate so tag is on bottom of photo regardless of orientation
-                img=img.rotate(degrees).convert('RGBA')  # ccc: compound function calls
-                w,h=img.size
-                draw=ImageDraw.Draw(img)
-                '''
-                Font for geo-tag of smaller photos
-                will be 28 point Helvetica, while
-                the rest will be 56 point.
-                '''
-                fontsize=56 if w>1200 else 28  # ccc: trinary conditional
-
-                font=ImageFont.truetype('Helvetica',fontsize)
-                # Put red text @ bottom left of photo
-                draw.text((25,h-75),theLocation,(255,0,0),font=font)
-                # Rotate back to original position
-                img=img.rotate(-degrees)
-            else:
-                print '\nNo gps metadata for photo.'
-                no_gps.append(new_filename)
-
-        meta=''
-        resized=img.resize((new_w,new_h),Image.ANTIALIAS)
-        resized.save('without_meta.jpg')
-        resized=''
-
-        if keepMeta:
-            '''
-            Copy metadata from 'with_meta.jpg'
-            to 'without_meta.jpg and call this
-            reprocessed image file
-            'meta_resized.jpg'.
-            '''
-            CopyMeta('with_meta.jpg','without_meta.jpg',new_w,new_h)
-
-            jpgFile='meta_resized.jpg'
-        else:
-            # Use resized photo that has not had metadata added back into it
-            jpgFile='without_meta.jpg'
-
-        print '\nUploading photo to Dropbox...'
-
-        '''
-        Upload resized photo with or without
-        original metadata to Dropbox...use
-        with statement to open file so file
-        closes automatically at end of with.
-        '''
-
-        with open(jpgFile,'r') as img:
-            response=drop_client.put_file(new_filename,img)
-
-        # Give Dropbox server time to process
-        time.sleep(5)
-
-        response=jpgFile=theLocation=img=theDate=theTime=theYear=new_filename=old_filename=''
-
-        print '\nUpload successful.'
-
-    finish = time.clock()
-
-    print '{} photos processed in {}.'.format(count+1, Timer(start, finish, count+1))
-
-    if no_exif:  # ccc: len() and >0 are not required
-        print '\nPhotos with no DateTimeOriginal tag in their metadata and will need categorizing manually:'
-        print '\n'.join(no_exif)
-
-    if no_resize:  # ccc: same
-        print '\nPhotos that did not get resized because either you chose not to resize, or they were smaller than the minumum size of 1600x1200:'
-        print '\n'.join(no_resize)
-
-    if no_gps:  # ccc: same
-        print '\nPhotos that did not get geo-tagged because there was no gps info in the photos metadata:'
-        print '\n'.join(no_gps)
-
-    if __name__ == '__main__':
-    main()
+if __name__ == '__main__':
+  main()
