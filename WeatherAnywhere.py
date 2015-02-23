@@ -17,7 +17,8 @@
 # are missing. More code cleanup.
 # v1.4: 02/23/2015-Conversion functions
 # renamed & now return numbers instead of
-# strings
+# strings, added ability to convert
+# from imperial to metric units.
 '''
 This script provides current and multi day
 weather forecasts for any city you name,
@@ -45,7 +46,12 @@ missing_icons=[]
 # Number of days in advaced forecast
 day_count=7
 # Change to 'metric' if desired
-imperial_or_metric='imperial'
+imperial_or_metric='metric'
+
+if imperial_or_metric=='imperial':
+  unit=['F','mph','in','in']
+else:
+  unit=['C','mps','hPa','mm']
 
 def get_current_lat_lon():
   # Retrieve lat & lon from current locale
@@ -125,9 +131,16 @@ def wind_chill(temp,wind):
   '''
   temp=float(temp)
   wind=float(wind)
-  if wind<=3 or temp>50:
-    return temp
-  return min(35.74+(temp*0.6215)+(((0.3965*temp)-35.75)*(wind**0.16)),temp)
+
+  if imperial_or_metric=='imperial':
+    if wind<=3 or temp>50:
+      return temp
+    return min(35.74+(temp*0.6215)+(((0.4275*temp)-35.75)*(wind**0.16)),temp)
+  else:
+    wind_kph=wind*3.6
+    if wind_kph<=4.8 or temp>10:
+      return temp
+    return min(13.12+(temp*0.6215)+(((0.3965*temp)-11.37)*(wind_kph**0.16)),temp)
 
 def wind_dir(deg):
   # Convert degrees to wind direction
@@ -171,7 +184,8 @@ def download_weather_icons():
 
 def get_current_weather(w):
   # Pressure & convert to inches
-  w['main']['pressure']=hPa_to_inches(w['main']['pressure'])
+  if imperial_or_metric=='imperial':
+    w['main']['pressure']=hPa_to_inches(w['main']['pressure'])
 
   # Capitalize weather description
   w['weather'][0]['description']=w['weather'][0]['description'].title()
@@ -180,15 +194,19 @@ def get_current_weather(w):
   w['wind']['deg']=wind_dir(w['wind']['deg'])
 
   # Convert wind speed to mph
-  w['wind']['speed']=mps_to_mph(w['wind']['speed'])
+  if imperial_or_metric=='imperial':
+    w['wind']['speed']=mps_to_mph(w['wind']['speed'])
 
   # Get wind chill factor using temp & wind speed
   chill='{:.0f}'.format(wind_chill(w['main']['temp'],w['wind']['speed']))
 
   try:
     # Get wind gusts and covert to mph, although they aren't always listed'
-    w['wind']['gust']=mps_to_mph(w['wind']['gust'])+float(w['wind']['speed'])
-    gusts='w/ gusts to {:.0f} mph'.format(w['wind']['gust'])
+    if imperial_or_metric=='imperial':
+      w['wind']['gust']=mps_to_mph(w['wind']['gust'])+float(w['wind']['speed'])
+    else:
+      w['wind']['gust']=w['wind']['gust']+w['wind']['speed']
+    gusts='w/ gusts to {:.0f} {}'.format(w['wind']['gust'],unit[1])
   except:
     gusts=''
   # Convert timestamp to date of weather
@@ -213,13 +231,13 @@ def get_current_weather(w):
 Current Conditions for {dt}
   {weather[0][description]}
   Clouds: {clouds[all]}%
-  Temperature: {main[temp]:.0f}° F
+  Temperature: {main[temp]:.0f}° {}
   Humidity: {main[humidity]}%
-  Barometric Pressure: {main[pressure]:.2f} in
-  Wind: {wind[deg]} @ {wind[speed]:.0f} mph {}
-  Feels Like: {}° F
+  Barometric Pressure: {main[pressure]:.2f} {}
+  Wind: {wind[deg]} @ {wind[speed]:.0f} {} {}
+  Feels Like: {}° {}
   Sunrise: {sys[sunrise]}
-  Sunset: {sys[sunset]}\n'''.format(gusts,chill,**w)
+  Sunset: {sys[sunset]}\n'''.format(unit[0],unit[2],unit[1],gusts,chill,unit[0],**w)
 
 def get_day_forcast(f):
   # Get icon name and store in list
@@ -237,31 +255,37 @@ def get_day_forcast(f):
   if precip_type in ('Rain', 'Snow'):
     try:
       # Convert precip amt to inches
-      fmt = 'Expected {} Vol for 3 hrs: {:.2f} in'
-      precip_type = fmt.format(precip_type, mm_to_inches(f[precip_type.lower()]))
+      fmt = '\n    Expected {} Vol for 3 hrs: {:.2f} {}'
+      if imperial_or_metric=='imperial':
+        precip_type = fmt.format(precip_type, mm_to_inches(f[precip_type.lower()]),unit[3])
+      else:
+        precip_type = fmt.format(precip_type,f[precip_type.lower()],unit[3])
     except:
       # Sometimes precip amts aren't listed
       pass
   elif precip_type=='Clouds':
-    precip_type += '\n    No Rain Expected'
+    precip_type = '\n    No Rain Expected'
+  else:
+    precip_type=''
 
   # Pressure formatted to inches
-  f['pressure'] = hPa_to_inches(f['pressure'])
+  if imperial_or_metric=='imperial':
+    f['pressure'] = hPa_to_inches(f['pressure'])
 
   # Wind direction and speed
   f['deg'] = wind_dir(f['deg'])
-  f['speed'] = mps_to_mph(f['speed'])
+  if imperial_or_metric=='imperial':
+    f['speed'] = mps_to_mph(f['speed'])
 
   return '''
 Forecast for {dt}
-    {weather[0][description]}
-    {}
+    {weather[0][description]}{}
     Clouds:   {clouds:>3}%
-    High:     {temp[max]:>3.0f}° F
-    Low:      {temp[min]:>3.0f}° F
+    High:     {temp[max]:>3.0f}° {}
+    Low:      {temp[min]:>3.0f}° {}
     Humidity: {humidity:>3}%
-    Barometric Pressure: {pressure:.2f} in
-    Wind: {deg} @ {speed:.0f} mph'''.format(precip_type, **f)
+    Barometric Pressure: {pressure:.2f} {}
+    Wind: {deg} @ {speed:.0f} {}'''.format(precip_type,unit[0], unit[0],unit[2],unit[1],**f)
 
 def get_forecast(f):
   daily_forecasts = [get_day_forcast(daily) for daily in f['list']]
