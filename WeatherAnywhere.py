@@ -15,6 +15,9 @@
 # v1.3: 02/21/2015-Added function to
 # download weather icons if any or all
 # are missing. More code cleanup.
+# v1.4: 02/23/2015-Conversion functions
+# renamed & now return numbers instead of
+# strings
 '''
 This script provides current and multi day
 weather forecasts for any city you name,
@@ -102,9 +105,9 @@ def get_weather_dicts(lat,lon,city,id):
     sys.exit('Weather servers are busy. Try again in a few minutes...')
   return weather, forecast
 
-def precip_inch(mm):
-    # Convert rain or snowfall from mm to in
-  return '{:.2f}'.format(mm/25.4)
+def mm_to_inches(mm):
+  # Convert rain or snowfall from mm to in
+  return mm/25.4
 
 def wind_dir(deg):
   # Convert degrees to wind direction
@@ -127,9 +130,9 @@ def wind_dir(deg):
   elif deg < 348.75:  return 'NNW'
   return 'N'
 
-def wind_mph(mps):
+def mps_to_mph(mps):
   # Convert wind from meters/sec to mph
-  return '{:.0f}'.format(mps*3.6/1.609344)
+  return mps*3.6/1.609344
 
 def wind_chill(temp,wind):
   '''
@@ -139,12 +142,12 @@ def wind_chill(temp,wind):
   temp=float(temp)
   wind=float(wind)
   if wind<=3 or temp>50:
-    return '{:.0f}'.format(temp)
-  return '{:.0f}'.format(min(35.74+(temp*0.6215)+(((0.3965*temp)-35.75)*(wind**0.16)),temp))
+    return temp
+  return (min(35.74+(temp*0.6215)+(((0.3965*temp)-35.75)*(wind**0.16)),temp))
 
-def pressure_inhg(hPa):
+def hPa_to_inches(hPa):
   # Convert pressure from hectopascals/millibar to inches of mecury
-  return '{:.2f}'.format(hPa/33.86389)
+  return hPa/33.86389
 
 def download_weather_icons():
   # Downloads any missing weather icons
@@ -178,7 +181,7 @@ def get_current_weather(w):
   w['main']['temp']='{:.0f}'.format(w['main']['temp'])
 
   # Pressure & convert to inches
-  w['main']['pressure']=pressure_inhg(w['main']['pressure'])
+  w['main']['pressure']='{:.2f}'.format(hPa_to_inches(w['main']['pressure']))
 
   # Capitalize weather description
   w['weather'][0]['description']=w['weather'][0]['description'].title()
@@ -187,14 +190,15 @@ def get_current_weather(w):
   w['wind']['deg']=wind_dir(w['wind']['deg'])
 
   # Convert wind speed to mph
-  w['wind']['speed']=wind_mph(w['wind']['speed'])
+  w['wind']['speed']=mps_to_mph(w['wind']['speed'])
+  w['speed']='{:.0f}'.format(w['wind']['speed'])
 
   # Get wind chill factor using temp & wind speed
-  chill=wind_chill(w['main']['temp'],w['wind']['speed'])
+  chill='{:.0f}'.format(wind_chill(w['main']['temp'],w['wind']['speed']))
 
   try:
     # Get wind gusts and covert to mph, although they aren't always listed'
-    w['wind']['gust']=float(wind_mph(w['wind']['gust']))+float(w['wind']['speed'])
+    w['wind']['gust']=float(mps_to_mph(w['wind']['gust']))+float(w['wind']['speed'])
     gusts='w/ gusts to {:.0f} mph'.format(w['wind']['gust'])
   except:
     gusts=''
@@ -223,7 +227,7 @@ Current Conditions for {dt}
   Temperature: {main[temp]}° F
   Humidity: {main[humidity]}%
   Barometric Pressure: {main[pressure]} in
-  Wind: {wind[deg]} @ {wind[speed]} mph {}
+  Wind: {wind[deg]} @ {speed} mph {}
   Feels Like: {}° F
   Sunrise: {sys[sunrise]}
   Sunset: {sys[sunset]}\n'''.format(gusts,chill,**w)
@@ -244,8 +248,8 @@ def get_day_forcast(f):
   if precip_type in ('Rain', 'Snow'):
     try:
       # Convert precip amt to inches
-      fmt = 'Expected {} Vol for 3 hrs: {} in'
-      precip_type = fmt.format(precip_type, precip_inch(f[precip_type.lower()]))
+      fmt = 'Expected {} Vol for 3 hrs: {:.2f} in'
+      precip_type = fmt.format(precip_type, mm_to_inches(f[precip_type.lower()]))
     except:
       # Sometimes precip amts aren't listed
       pass
@@ -253,12 +257,12 @@ def get_day_forcast(f):
     precip_type += '\n    No Rain Expected'
 
   # Pressure formatted to inches
-  f['pressure'] = pressure_inhg(f['pressure'])
+  f['pressure'] = '{:.2f}'.format(hPa_to_inches(f['pressure']))
 
   # Wind direction and speed
-  f['deg']   = wind_dir(f['deg'])
-  f['speed'] = wind_mph(f['speed'])
-    
+  f['deg'] = wind_dir(f['deg'])
+  f['speed'] = '{:.0f}'.format(mps_to_mph(f['speed']))
+
   return '''
 Forecast for {dt}
     {weather[0][description]}
