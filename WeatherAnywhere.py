@@ -105,9 +105,29 @@ def get_weather_dicts(lat,lon,city,id):
     sys.exit('Weather servers are busy. Try again in a few minutes...')
   return weather, forecast
 
+# Conversion functions:
+def hPa_to_inches(hPa):
+  # Convert pressure from hectopascals/millibar to inches of mecury
+  return hPa/33.86389
+
 def mm_to_inches(mm):
   # Convert rain or snowfall from mm to in
   return mm/25.4
+
+def mps_to_mph(mps):
+  # Convert wind from meters/sec to mph
+  return mps*3.6/1.609344
+
+def wind_chill(temp,wind):
+  '''
+  Compute wind chill using formula from
+  http://en.wikipedia.org/wiki/wind_chill
+  '''
+  temp=float(temp)
+  wind=float(wind)
+  if wind<=3 or temp>50:
+    return temp
+  return min(35.74+(temp*0.6215)+(((0.3965*temp)-35.75)*(wind**0.16)),temp)
 
 def wind_dir(deg):
   # Convert degrees to wind direction
@@ -130,25 +150,6 @@ def wind_dir(deg):
   elif deg < 348.75:  return 'NNW'
   return 'N'
 
-def mps_to_mph(mps):
-  # Convert wind from meters/sec to mph
-  return mps*3.6/1.609344
-
-def wind_chill(temp,wind):
-  '''
-  Compute wind chill using formula from
-  http://en.wikipedia.org/wiki/wind_chill
-  '''
-  temp=float(temp)
-  wind=float(wind)
-  if wind<=3 or temp>50:
-    return temp
-  return (min(35.74+(temp*0.6215)+(((0.3965*temp)-35.75)*(wind**0.16)),temp))
-
-def hPa_to_inches(hPa):
-  # Convert pressure from hectopascals/millibar to inches of mecury
-  return hPa/33.86389
-
 def download_weather_icons():
   # Downloads any missing weather icons
   # from www.openweathermap.org
@@ -169,19 +170,8 @@ def download_weather_icons():
       print('Done.')
 
 def get_current_weather(w):
-  # Current weather conditions
-  #for item in ('temp_min', 'temp_max'):
-    #if item not in w['main']:
-      #w['main'][item] = None # create values if they are not present
-
-  #if 'weather' not in w:
-    #w['weather']=[{'description' : 'not available'}]
-
-  # Round current temp to whole number
-  w['main']['temp']='{:.0f}'.format(w['main']['temp'])
-
   # Pressure & convert to inches
-  w['main']['pressure']='{:.2f}'.format(hPa_to_inches(w['main']['pressure']))
+  w['main']['pressure']=hPa_to_inches(w['main']['pressure'])
 
   # Capitalize weather description
   w['weather'][0]['description']=w['weather'][0]['description'].title()
@@ -191,14 +181,13 @@ def get_current_weather(w):
 
   # Convert wind speed to mph
   w['wind']['speed']=mps_to_mph(w['wind']['speed'])
-  w['speed']='{:.0f}'.format(w['wind']['speed'])
 
   # Get wind chill factor using temp & wind speed
   chill='{:.0f}'.format(wind_chill(w['main']['temp'],w['wind']['speed']))
 
   try:
     # Get wind gusts and covert to mph, although they aren't always listed'
-    w['wind']['gust']=float(mps_to_mph(w['wind']['gust']))+float(w['wind']['speed'])
+    w['wind']['gust']=mps_to_mph(w['wind']['gust'])+float(w['wind']['speed'])
     gusts='w/ gusts to {:.0f} mph'.format(w['wind']['gust'])
   except:
     gusts=''
@@ -224,10 +213,10 @@ def get_current_weather(w):
 Current Conditions for {dt}
   {weather[0][description]}
   Clouds: {clouds[all]}%
-  Temperature: {main[temp]}° F
+  Temperature: {main[temp]:.0f}° F
   Humidity: {main[humidity]}%
-  Barometric Pressure: {main[pressure]} in
-  Wind: {wind[deg]} @ {speed} mph {}
+  Barometric Pressure: {main[pressure]:.2f} in
+  Wind: {wind[deg]} @ {wind[speed]:.0f} mph {}
   Feels Like: {}° F
   Sunrise: {sys[sunrise]}
   Sunset: {sys[sunset]}\n'''.format(gusts,chill,**w)
@@ -257,11 +246,11 @@ def get_day_forcast(f):
     precip_type += '\n    No Rain Expected'
 
   # Pressure formatted to inches
-  f['pressure'] = '{:.2f}'.format(hPa_to_inches(f['pressure']))
+  f['pressure'] = hPa_to_inches(f['pressure'])
 
   # Wind direction and speed
   f['deg'] = wind_dir(f['deg'])
-  f['speed'] = '{:.0f}'.format(mps_to_mph(f['speed']))
+  f['speed'] = mps_to_mph(f['speed'])
 
   return '''
 Forecast for {dt}
@@ -271,8 +260,8 @@ Forecast for {dt}
     High:     {temp[max]:>3.0f}° F
     Low:      {temp[min]:>3.0f}° F
     Humidity: {humidity:>3}%
-    Barometric Pressure: {pressure} in
-    Wind: {deg} @ {speed} mph'''.format(precip_type, **f)
+    Barometric Pressure: {pressure:.2f} in
+    Wind: {deg} @ {speed:.0f} mph'''.format(precip_type, **f)
 
 def get_forecast(f):
   daily_forecasts = [get_day_forcast(daily) for daily in f['list']]
@@ -333,7 +322,6 @@ def main():
       try:
         # Open, resize and show weather icon
         img=Image.open(ico).resize((25,25),Image.ANTIALIAS)
-
         img.show()
       except:
         missing_icons.append(ico)
