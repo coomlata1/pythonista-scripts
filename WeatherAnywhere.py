@@ -86,7 +86,7 @@ def city_ids(filename='cities.csv'):
     except (IndexError, ValueError):
       print('Please enter a vaild number.')
 
-def get_weather_dicts(lat,lon,city,id):
+def get_weather_dicts(lat,lon,city='',id=''):
   url_fmt = 'http://api.openweathermap.org/data/2.5/{}?{}'
   if city: # From entered city
     fmt = 'q={}&type=accurate&units={}'
