@@ -19,6 +19,9 @@
 # renamed & now return numbers instead of
 # strings, added ability to convert
 # from imperial to metric units.
+# v1.5: 02/24/2015-Cleanup of date
+# string formatting and now show all
+# weather types.
 '''
 This script provides current and multi day
 weather forecasts for any city you name,
@@ -255,7 +258,7 @@ def get_day_forcast(f):
   if precip_type in ('Rain', 'Snow'):
     try:
       # Convert precip amt to inches
-      fmt = '\n    Expected {} Vol for 3 hrs: {:.2f} {}'
+      fmt = 'Expected {} Vol for 3 hrs: {:.2f} {}'
       if imperial_or_metric=='imperial':
         precip_type = fmt.format(precip_type, mm_to_inches(f[precip_type.lower()]),unit[3])
       else:
@@ -264,10 +267,8 @@ def get_day_forcast(f):
       # Sometimes precip amts aren't listed
       pass
   elif precip_type=='Clouds':
-    precip_type = '\n    No Rain Expected'
-  else:
-    precip_type=''
-
+    precip_type = 'No Rain Expected'
+  
   # Pressure formatted to inches
   if imperial_or_metric=='imperial':
     f['pressure'] = hPa_to_inches(f['pressure'])
@@ -279,7 +280,8 @@ def get_day_forcast(f):
 
   return '''
 Forecast for {dt:%A %m-%d-%Y}
-    {weather[0][description]}{}
+    {weather[0][description]}
+    {}
     Clouds:   {clouds:>3}%
     High:     {temp[max]:>3.0f}° {}
     Low:      {temp[min]:>3.0f}° {}
