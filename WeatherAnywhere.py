@@ -21,7 +21,7 @@
 # from imperial to metric units.
 # v1.5: 02/24/2015-Cleanup of date
 # string formatting and now show all
-# weather types.
+# precip types.
 '''
 This script provides current and multi day
 weather forecasts for any city you name,
