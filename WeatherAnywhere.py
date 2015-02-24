@@ -209,12 +209,12 @@ def get_current_weather(w):
     gusts='w/ gusts to {:.0f} {}'.format(w['wind']['gust'],unit[1])
   except:
     gusts=''
-  # Convert timestamp to date of weather
-  w['dt']=datetime.datetime.fromtimestamp(int(w['dt'])).strftime('%A\n  %m-%d-%Y @ %I:%M %p:')
+  # Convert timestamp of weather into a datetime
+  w['dt']=datetime.datetime.fromtimestamp(int(w['dt']))
 
-  # Do same for sunrise,sunset timestamps
+  # Do same for sunrise and sunset timestamps
   for item in ('sunrise', 'sunset'):
-    w['sys'][item]=datetime.datetime.fromtimestamp(int(w['sys'][item])).strftime('%I:%M %p')
+    w['sys'][item]=datetime.datetime.fromtimestamp(int(w['sys'][item]))
 
   # Find icon name in data
   ico=w['weather'][0]['icon']+'.png'
@@ -228,7 +228,7 @@ def get_current_weather(w):
 
   # Return the reformated data
   return '''Today's Weather in {name}:\n
-Current Conditions for {dt}
+Current Conditions for {dt:%A\n  %m-%d-%Y @ %I:%M %p}:
   {weather[0][description]}
   Clouds: {clouds[all]}%
   Temperature: {main[temp]:.0f}° {}
@@ -236,15 +236,15 @@ Current Conditions for {dt}
   Barometric Pressure: {main[pressure]:.2f} {}
   Wind: {wind[deg]} @ {wind[speed]:.0f} {} {}
   Feels Like: {}° {}
-  Sunrise: {sys[sunrise]}
-  Sunset: {sys[sunset]}\n'''.format(unit[0],unit[2],unit[1],gusts,chill,unit[0],**w)
+  Sunrise: {sys[sunrise]:%I:%M %p}
+  Sunset: {sys[sunset]:%I:%M %p}\n'''.format(unit[0],unit[2],unit[1],gusts,chill,unit[0],**w)
 
 def get_day_forcast(f):
   # Get icon name and store in list
   icons.append(f['weather'][0]['icon']+'.png')
 
-  # Timestamp of forecast day formatted to day-of-week m-d-y
-  f['dt'] = datetime.datetime.fromtimestamp(int(f['dt'])).strftime('%A %m-%d-%Y')
+  # Convert timestamp of forecast day into a datetime
+  f['dt'] = datetime.datetime.fromtimestamp(int(f['dt']))
 
   # Capitalize weather description
   f['weather'][0]['description'] = f['weather'][0]['description'].title()
@@ -278,7 +278,7 @@ def get_day_forcast(f):
     f['speed'] = mps_to_mph(f['speed'])
 
   return '''
-Forecast for {dt}
+Forecast for {dt:%A %m-%d-%Y}
     {weather[0][description]}{}
     Clouds:   {clouds:>3}%
     High:     {temp[max]:>3.0f}° {}
