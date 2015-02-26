@@ -129,7 +129,7 @@ def get_imdbID_name(name):
       try:
         name_id=d['name_approx'][0]['id']
         #print name + ' approx'
-      except:
+      except KeyError:
         #print name + ' name not found'
         name_id=''
         pass
@@ -201,13 +201,13 @@ def mine_md_data(d):
   imdb_id=d['imdbID']
 
   print '\nGathering director & actor ids for MarkDown text on clipboard'
-  md_actors=d['Actors'].split(',')
-  md_actors=names_md(md_actors)
-  #print md_actors
-
   md_directors=d['Director'].split(',')
   md_directors=names_md(md_directors)
   #print md_directors
+  
+  md_actors=d['Actors'].split(',')
+  md_actors=names_md(md_actors)
+  #print md_actors
 
   md_data=('''
 **Type:** #{Type}
@@ -250,39 +250,36 @@ def listData(d):
   #sys.exit()
 
   the_films=[]
-  the_id=[]
+  the_ids=[]
 
   # Loop through list of titles and append all but episodes to film array
   for idx in xrange(len(d['Search'])):
     if d['Search'][idx]['Type']<>'episode':
       the_films.append(', '.join([d['Search'][idx]['Title'],d['Search'][idx]['Year'], d['Search'][idx]['Type']]))
-      # Add film's imdbID to it's own array
-      the_id.append(d['Search'][idx]['imdbID'])
+      # Add film's imdbID to the ids array
+      the_ids.append(d['Search'][idx]['imdbID'])
 
   while True:
     # Print out a new list of film choices
     for index, item in enumerate(the_films):
       print index, item
     try:
-      print ''
       '''
       Number of film selected will
       match the  index number of that
-      film's imdbID in the id array.
+      film's imdbID in the ids array.
       '''
-      idx=int(raw_input("Enter the number of your desired film or TV series: "))
-      test_id=the_id[idx]
+      film_idx=int(raw_input("\nEnter the number of your desired film or TV series: "))
+      film_id=the_ids[film_idx]
       break
     except (IndexError, ValueError):
-      print ''
-      msg='Invalid entry...Continue? (y/n): '
-      choice=raw_input(msg)
+      choice=raw_input('\nInvalid entry...Continue? (y/n): ')
       console.clear()
       if not choice.upper().startswith('Y'):
         sys.exit('Process cancelled...Goodbye')
 
-  # Return the imdbID to the caller
-  return test_id
+  # Return the film's imdbID to the caller
+  return film_id
 
 def main(args):
   console.clear()
