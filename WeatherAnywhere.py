@@ -55,7 +55,7 @@ weather_icons=[]
 missing_icons=[]
 icon_path='./icons/'
 
-# Number of days in advaced forecast
+# Number of days in advanced forecast
 day_count=7
 # Change to 'metric' if desired
 imperial_or_metric='imperial'
@@ -225,7 +225,7 @@ def download_weather_icons():
   import os
   fmt = 'Downloading {} from {} ...'
   for i in (1,2,3,4,9,10,11,13,50):
-    filenames = (icon_path+'{:02}d.png'.format(i), '{:02}n.png'.format(i))
+    filenames = (icon_path+'{:02}d.png'.format(i), icon_path+'{:02}n.png'.format(i))
     for filename in filenames:
       if os.path.exists(filename):
         continue
