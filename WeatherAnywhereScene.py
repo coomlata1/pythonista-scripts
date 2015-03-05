@@ -116,8 +116,12 @@ class MyScene (Scene):
     scene.text(forecast,font_size=12,x=-140,y=55, alignment=3)
 
     # Insert icons into scene
-    for i, image in enumerate(self.images):
-      scene.image(image,75,y[i])
+    try:
+      for i, image in enumerate(self.images):
+        scene.image(image,75,y[i])
+    except TypeError:
+      print('=' * 20)
+      sys.exit('nError...Downloaded missing icon(s) to fix...Restart script')
 
   # Routines to handle inertia scrolling
   def touch_began(self, touch):
