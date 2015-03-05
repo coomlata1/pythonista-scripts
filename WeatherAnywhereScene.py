@@ -46,7 +46,7 @@ def get_forecast(f):
 def get_icons(w,f,icon_path):
   return wa.get_weather_icons(w,f,icon_path)
 
-print('='*20)
+print('=' * 20)
 try:
   w,f=wa.pick_your_weather()
 except requests.ConnectionError:
@@ -65,7 +65,7 @@ for icon in weather_icons:
     continue
   # If missing then download what
   # icons are needed and quit loop
-  print('=',* 20)
+  print('=' * 20)
   wa.download_weather_icons(icon_path)
   break
 
