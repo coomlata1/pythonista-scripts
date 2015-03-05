@@ -9,7 +9,7 @@ Useful scripts to be run in Pythonista for iOS.  Kudos to [@cclauss](https://git
 
 - **WeatherAnywhere\cities.csv** - A sample csv file for 'WeatherAnywhere.py'.  Put it in the same folder as the script.
 
--**WeatherAnywhereScene.py** - Inspiration behind this was @cclauss's script,'WeatherAnywhereView.py in this
+- **WeatherAnywhereScene.py** - Inspiration behind this was @cclauss's script,'WeatherAnywhereView.py in this
 repository. I wanted to add the ability to add weather icons and have them scroll with the text, so a scene seemed to be the
 best answer.  This script also adds the ability to scroll the scene by inertia.  A basic scrolling example was created by Dalorbi on the forums at: http://omz-software.com/pythonista/forums/discussion/213/scrolling-in-scene-module/p1
 Ability for scrolling the scene with inertia was added by hroe.
