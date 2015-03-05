@@ -19,9 +19,15 @@
 # renamed & now return numbers instead of
 # strings, added ability to convert
 # from imperial to metric units.
-# v1.5: 02/24/2015-Cleanup of date
-# string formatting and now show all
-# precip types.
+# v1.5: 02/24/2015-Cleanup of date string
+# formatting and now show all precip
+# types.
+# v1.6: 03/04/2015-Added ability to store
+# weather icons in a sub folder of script
+# folder. Created 2 new functions,
+# 'pick_your_weather' &
+# 'get_weather_icons' to aid in porting
+# script over to a scene.
 '''
 This script provides current and multi day
 weather forecasts for any city you name,
@@ -45,16 +51,52 @@ import sys
 
 # Global variables
 icons=[]
+weather_icons=[]
 missing_icons=[]
+icon_path='./icons/'
+
 # Number of days in advaced forecast
 day_count=7
 # Change to 'metric' if desired
-imperial_or_metric='metric'
+imperial_or_metric='imperial'
 
 if imperial_or_metric=='imperial':
   unit=['F','mph','in','in']
 else:
   unit=['C','mps','hPa','mm']
+
+def pick_your_weather():
+  city = country = id = ''
+  lat = lon = 0
+
+  # Pick a weather source
+  try:
+    ans=console.alert('Choose Your Weather Source:','','From Your Current Location','From Entering a City Name','From A Pick List of Cities')
+    if ans==1:
+      # Weather where you are
+      print 'Gathering weather data from where you are...'
+      # Get lat & lon of where you are
+      lat,lon=get_current_lat_lon()
+    elif ans==2:
+      # Enter a city & country
+      msg='Enter a city and country in format "'"New York, US"'": '
+      ans=console.input_alert(msg).title()
+      if ans:
+        print('='*20)
+        print 'Gathering weather data for '+ans
+        city=ans.replace(' ','+')
+    elif ans==3:
+      # Pick from list
+      theCity,country,id=city_ids()
+      print('='*20)
+      if id:
+        print 'Gathering weather data for '+theCity+', '+country
+  except Exception as e:
+    sys.exit('Error: {}'.format(e))
+
+  # Call api from www.openweathermap.org
+  w,f=get_weather_dicts(lat,lon,city,id)
+  return w,f
 
 def get_current_lat_lon():
   # Retrieve lat & lon from current locale
@@ -166,13 +208,24 @@ def wind_dir(deg):
   elif deg < 348.75:  return 'NNW'
   return 'N'
 
+def get_weather_icons(w,f):
+  weather_icons=[]
+  # Find icon name in current weather
+  ico=icon_path+w['weather'][0]['icon']+'.png'
+  weather_icons.append(ico)
+  # Find icon names in forecasted weather
+  for idx in xrange(len(f['list'])):
+    ico=icon_path+f['list'][idx]['weather'][0]['icon']+'.png'
+    weather_icons.append(ico)
+  return weather_icons
+
 def download_weather_icons():
   # Downloads any missing weather icons
   # from www.openweathermap.org
   import os
   fmt = 'Downloading {} from {} ...'
   for i in (1,2,3,4,9,10,11,13,50):
-    filenames = ('{:02}d.png'.format(i), '{:02}n.png'.format(i))
+    filenames = (icon_path+'{:02}d.png'.format(i), '{:02}n.png'.format(i))
     for filename in filenames:
       if os.path.exists(filename):
         continue
@@ -219,16 +272,6 @@ def get_current_weather(w):
   for item in ('sunrise', 'sunset'):
     w['sys'][item]=datetime.datetime.fromtimestamp(int(w['sys'][item]))
 
-  # Find icon name in data
-  ico=w['weather'][0]['icon']+'.png'
-  #Open, resize and show weather icon
-  try:
-    i=Image.open(ico).resize((25,25),Image.ANTIALIAS)
-    i.show()
-  except:
-    # Maybe no icons or some missing
-    missing_icons.append(ico)
-
   # Return the reformated data
   return '''Today's Weather in {name}:\n
 Current Conditions for {dt:%A\n  %m-%d-%Y @ %I:%M %p}:
@@ -242,10 +285,7 @@ Current Conditions for {dt:%A\n  %m-%d-%Y @ %I:%M %p}:
   Sunrise: {sys[sunrise]:%I:%M %p}
   Sunset: {sys[sunset]:%I:%M %p}\n'''.format(unit[0],unit[2],unit[1],gusts,chill,unit[0],**w)
 
-def get_day_forcast(f):
-  # Get icon name and store in list
-  icons.append(f['weather'][0]['icon']+'.png')
-
+def get_day_forecast(f):
   # Convert timestamp of forecast day into a datetime
   f['dt'] = datetime.datetime.fromtimestamp(int(f['dt']))
 
@@ -268,7 +308,7 @@ def get_day_forcast(f):
       pass
   elif precip_type=='Clouds':
     precip_type = 'No Rain Expected'
-  
+
   # Pressure formatted to inches
   if imperial_or_metric=='imperial':
     f['pressure'] = hPa_to_inches(f['pressure'])
@@ -290,44 +330,27 @@ Forecast for {dt:%A %m-%d-%Y}
     Wind: {deg} @ {speed:.0f} {}'''.format(precip_type,unit[0], unit[0],unit[2],unit[1],**f)
 
 def get_forecast(f):
-  daily_forecasts = [get_day_forcast(daily) for daily in f['list']]
+  daily_forecasts = [get_day_forecast(daily) for daily in f['list']]
   fmt = 'Extended {} Day Forecast for {city[name]}:\n{}'
   return fmt.format(len(daily_forecasts), '\n'.join(daily_forecasts), **f)
 
 def main():
   console.clear()
-  city = country = id = ''
-  lat = lon = 0
-  # Pick a weather source
-  try:
-    ans=console.alert('Choose Your Weather Source:','','From Your Current Location','From Entering a City Name','From A Pick List of Cities')
-    if ans==1:
-      # Weather where you are
-      print 'Gathering weather data from where you are...'
-      # Get lat & lon of where you are
-      lat,lon=get_current_lat_lon()
-    elif ans==2:
-      # Enter a city & country
-      msg='Enter a city and country in format "'"New York, US"'": '
-      ans=console.input_alert(msg).title()
-      if ans:
-        print('='*20)
-        print 'Gathering weather data for '+ans
-        city=ans.replace(' ','+')
-    elif ans==3:
-      # Pick from list
-      theCity,country,id=city_ids()
-      print('='*20)
-      if id:
-        print 'Gathering weather data for '+theCity+', '+country
-  except Exception as e:
-    sys.exit('Error: {}'.format(e))
+  w,f=pick_your_weather()
 
-  # Call api from www.openweathermap.org
-  w,f=get_weather_dicts(lat,lon,city,id)
+  # Get array of weather icons
+  icons=get_weather_icons(w,f)
 
   print('='*20)
+
   # Print current conditions to console
+  try:
+    # Open, resize & show icon for current weather, which is 1st one in array
+    img=Image.open(icons[0]).resize((25,25),Image.ANTIALIAS)
+    img.show()
+  except:
+    missing_icons.append(ico)
+
   print(get_current_weather(w))
   '''
   Printing the extended forecast to the
@@ -336,14 +359,15 @@ def main():
   blank line.
   '''
   extended_f=get_forecast(f).split('\n')
-  count=0
+  '''
+  Start getting icons from element 1, as
+  we already used element 0 for current
+  weather.
+  '''
+  count=1
   for line in extended_f:
-    '''
-    Look for blank lines and don't exceed
-    the number of forecasted days -1 for
-    zero base in array holding icon names
-    '''
-    if not line and count<=(day_count-1):
+    # Look for blank lines
+    if not line and count<=(day_count):
       ico=icons[count]
       try:
         # Open, resize and show weather icon
