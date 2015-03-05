@@ -10,10 +10,11 @@ add weather icons and have them scroll
 with the text, so a scene seemed to be the
 best answer.
 Basic scrolling example was by Dalorbi on
-the forums at: http://omz-forums.appspot.
-com/pythonista/post/4998190881308672
+the forums @ http://omz-forums.appspot.
+com/pythonista/post/4998190881308672.
 Ability for scrolling scene with inertia
-added on by hroe
+added by hroe @ https://gist.github.com
+/henryroe/6724117.
 
 Issues: Line and image placements are hard
 coded so they don't auto adjust if text
