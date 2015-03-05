@@ -6,7 +6,7 @@
 # missing icons and some code cleanup.
 '''
 Inspiration behind this was @cclauss's
-script,'WeatherAnywhereView.py in this
+script,'WeatherAnywhereView.py' in this
 repository. I wanted the ability to
 add weather icons and have them scroll
 with the text, so a scene seemed to be the
@@ -24,14 +24,14 @@ size is changed from the current 12 pts.
 Increasing text size results in missing
 text for last 2 days of extended forecast.
 '''
-import os
+
 import console
-import scene
-# from scene import *  # ccc: avoid from xxx import *
-from math import exp
-from threading import Thread
 import datetime
+from math import exp
+import os
 import requests
+import scene
+from threading import Thread
 import WeatherAnywhere as wa
 
 # Use functions in WeatherAnywhere.py to get the needed weather specs & icons
@@ -67,7 +67,6 @@ for icon in weather_icons:
   # icons are needed and quit loop
   print('=',* 20)
   wa.download_weather_icons(icon_path)
-  break
 
 # Y coordinates for placement of icons
 y=[180,-20,-155,-292,-430,-568,-705,-845]
@@ -88,7 +87,7 @@ class MyScene (Scene):
     self.images = [scene.load_image_file(icon) for icon in weather_icons]
 
   def draw(self):
-    if self.xy_velocity is not None and self.cur_touch is None:
+    if self.xy_velocity and not self.cur_touch:
       #self.dx += self.xy_velocity[0] * self.dt
       self.dy += self.xy_velocity[1] * self.dt
       decay = exp( - self.dt / self.velocity_decay_timescale_seconds )
@@ -136,7 +135,7 @@ class MyScene (Scene):
       
   # Routines to handle inertia scrolling
   def touch_began(self, touch):
-    if self.cur_touch is None:
+    if not self.cur_touch:
       self.cur_touch = touch.touch_id
       self.xy_velocity = None
       self.touch_log = []
