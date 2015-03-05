@@ -24,7 +24,7 @@ text for last 2 days of extended forecast.
 '''
 import console
 import scene
-from scene import *
+# from scene import *  # ccc: avoid from xxx import *
 from math import exp
 from threading import Thread
 import datetime
@@ -33,9 +33,7 @@ import WeatherAnywhere as wa
 
 # Use functions in WeatherAnywhere.py to get the needed weather specs & icons
 def get_weather_now(w):
-  w = wa.get_current_weather(w)
-  fmt = '{}'
-  return fmt.format(w)
+  return wa.get_current_weather(w)
 
 def get_forecast(f):
   f = wa.get_forecast(f)
@@ -43,8 +41,7 @@ def get_forecast(f):
   return fmt.format(f)
 
 def get_icons(w,f):
-  icons = wa.get_weather_icons(w,f)
-  return icons
+  return wa.get_weather_icons(w,f)
 
 print('='*20)
 try:
@@ -61,6 +58,9 @@ weather_icons = get_icons(w,f)
 y=[180,-20,-155,-292,-430,-568,-705,-845]
 
 class MyScene (Scene):
+  def __init__(self):
+    scene.run(self)
+
   def setup(self):
     self.dx = self.size.w / 2
     self.dy = self.size.h / 2 + 10
@@ -78,33 +78,34 @@ class MyScene (Scene):
       self.dy += self.xy_velocity[1] * self.dt
       decay = exp( - self.dt / self.velocity_decay_timescale_seconds )
       self.xy_velocity = (self.xy_velocity[0] * decay, self.xy_velocity[1] * decay)
-      if ((abs(self.xy_velocity[0]) <= self.min_velocity_points_per_second) and (abs(self.xy_velocity[1]) <= self.min_velocity_points_per_second)):
+      if ((abs(self.xy_velocity[0]) <= self.min_velocity_points_per_second)
+      and (abs(self.xy_velocity[1]) <= self.min_velocity_points_per_second)):
         self.xy_velocity = None
 
     # Dark red
-    background(.5, 0, 0)
-    translate(self.dx, self.dy)
-    fill(1, 1, 1)
-    stroke(1, 1, 1)
+    scene.background(.5, 0, 0)
+    scene.translate(self.dx, self.dy)
+    scene.fill(1, 1, 1)
+    scene.stroke(1, 1, 1)
     # Line thickness
-    stroke_weight(1)
+    scene.stroke_weight(1)
 
     # Vertical lines
-    line(-150,-931,-150,255)
-    line(150,-931,150,255)
+    scene.line(-150,-931,-150,255)
+    scene.line(150,-931,150,255)
 
     # Horizontal lines
-    line(-150,255,150,255)
-    line(-150,230,150,230)
-    line(-150,60,150,60)
-    line(-150,35,150,35)
-    line(-150,-104,150,-104)
-    line(-150,-241,150,-241)
-    line(-150,-379,150,-379)
-    line(-150,-517,150,-517)
-    line(-150,-655,150,-655)
-    line(-150,-794,150,-794)
-    line(-150,-931,150,-931)
+    scene.line(-150,255,150,255)
+    scene.line(-150,230,150,230)
+    scene.line(-150,60,150,60)
+    scene.line(-150,35,150,35)
+    scene.line(-150,-104,150,-104)
+    scene.line(-150,-241,150,-241)
+    scene.line(-150,-379,150,-379)
+    scene.line(-150,-517,150,-517)
+    scene.line(-150,-655,150,-655)
+    scene.line(-150,-794,150,-794)
+    scene.line(-150,-931,150,-931)
 
     '''
     Text will be white by default and
@@ -144,4 +145,4 @@ class MyScene (Scene):
           self.xy_velocity = (x_velocity, y_velocity)
       self.cur_touch = None
 
-run(MyScene())
+MyScene()
