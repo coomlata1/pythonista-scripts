@@ -2,6 +2,8 @@
 # Name: WeatherAnywhereScene.py
 # Author: John Coomler
 # v1.0: 03/01/2015 to 03/04/2015-Created
+# v1.1: 03/05/2015-Added better check for
+# missing icons and some code cleanup.
 '''
 Inspiration behind this was @cclauss's
 script,'WeatherAnywhereView.py in this
@@ -22,6 +24,7 @@ size is changed from the current 12 pts.
 Increasing text size results in missing
 text for last 2 days of extended forecast.
 '''
+import os
 import console
 import scene
 # from scene import *  # ccc: avoid from xxx import *
@@ -40,8 +43,8 @@ def get_forecast(f):
   fmt = '{}\n\nWeather information provided by openweathermap.org'
   return fmt.format(f)
 
-def get_icons(w,f):
-  return wa.get_weather_icons(w,f)
+def get_icons(w,f,icon_path):
+  return wa.get_weather_icons(w,f,icon_path)
 
 print('='*20)
 try:
@@ -52,7 +55,19 @@ except requests.ConnectionError:
 
 weather_now = get_weather_now(w)
 forecast = get_forecast(f)
-weather_icons = get_icons(w,f)
+icon_path = './icons/'
+weather_icons = get_icons(w,f, icon_path)
+
+# Loop list of needed icons
+for icon in weather_icons:
+  # Check if we have them
+  if os.path.exists(icon):
+    continue
+  # If missing then download what
+  # icons are needed and quit loop
+  print('=',* 20)
+  wa.download_weather_icons(icon_path)
+  break
 
 # Y coordinates for placement of icons
 y=[180,-20,-155,-292,-430,-568,-705,-845]
@@ -116,14 +131,9 @@ class MyScene (Scene):
     scene.text(forecast,font_size=12,x=-140,y=55, alignment=3)
 
     # Insert icons into scene
-    try:
-      for i, image in enumerate(self.images):
-        scene.image(image,75,y[i])
-    except TypeError:
-      print('=' * 20)
-      wa.download_weather_icons()
-      sys.exit('\nError...Downloaded missing icon(s) to fix...Restart script')
-
+    for i, image in enumerate(self.images):
+      scene.image(image,75,y[i])
+      
   # Routines to handle inertia scrolling
   def touch_began(self, touch):
     if self.cur_touch is None:
