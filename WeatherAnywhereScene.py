@@ -121,7 +121,8 @@ class MyScene (Scene):
         scene.image(image,75,y[i])
     except TypeError:
       print('=' * 20)
-      sys.exit('nError...Downloaded missing icon(s) to fix...Restart script')
+      wa.download_weather_icons()
+      sys.exit('\nError...Downloaded missing icon(s) to fix...Restart script')
 
   # Routines to handle inertia scrolling
   def touch_began(self, touch):
