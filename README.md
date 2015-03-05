@@ -12,5 +12,5 @@ Useful scripts to be run in Pythonista for iOS.  Kudos to [@cclauss](https://git
 - **WeatherAnywhereScene.py** - Inspiration behind this was @cclauss's script,'WeatherAnywhereView.py in this
 repository. I wanted to be able to add weather icons and have them scroll with the text, so a scene seemed to be the
 best answer.  This script allows scrolling the scene by inertia.  A basic scrolling example was created by Dalorbi on the forums at: http://omz-software.com/pythonista/forums/discussion/213/scrolling-in-scene-module/p1
-Ability for scrolling the scene with inertia was added by hroe.
+Ability for scrolling the scene with inertia was added by [hroe](https://gist.github.com/henryroe/6724117).
 Known Issues: Line and image placements are hard coded so they don't auto adjust if text size is changed from the current 12 pts.  Increasing text size results in missing text for the last 2 days of extended forecast.
