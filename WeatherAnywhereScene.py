@@ -5,7 +5,7 @@
 '''
 Inspiration behind this was @cclauss's
 script,'WeatherAnywhereView.py in this
-repository. I wanted to add the ability to
+repository. I wanted the ability to
 add weather icons and have them scroll
 with the text, so a scene seemed to be the
 best answer.
@@ -29,7 +29,7 @@ from math import exp
 from threading import Thread
 import datetime
 import requests
-import WeatherAnywhere3 as wa
+import WeatherAnywhere as wa
 
 # Use functions in WeatherAnywhere.py to get the needed weather specs & icons
 def get_weather_now(w):
