@@ -28,6 +28,8 @@
 # 'pick_your_weather' &
 # 'get_weather_icons' to aid in porting
 # script over to a scene.
+# v1.7: 03/05/2015-Improved code in icon
+# download process code to prevent IO errors.
 '''
 This script provides current and multi day
 weather forecasts for any city you name,
@@ -208,7 +210,7 @@ def wind_dir(deg):
   elif deg < 348.75:  return 'NNW'
   return 'N'
 
-def get_weather_icons(w,f):
+def get_weather_icons(w,f,icon_path):
   weather_icons=[]
   # Find icon name in current weather
   ico=icon_path+w['weather'][0]['icon']+'.png'
@@ -219,7 +221,7 @@ def get_weather_icons(w,f):
     weather_icons.append(ico)
   return weather_icons
 
-def download_weather_icons():
+def download_weather_icons(icon_path):
   # Downloads any missing weather icons
   # from www.openweathermap.org
   import os
@@ -230,6 +232,10 @@ def download_weather_icons():
       if os.path.exists(icon_path + filename):
         continue
       url = 'http://openweathermap.org/img/w/' + filename
+      # Create icon folder if it doesn't exist
+      if not os.path.exists(icon_path):
+        os.makedirs(icon_path)
+      # Write .png file to icon folder  
       with open(icon_path + filename, 'w') as out_file:
         try:
           print(fmt.format(filename, url))
@@ -339,7 +345,7 @@ def main():
   w,f=pick_your_weather()
 
   # Get array of weather icons
-  icons=get_weather_icons(w,f)
+  icons=get_weather_icons(w,f,icon_path)
 
   print('='*20)
 
@@ -383,7 +389,7 @@ def main():
   if missing_icons:
     ans=console.alert('Weather Icon(s) Missing:','','Download Them Now')
     if ans==1:
-      download_weather_icons()
+      download_weather_icons(icon_path)
 
 if __name__ == '__main__':
   main()
