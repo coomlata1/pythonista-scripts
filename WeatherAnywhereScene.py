@@ -4,10 +4,13 @@
 # v1.0: 03/01/2015 to 03/04/2015-Created
 # v1.1: 03/05/2015-Added better check for
 # missing icons and some code cleanup.
+# v1.2: 03/06/2015-Added function to
+# change background color for each day of
+# week.
 '''
 Inspiration behind this was @cclauss's
 script,'WeatherAnywhereView.py' in this
-repository. I wanted the ability to
+repository. I wanted to add the ability to
 add weather icons and have them scroll
 with the text, so a scene seemed to be the
 best answer.
@@ -15,7 +18,7 @@ Basic scrolling example was by Dalorbi on
 the forums @ http://omz-forums.appspot.
 com/pythonista/post/4998190881308672.
 Ability for scrolling scene with inertia
-added by hroe @ https://gist.github.com
+added on by hroe @ https://gist.github.com
 /henryroe/6724117.
 
 Issues: Line and image placements are hard
@@ -24,7 +27,6 @@ size is changed from the current 12 pts.
 Increasing text size results in missing
 text for last 2 days of extended forecast.
 '''
-
 import console
 import datetime
 from math import exp
@@ -32,7 +34,7 @@ import os
 import requests
 import scene
 from threading import Thread
-import WeatherAnywhere as wa
+import WeatherAnywhere3 as wa
 
 # Use functions in WeatherAnywhere.py to get the needed weather specs & icons
 def get_weather_now(w):
@@ -46,10 +48,25 @@ def get_forecast(f):
 def get_icons(w,f,icon_path):
   return wa.get_weather_icons(w,f,icon_path)
 
+def get_background_color(day):
+  color = {1: [.5,.5,.5],  # Medium grey
+           2: [.5,0,.5],   # Purple
+           3: [.75,0,0],   # Light red
+           4: [.5,0,0],    # Medium red
+           5: [0,.5,.5],   # Medium green
+           6: [1,.5,0],    # Orange
+           7: [.25,.25,1]} # Light blue
+
+  # Monday is 1, Sunday is 7
+  r=color[day][0]
+  g=color[day][1]
+  b=color[day][2]
+  return r,g,b
+
 print('=' * 20)
 try:
   w,f=wa.pick_your_weather()
-except requests.ConnectionError:
+except requests.ConnectionError or ValueError:
   print('=' * 20)
   sys.exit('Weather servers are busy. Try again in a few minutes...')
 
@@ -64,7 +81,7 @@ for icon in weather_icons:
   if os.path.exists(icon):
     continue
   # If missing then download what
-  # icons are needed and quit loop
+  # icons are needed
   print('=' * 20)
   wa.download_weather_icons(icon_path)
 
@@ -92,12 +109,16 @@ class MyScene (scene.Scene):
       self.dy += self.xy_velocity[1] * self.dt
       decay = exp( - self.dt / self.velocity_decay_timescale_seconds )
       self.xy_velocity = (self.xy_velocity[0] * decay, self.xy_velocity[1] * decay)
-      if ((abs(self.xy_velocity[0]) <= self.min_velocity_points_per_second)
-      and (abs(self.xy_velocity[1]) <= self.min_velocity_points_per_second)):
+      if ((abs(self.xy_velocity[0]) <= self.min_velocity_points_per_second) and (abs(self.xy_velocity[1]) <= self.min_velocity_points_per_second)):
         self.xy_velocity = None
 
-    # Dark red
-    scene.background(.5, 0, 0)
+    # Get day of week...Monday=1, etc
+    day=datetime.datetime.today().isoweekday()
+
+    # Rotate a color for each day in week
+    r,g,b=get_background_color(day)
+    scene.background(r,g,b)
+
     scene.translate(self.dx, self.dy)
     scene.fill(1, 1, 1)
     scene.stroke(1, 1, 1)
@@ -132,7 +153,7 @@ class MyScene (scene.Scene):
     # Insert icons into scene
     for i, image in enumerate(self.images):
       scene.image(image,75,y[i])
-      
+
   # Routines to handle inertia scrolling
   def touch_began(self, touch):
     if not self.cur_touch:
