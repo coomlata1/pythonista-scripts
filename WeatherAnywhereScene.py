@@ -71,7 +71,7 @@ for icon in weather_icons:
 # Y coordinates for placement of icons
 y=[180,-20,-155,-292,-430,-568,-705,-845]
 
-class MyScene (Scene):
+class MyScene (scene.Scene):
   def __init__(self):
     scene.run(self)
 
