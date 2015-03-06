@@ -27,6 +27,7 @@ size is changed from the current 12 pts.
 Increasing text size results in missing
 text for last 2 days of extended forecast.
 '''
+import sys
 import console
 import datetime
 from math import exp
@@ -34,7 +35,7 @@ import os
 import requests
 import scene
 from threading import Thread
-import WeatherAnywhere3 as wa
+import WeatherAnywhere as wa
 
 # Use functions in WeatherAnywhere.py to get the needed weather specs & icons
 def get_weather_now(w):
@@ -58,14 +59,14 @@ def get_background_color(day):
            7: [.25,.25,1]} # Light blue
 
   # Monday is 1, Sunday is 7
-  r=color[day][0]
-  g=color[day][1]
-  b=color[day][2]
+  r = color[day][0]
+  g = color[day][1]
+  b = color[day][2]
   return r,g,b
 
 print('=' * 20)
 try:
-  w,f=wa.pick_your_weather()
+  w,f = wa.pick_your_weather()
 except requests.ConnectionError or ValueError:
   print('=' * 20)
   sys.exit('Weather servers are busy. Try again in a few minutes...')
@@ -86,7 +87,7 @@ for icon in weather_icons:
   wa.download_weather_icons(icon_path)
 
 # Y coordinates for placement of icons
-y=[180,-20,-155,-292,-430,-568,-705,-845]
+y = [180,-20,-155,-292,-430,-568,-705,-845]
 
 class MyScene (scene.Scene):
   def __init__(self):
@@ -113,10 +114,10 @@ class MyScene (scene.Scene):
         self.xy_velocity = None
 
     # Get day of week...Monday=1, etc
-    day=datetime.datetime.today().isoweekday()
+    day = datetime.datetime.today().isoweekday()
 
     # Rotate a color for each day in week
-    r,g,b=get_background_color(day)
+    r,g,b = get_background_color(day)
     scene.background(r,g,b)
 
     scene.translate(self.dx, self.dy)
