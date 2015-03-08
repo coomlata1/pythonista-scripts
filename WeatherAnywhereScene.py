@@ -59,9 +59,7 @@ def get_background_color(day):
            7: [.25,.25,1]} # Light blue
 
   # Monday is 1, Sunday is 7
-  r = color[day][0]
-  g = color[day][1]
-  b = color[day][2]
+  r,g,b = color[day]
   return r,g,b
 
 print('=' * 20)
