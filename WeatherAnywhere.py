@@ -30,9 +30,10 @@
 # script over to a scene.
 # v1.7: 03/05/2015-Improved code in icon
 # download process to prevent IO errors.
-# v1.8: 03/07/2015-03/23/2015-Numerous
-# changes to accomodate scene development
-# & api changeover to www.wunderground.com
+# v1.8: 03/07/2015-03/24/2015-Numerous
+# changes & code cleanup to accomodate
+# scene development & api changeover to
+# www.wunderground.com
 '''
 This script provides current and multi day
 weather forecasts for any city you name,
@@ -58,7 +59,7 @@ icons = []
 weather_icons = []
 missing_icons = []
 icon_path = './icons/'
-api_key = 'Enter api code here'
+api_key = 'insert api key here'
 
 # Change to 'metric' if desired
 imperial_or_metric = 'imperial'
@@ -184,19 +185,19 @@ def get_weather_dicts(lat,lon,city = '',st = '',zcode = ''):
     #import pprint;pprint.pprint(weather)
     #import pprint;pprint.pprint(forecast)
     try:
-      # Query returned nothing
+      # Check if query returned nothing
       err = weather['response']['error']['description']
       if err:
         sys.exit('Error: ' + err)
     except KeyError:
       pass
-
+  # Servers down or no internet
   except requests.ConnectionError:
     print('=' * 20) # console.clear()
     sys.exit('Weather servers are busy. Try again in a few minutes...')
 
   try:
-    # Query returned ambiguous results. Use zipcode link to redefine query.
+    # Check if query returned ambiguous results. If so, use zipcode link to redefine query.
     if weather['response']['results']:
       zcode = 'zmw:' + weather['response']['results'][0]['zmw']
       w_url = url_fmt.format(api_key,'conditions/hourly/astronomy',zcode)
@@ -207,7 +208,8 @@ def get_weather_dicts(lat,lon,city = '',st = '',zcode = ''):
   except KeyError:
     pass
 
-  # City entered
+  # Query successful
+  # If city was entered...
   if city:
     w = weather['current_observation']['display_location']
     city = w['full'].split(',')
@@ -246,10 +248,12 @@ def get_weather_icons(w,f,icon_path):
   current hour is between sunset and
   sunrise
   '''
+  ico = '{}.gif'.format(w['current_observation']['icon'])
+
   if hour_now >= sunset_hr or hour_now <= sunrise_hr:
-    ico = icon_path + 'nt_' + w['current_observation']['icon'] + '.gif'
+    ico = '{}nt_{}'.format(icon_path, ico)
   else:
-    ico = icon_path + w['current_observation']['icon'] + '.gif'
+    ico = '{}{}'.format(icon_path, ico)
 
   weather_icons = []
   weather_icons.append(ico)
@@ -269,24 +273,27 @@ def download_weather_icons(icon_path):
   fmt = 'Downloading {} from {} ...'
   gifs = ['flurries','rain','sleet','snow','tstorms']
   for gif in gifs:
-    the_gifs.append(gif + '.gif')
-    the_gifs.append('chance' + gif + '.gif')
-    the_gifs.append('nt_' + gif + '.gif')
-    the_gifs.append('nt_chance' + gif + '.gif')
+    gif = '{}.gif'.format(gif)
+    the_gifs.append(gif)
+    the_gifs.append('chance' + gif)
+    the_gifs.append('nt_' + gif)
+    the_gifs.append('nt_chance' + gif)
 
   gifs = ['sunny','cloudy']
   for gif in gifs:
-    the_gifs.append(gif + '.gif')
-    the_gifs.append('nt_' + gif + '.gif')
-    the_gifs.append('mostly' + gif + '.gif')
-    the_gifs.append('nt_mostly' + gif + '.gif')
-    the_gifs.append('partly' + gif + '.gif')
-    the_gifs.append('nt_partly' + gif + '.gif')
+    gif = '{}.gif'.format(gif)
+    the_gifs.append(gif)
+    the_gifs.append('nt_' + gif)
+    the_gifs.append('mostly' + gif)
+    the_gifs.append('nt_mostly' + gif)
+    the_gifs.append('partly' + gif)
+    the_gifs.append('nt_partly' + gif)
 
   gifs = ['clear','fog','hazy']
   for gif in gifs:
-    the_gifs.append(gif + '.gif')
-    the_gifs.append('nt_' + gif + '.gif')
+    gif = '{}.gif'.format(gif)
+    the_gifs.append(gif)
+    the_gifs.append('nt_' + gif)
 
   for filename in the_gifs:
     if os.path.exists(icon_path + filename):
@@ -305,37 +312,39 @@ def download_weather_icons(icon_path):
     print('Done.')
 
 def get_current_weather(w):
+  current = w['current_observation']
+
   # Apply conversion units to some of data
-  temp = int(w['current_observation']['temp_' + unit[0]])
-  temp = str(temp) + '°' + unit[0].title()
+  temp = int(current['temp_' + unit[0]])
+  temp = '{}°{}'.format(str(temp),unit[0].title())
 
   # Barometric pressure
-  pressure = w['current_observation']['pressure_' + unit[1]] + ' ' + unit[2]
+  pressure = '{} {}'.format(current['pressure_' + unit[1]],unit[2])
 
   # Wind
-  wind = w['current_observation']['wind_string']
+  wind = current['wind_string']
   if wind <> 'Calm':
     # Get direction & speed
-    wind = w['current_observation']['wind_dir'] + ' @ ' + str(w['current_observation']['wind_' + unit[5]]) + ' ' + unit[5]
+    wind = '{} @ {} {}'.format(current['wind_dir'],str(current['wind_' + unit[5]]),unit[5])
     # Add wind gusts if necessary
-    gusts = w['current_observation']['wind_gust_' + unit[5]]
+    gusts = current['wind_gust_' + unit[5]]
     if gusts <> 0:
-      wind = wind + ' Gusts to ' + str(gusts) + ' ' + unit[5]
+      wind = '{} Gusts to {} {}'.format(wind,str(gusts),unit[5])
 
   # Get 'Feels Like' temp
-  feels_like = w['current_observation']['feelslike_' + unit[0]]
+  feels_like = current['feelslike_' + unit[0]]
   feels_like = int(float(feels_like))
   # Add degrees symbol & conversion unit
-  feels_like = str(feels_like)  + '°' + unit[0].title()
+  feels_like = '{}°{}'.format(str(feels_like),unit[0].title())
 
   # Get precip amount for day
-  precip = str(w['current_observation']['precip_today_' + unit[3]])
+  precip = str(current['precip_today_' + unit[3]])
   if not precip or precip == '-9999.00':
     precip = '0.00'
-  precip = precip + ' ' + unit[4]
+  precip = '{} {}'.format(precip,unit[4])
 
   # Get visibility
-  visibility = w['current_observation']['visibility_' + unit[10]] + ' ' + unit[11]
+  visibility = '{} {}'.format(current['visibility_' + unit[10]],unit[11])
 
   # Get times for sunrise & sunset
   sunrise, sunset = get_sunrise_sunset(w)
@@ -374,83 +383,91 @@ def get_extended_forecast(w,f):
   # Get 7 days of extended forecast * 2, for both day and night.
   day_count = 14
 
+  simple_f = f['forecast']['simpleforecast']['forecastday']
+  txt_f = f['forecast']['txt_forecast']['forecastday']
+
   for i in range(day_count):
     # Get forecast timestamp & reformat
-    the_date = f['forecast']['simpleforecast']['forecastday'][i/2]['date']['epoch']
+    the_date = simple_f[i/2]['date']['epoch']
+
     the_date = datetime.datetime.fromtimestamp(int(the_date)).strftime('%m-%d-%Y')+':'
 
     # Get header for forecast text...can be day or night
-    title = f['forecast']['txt_forecast']['forecastday'][i]['title']
+    title = txt_f[i]['title']
 
     # Day forecast header
     if title.find('Night') == -1:
       # Abbreviate day of wk with a slice
       title = title[:3]
+
       # Get high temp
-      temp = 'High: ' + f['forecast']['simpleforecast']['forecastday'][i/2]['high'][unit[6]] + '°' + unit[0].title()
+      temp = 'High: {}° {}'.format(simple_f[i/2]['high'][unit[6]], unit[0].title())
+
       # Add date, 17 spaces, & high temp to day header
-      title = title + ' ' + the_date + (' ' * 17) + temp
+      title = '{} {}{}{}'.format(title, the_date, (' ' * 17), temp)
     else:
       # Abbreviate day of week & add 'Night' back to night header
-      title = title[:3] + ' Night'
+      title = '{} Night'.format(title[:3])
+
       # Get low temp
-      temp = 'Low: ' + f['forecast']['simpleforecast']['forecastday'][i/2]['low'][unit[6]] + '°' + unit[0].title()
+      temp = 'Low: {}° {}'.format(simple_f[i/2]['low'][unit[6]], unit[0].title())
       '''
       Add date, 9 spaces, & low temp to
       night header. Now have even spacial
       appearance between day & night.
       '''
-      title = title + ' ' + the_date + (' ' * 9) + temp
+      title = '{} {}{}{}'.format(title, the_date, (' ' *9), temp)
 
     # Get percent of precip
-    pop = f['forecast']['txt_forecast']['forecastday'][i]['pop']
+    pop = txt_f[i]['pop']
 
     # If pop, add 15 more spaces & display it on either header
     if pop <> '0':
-      ef.append('\n'+ title + (' ' * 15) +  'Precip: ' + pop + '%')
+      ef.append('\n{}{}Precip: {}%'.format(title, (' ' *15), pop))
     else:
-      ef.append('\n' + title)
+      ef.append('\n{}'.format(title))
 
     # Text forecast
-    fc_txt = f['forecast']['txt_forecast']['forecastday'][i]['fcttext' + unit[7] ]
+    fc_txt = txt_f[i]['fcttext' + unit[7]]
 
     # Find redundant text
-    txt_pos = fc_txt.find('Chance of rain') or fc_txt.find('Chance of snow') or fc_txt.find('Chance of precip')
-
-    # Slice out unwanted text if found
-    if txt_pos <> -1:
-      fc_txt = fc_txt[0:txt_pos].strip()
+    chances = ['rain', 'snow', 'precip']
+    for chance in chances:
+      txt_pos = fc_txt.find('Chance of {}'.format(chance))
+      # Slice out unwanted text if found
+      if txt_pos <> -1:
+        fc_txt = fc_txt[0:txt_pos].strip()
 
     ef.append(fc_txt)
 
     # Get accumulated day precip amts
-    rain_day = f['forecast']['simpleforecast']['forecastday'][i/2]['qpf_day'][unit[4]]
+    rain_day = simple_f[i/2]['qpf_day'][unit[4]]
 
-    snow_day = f['forecast']['simpleforecast']['forecastday'][i/2]['snow_day'][unit[8]]
+    snow_day = simple_f[i/2]['snow_day'][unit[8]]
 
     # Show day accumulated precip amts
     if title.find('Night') == -1:
       if rain_day > 0.0:
-        ef.append('Expected Rain Accumulation: ' + str(rain_day) + ' ' + unit[4])
+        ef.append('Expected Rainfall: {} {}'.format(str(rain_day),unit[4]))
 
       if snow_day > 0.0:
-        ef.append('Expected Snow Accumulation: ' + str(snow_day) + ' ' + unit[8])
+        ef.append('Expected Snowfall: {} {}'.format(str(snow_day),unit[8]))
 
     # Get accumulated night precip amts
-    rain_night = f['forecast']['simpleforecast']['forecastday'][i/2]['qpf_night'][unit[4]]
+    rain_night = simple_f[i/2]['qpf_night'][unit[4]]
 
-    snow_night = f['forecast']['simpleforecast']['forecastday'][i/2]['snow_night'][unit[8]]
+    snow_night = simple_f[i/2]['snow_night'][unit[8]]
 
     # Show night accumulated precip amts
     if title.find('Night') <> -1:
       if rain_night > 0.0:
-        ef.append('Expected Rain Accumulation: ' + str(rain_night) + ' ' + unit[4])
+        ef.append('Expected Rainfall: {} {}'.format(str(rain_night),unit[4]))
 
       if snow_night > 0.0:
-        ef.append('Expected Snow Accumulation: ' + str(snow_night) + ' ' + unit[8])
+        ef.append('Expected Snowfall: {} {}'.format(str(snow_night),unit[8]))
 
     # Get % relative humidity
-    ef.append('Humidity: ' + str(f['forecast']['simpleforecast']['forecastday'][i/2]['avehumidity'])+'%')
+    ef.append('Humidity: {}%'.format(str(simple_f[i/2]['avehumidity'])))
   return ef
 
 def get_forecast(w,f):
@@ -460,12 +477,14 @@ def get_forecast(w,f):
 
 # City name, temp, & conditions displayed in first lines of scene
 def get_scene_header(w):
-  city_name = '{current_observation[display_location][full]}'.format(**w)
+  current = w['current_observation']
 
-  temp_now = int(w['current_observation']['temp_' + unit[0]])
-  temp_now = str(temp_now) + '°' + unit[0].title()
+  city_name = current['display_location']['full']
 
-  conditions = '{current_observation[weather]}'.format(**w)
+  temp_now = int(current['temp_' + unit[0]])
+  temp_now = '{}° {}'.format(str(temp_now),unit[0].title())
+
+  conditions = current['weather']
   return city_name, temp_now, conditions
 
 def get_sunrise_sunset(w):
@@ -509,7 +528,7 @@ def get_web_weather(w):
 def get_24hr_f(w):
   icon_path = './icons/'
   temp_now = int(w['current_observation']['temp_' + unit[0]])
-  temp_now = str(temp_now) + '°' + unit[0].title()
+  temp_now = '{}° {}'.format(str(temp_now),unit[0].title())
   '''
   Call function to get night hrs for this
   forecast, so we can show night icons
@@ -518,10 +537,12 @@ def get_24hr_f(w):
   hour_now, sunrise_hr, sunset_hr = get_night_hrs(w)
 
   # For 'Now' hour(not included in query)
+  ico = '{}.gif'.format(w['current_observation']['icon'])
+
   if hour_now >= sunset_hr or hour_now <= sunrise_hr:
-    ico = icon_path + 'nt_' + w['current_observation']['icon'] + '.gif'
+    ico = '{}nt_{}'.format(icon_path,ico)
   else:
-    ico = icon_path + w['current_observation']['icon'] + '.gif'
+    ico = '{}{}'.format(icon_path,ico)
 
   # Create a 'Now' hour
   the_hours = ['Now']
@@ -535,14 +556,17 @@ def get_24hr_f(w):
   subtract 13 to get to first 23. With the
   'Now' hr above we have 24.
   '''
-  for i in range(len(w['hourly_forecast'])-13):
-    hour = w['hourly_forecast'][i]['FCTTIME']['hour']
+  hourly_f = w['hourly_forecast']
+  for i in range(len(hourly_f)-13):
+    hour = hourly_f[i]['FCTTIME']['hour']
     hour = int(hour)
+
+    ico = '{}.gif'.format(hourly_f[i]['icon'])
     # Nightime icons between sunset & sunrise
     if hour >= sunset_hr or hour <= sunrise_hr:
-      the_icons.append(icon_path + 'nt_' + w['hourly_forecast'][i]['icon'] + '.gif')
+      the_icons.append('{}nt_{}'.format(icon_path, ico))
     else:
-      the_icons.append(icon_path + w['hourly_forecast'][i]['icon'] + '.gif')
+      the_icons.append('{}{}'.format(icon_path, ico))
 
     # Convert 24 hr time to 12 hr format
     if hour >= 13 and hour <= 23:
@@ -555,8 +579,8 @@ def get_24hr_f(w):
       hour = str(hour) + 'AM'
 
     the_hours.append(hour)
-    the_temps.append(w['hourly_forecast'][i]['temp'][unit[9]] + '°' + unit[0].title())
-    the_pops.append(w['hourly_forecast'][i]['pop'] + '%')
+    the_temps.append('{}°{}'.format(hourly_f[i]['temp'][unit[9]], unit[0].title()))
+    the_pops.append('{}%'.format(hourly_f[i]['pop']))
 
   return the_hours, the_temps, the_icons, the_pops
 
