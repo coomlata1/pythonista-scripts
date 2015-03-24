@@ -58,7 +58,7 @@ icons = []
 weather_icons = []
 missing_icons = []
 icon_path = './icons/'
-api_key = '8ae9f4b38d9f3a2e'
+api_key = 'Enter api code here'
 
 # Change to 'metric' if desired
 imperial_or_metric = 'imperial'
