@@ -159,9 +159,9 @@ def format_plot_weather(forecast):
 
 def get_background_color(day):
   color = {1: [.5,.5,.5],  # Medium grey
-           2: [.5,0,.5],   # Purple
+           2: [.5,0,.75],  # Purple
            3: [.75,0,0],   # Light red
-           4: [0,0,0],     # Black
+           4: [.8,.52,.25],# Tan
            5: [0,.5,.5],   # Medium green
            6: [1,.5,0],    # Orange
            7: [.25,.25,1]} # Light blue
@@ -259,10 +259,10 @@ class MyScene(scene.Scene):
     scene.text('Next 24 Hours:', font_size = font_sz, x = -150, y = -45, alignment = 3)
 
     # Division lines for 24 hr forecast
-    scene.line(x1, -65, x2, -65)
-    scene.line(x1, -145, x2, -145)
-    scene.line(x1, -225, x2, -225)
-    scene.line(x1, -305, x2, -305)
+    y = -65
+    for i in range(4):
+      scene.line(x1, y, x2, y)
+      y = y - 80
 
     # Divide 24 hrs into 4 rows of 6 hrs each
     x = -205
@@ -307,13 +307,9 @@ class MyScene(scene.Scene):
         scene.image(image, 113, icon_y[i-24] + 5, 40, 40)
 
     # Division lines for days of week
-    scene.line(x1, y1_y2[1], x2, y1_y2[1])
-    scene.line(x1, y1_y2[2], x2, y1_y2[2])
-    scene.line(x1, y1_y2[3], x2, y1_y2[3])
-    scene.line(x1, y1_y2[4], x2, y1_y2[4])
-    scene.line(x1, y1_y2[5], x2, y1_y2[5])
-    scene.line(x1, y1_y2[6], x2, y1_y2[6])
-    scene.line(x1, y1_y2[7], x2, y1_y2[7])
+    for i in range(len(y1_y2)):
+      if i > 0:
+        scene.line(x1, y1_y2[i], x2, y1_y2[i])
 
   # Routines to handle inertia scrolling
   def touch_began(self, touch):
