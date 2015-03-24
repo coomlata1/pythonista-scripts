@@ -72,7 +72,7 @@ for placement of icons and lines on the
 screen.
 '''
 def format_plot_weather(forecast):
-  # Variables to aid in plotting coordinates for text & icons 
+  # Variables to aid in plotting coordinates for text & icons
   wrap_len = 58
   new_line = count = z = blanks = x = 0
   twf = []
@@ -80,7 +80,7 @@ def format_plot_weather(forecast):
   icon_y = [-410]
   section_lines = []
   y1_y2 = [-410]
-  
+
   forecast = forecast.split('\n')
   # Loop through each forecast line
   for line in forecast:
@@ -154,7 +154,7 @@ def format_plot_weather(forecast):
   current weather section.
   '''
   icon_y = [35 if x == -410 else x for x in icon_y]
-  
+
   return twf, icon_y, y1_y2
 
 def get_background_color(day):
@@ -182,7 +182,7 @@ the_hours, the_temps, the_icons, the_pops = wa.get_24hr_f(json_w)
 # Combine both sets of icons
 for icon in weather_icons:
   the_icons.append(icon)
-  
+
 # Debug
 #for ys in y1_y2:
   #print ys
@@ -193,7 +193,7 @@ for icon in weather_icons:
 class MyScene(scene.Scene):
   #def __init__(self):
     #scene.run(self)
-  
+
   def setup(self):
     self.dx = self.size.w / 2
     self.dy = self.size.h / 2 + 10
@@ -204,66 +204,66 @@ class MyScene(scene.Scene):
     self.cur_touch = None
     # Load all icons before scene opens
     self.images = [scene.load_image_file(icon) for icon in the_icons]
-  
+
   def draw(self):
     if self.xy_velocity and not self.cur_touch:
       #self.dx += self.xy_velocity[0] * self.dt
-      self.dy += self.xy_velocity[1] * self.dt 
+      self.dy += self.xy_velocity[1] * self.dt
       decay = exp( - self.dt / self.velocity_decay_timescale_seconds )
       self.xy_velocity = (self.xy_velocity[0] * decay, self.xy_velocity[1] * decay)
       if ((abs(self.xy_velocity[0]) <= self.min_velocity_points_per_second) and (abs(self.xy_velocity[1]) <= self.min_velocity_points_per_second)):
         self.xy_velocity = None
-    
+
     # Save battery life
     #scene.frame_interval = 3
-    
+
     scene.translate(self.dx, self.dy)
     scene.stroke(1, 1, 1)
     # Line thickness
     scene.stroke_weight(1)
-    
+
     # Get day of week...Monday=1, etc
     day = datetime.datetime.today().isoweekday()
 
     # Rotate a color for each day of week
     r, g, b = get_background_color(day)
     scene.background(r, g, b)
-    
+
     # Vertical lines for sides of main border
     scene.line(-155, y1_y2[7], -155, 240)
     scene.line(155, y1_y2[7], 155, 240)
-    
+
     # Horizontal line constants
     x1 = -155
     x2 = 155
     '''
     Set text size for best mix of space
-    and apperance...all text defaults to 
-    white unless tint() is used. 
+    and apperance...all text defaults to
+    white unless tint() is used.
     '''
     font_sz = 10
-    
+
     # Display city header and info
     scene.line(x1, 240, x2, 240)
     scene.text(city_name, font_size = font_sz * 2, x = 0, y = 220, alignment = 5)
     scene.text(conditions, font_size = font_sz + 4, x = 0, y = 195, alignment = 5)
     scene.text(temp_now, font_size = font_sz + 4, x = 0, y = 172, alignment = 5)
-    
+
     # Display header box and current conditions
     scene.line(x1, 155, x2, 155)
     scene.line(x1, 130, x2, 130)
     scene.text(w, font_size = font_sz, x = -150, y = 150, alignment = 3)
-    
+
     # Display header box for 24 hr forecast
     scene.line(x1, -40, x2, -40)
     scene.text('Next 24 Hours:', font_size = font_sz, x = -150, y = -45, alignment = 3)
-    
+
     # Division lines for 24 hr forecast
     scene.line(x1, -65, x2, -65)
     scene.line(x1, -145, x2, -145)
     scene.line(x1, -225, x2, -225)
     scene.line(x1, -305, x2, -305)
-  
+
     # Divide 24 hrs into 4 rows of 6 hrs each
     x = -205
     y = -70
@@ -285,27 +285,27 @@ class MyScene(scene.Scene):
         the_pops[i] = ''
       # Display hour, pop, & temp in grid
       scene.text(the_hours[i] + '\n' + the_pops[i] + '\n\n\n\n' + the_temps[i], font_size = font_sz, x = x, y = y, alignment = 3)
-    
+
     # Insert icons into 24 hour forecast
     for i, image in enumerate(self.images):
       if i <= 23:
         # Reduce icon size for space
         scene.image(image, the_x[i], the_y[i], 30, 30)
-    
+
     # Display header box for extended forecast
     scene.line(x1, -385, x2, -385)
     scene.text('Next 7 Days:', font_size = font_sz, x = -150, y = -390, alignment = 3)
-    
+
     # Display extended forecast
     scene.line(x1, -410, x2, -410)
     scene.text(txt_wrapped_f, font_size = font_sz, x = -150, y = -402, alignment = 3)
-    
+
     # Insert icons into extended forecast
     for i, image in enumerate(self.images):
       if i >= 24:
         # Tweak icon placement a bit more for best appearance
         scene.image(image, 113, icon_y[i-24] + 5, 40, 40)
-    
+
     # Division lines for days of week
     scene.line(x1, y1_y2[1], x2, y1_y2[1])
     scene.line(x1, y1_y2[2], x2, y1_y2[2])
@@ -314,7 +314,7 @@ class MyScene(scene.Scene):
     scene.line(x1, y1_y2[5], x2, y1_y2[5])
     scene.line(x1, y1_y2[6], x2, y1_y2[6])
     scene.line(x1, y1_y2[7], x2, y1_y2[7])
-                
+
   # Routines to handle inertia scrolling
   def touch_began(self, touch):
     if not self.cur_touch:
@@ -346,7 +346,7 @@ class SceneViewer(ui.View):
   Initialize above scene in a ui view,
   SceneViewer. Allows for the added
   functionality of title bar buttons in
-  the scene. 
+  the scene.
   '''
   def __init__(self, in_scene):
     # Set up title bar with web view button
@@ -356,12 +356,12 @@ class SceneViewer(ui.View):
     self.scene_view = scene.SceneView(frame=self.bounds)
     self.scene_view.scene = in_scene
     self.add_subview(self.scene_view)
-  
+
   #@ ui.in_background
   # Web view of current city's weather
   def web_weather(self,sender):
     wa.get_web_weather(json_w)
     self.close()
-    
+
 SceneViewer(MyScene())
 #MyScene()
