@@ -58,7 +58,7 @@ icons = []
 weather_icons = []
 missing_icons = []
 icon_path = './icons/'
-api_key = 'Get your API Key from www.wunderground.com and place here'
+api_key = '8ae9f4b38d9f3a2e'
 
 # Change to 'metric' if desired
 imperial_or_metric = 'imperial'
@@ -183,29 +183,36 @@ def get_weather_dicts(lat,lon,city = '',st = '',zcode = ''):
     forecast = requests.get(f_url).json()
     #import pprint;pprint.pprint(weather)
     #import pprint;pprint.pprint(forecast)
-
-    # Ambiguous results...use zip link to redefine query
     try:
-      if weather['response']['results']:
-        zcode = 'zmw:' + weather['response']['results'][0]['zmw']
-        w_url = url_fmt.format(api_key,'conditions/hourly/astronomy',zcode)
-        f_url = url_fmt.format(api_key,'forecast10day',zcode)
-
-        weather = requests.get(w_url).json()
-        forecast = requests.get(f_url).json()
-    except:
+      # Query returned nothing
+      err = weather['response']['error']['description']
+      if err:
+        sys.exit('Error: ' + err)
+    except KeyError:
       pass
 
   except requests.ConnectionError:
     print('=' * 20) # console.clear()
     sys.exit('Weather servers are busy. Try again in a few minutes...')
 
+  try:
+    # Query returned ambiguous results. Use zipcode link to redefine query.
+    if weather['response']['results']:
+      zcode = 'zmw:' + weather['response']['results'][0]['zmw']
+      w_url = url_fmt.format(api_key,'conditions/hourly/astronomy',zcode)
+      f_url = url_fmt.format(api_key,'forecast10day',zcode)
+      # Requery using zipcode link
+      weather = requests.get(w_url).json()
+      forecast = requests.get(f_url).json()
+  except KeyError:
+    pass
+
   # City entered
   if city:
-    city = weather['current_observation']['display_location']['full'].split(',')
+    w = weather['current_observation']['display_location']
+    city = w['full'].split(',')
     city,st = city
-    zipcode = weather['location']['l']
-    zipcode = zipcode.replace('/q/','')
+    zipcode = 'zmw:' + w['zip'] + '.' + w['magic'] + '.' + w['wmo']
     new_line = city.strip() + ',' + st.strip() + ',' + zipcode.strip() + '\n'
 
     # Check for existence of city in 'cities.txt'
