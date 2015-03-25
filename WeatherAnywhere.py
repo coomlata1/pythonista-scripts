@@ -59,7 +59,7 @@ icons = []
 weather_icons = []
 missing_icons = []
 icon_path = './icons/'
-api_key = 'Insert api key here'
+api_key = 'Insert API code for wunderground.com here'
 
 # Change to 'metric' if desired
 imperial_or_metric = 'imperial'
@@ -230,7 +230,7 @@ def get_weather_dicts(lat,lon,city = '',st = '',zcode = ''):
           break
       # Option to add entered city to city list
       if not found:
-        msg = 'Ok to add '+ city + ' to cities list?'
+        msg = 'Ok to add {} to cities list?'.format(city)
         ans = console.alert('Update Cities File',msg,'Yes','No',hide_cancel_button = True)
         if ans == 0:
           update_zips(new_line)
@@ -240,7 +240,7 @@ def get_weather_dicts(lat,lon,city = '',st = '',zcode = ''):
 
   return weather,forecast
 
-def get_weather_icons(w,f,icon_path):
+def get_weather_icons(w, f, icon_path):
   hour_now, sunrise_hr, sunset_hr = get_night_hrs(w)
   '''
   Find icon name in current weather and
@@ -269,33 +269,33 @@ def download_weather_icons(icon_path):
   # Downloads any missing weather icons
   # from www.wunderground.com
   import os
-  the_gifs = []
+  gifs = []
   fmt = 'Downloading {} from {} ...'
-  gifs = ['flurries','rain','sleet','snow','tstorms']
-  for gif in gifs:
+  the_gifs = ['flurries','rain','sleet','snow','tstorms']
+  for gif in the_gifs:
     gif = '{}.gif'.format(gif)
-    the_gifs.append(gif)
-    the_gifs.append('chance' + gif)
-    the_gifs.append('nt_' + gif)
-    the_gifs.append('nt_chance' + gif)
+    gifs.append(gif)
+    gifs.append('chance{}'.format(gif))
+    gifs.append('nt_{}'.format(gif))
+    gifs.append('nt_chance{}'.format(gif))
 
-  gifs = ['sunny','cloudy']
-  for gif in gifs:
+  the_gifs = ['sunny','cloudy']
+  for gif in the_gifs:
     gif = '{}.gif'.format(gif)
-    the_gifs.append(gif)
-    the_gifs.append('nt_' + gif)
-    the_gifs.append('mostly' + gif)
-    the_gifs.append('nt_mostly' + gif)
-    the_gifs.append('partly' + gif)
-    the_gifs.append('nt_partly' + gif)
+    gifs.append(gif)
+    gifs.append('nt_{}'.format(gif))
+    gifs.append('mostly{}'.format(gif))
+    gifs.append('nt_mostly{}'.format(gif))
+    gifs.append('partly{}'.format(gif))
+    gifs.append('nt_partly{}'.format(gif))
 
-  gifs = ['clear','fog','hazy']
-  for gif in gifs:
+  the_gifs = ['clear','fog','hazy']
+  for gif in the_gifs:
     gif = '{}.gif'.format(gif)
-    the_gifs.append(gif)
-    the_gifs.append('nt_' + gif)
+    gifs.append(gif)
+    gifs.append('nt_{}'.format(gif))
 
-  for filename in the_gifs:
+  for filename in gifs:
     if os.path.exists(icon_path + filename):
       continue
     url = 'http://icons.wxug.com/i/c/i/' + filename
