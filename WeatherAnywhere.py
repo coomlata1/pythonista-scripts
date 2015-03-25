@@ -59,7 +59,7 @@ icons = []
 weather_icons = []
 missing_icons = []
 icon_path = './icons/'
-api_key = 'insert api key here'
+api_key = 'Insert api key here'
 
 # Change to 'metric' if desired
 imperial_or_metric = 'imperial'
@@ -437,6 +437,21 @@ def get_extended_forecast(w,f):
       # Slice out unwanted text if found
       if txt_pos <> -1:
         fc_txt = fc_txt[0:txt_pos].strip()
+
+    # Strip out high temp info from day & low temp info from night forecasts
+    if title.find('Night') == -1:
+      start = fc_txt.find('High')
+    else:
+      start = fc_txt.find('Low')
+
+    end = fc_txt.find('Wind')
+
+    # Slice out redundant temp info
+    if start <> -1:
+      fc_txt1 = fc_txt[:start]
+      fc_txt2 = fc_txt[end:].replace('at', '@')
+      fc_txt2 = fc_txt2.replace(' to ', '-')
+      fc_txt = fc_txt1 + fc_txt2
 
     ef.append(fc_txt)
 
