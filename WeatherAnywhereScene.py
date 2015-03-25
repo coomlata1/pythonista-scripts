@@ -2,24 +2,34 @@
 # Name: WeatherAnywhereScene.py
 # Author: John Coomler
 # v1.0: 03/07/2015 to 03/21/2015-Created
-# This version uses api.wunderground.com
-# as the source for weather info & icons.
-# Unlike openweathermap.org,the info is
-# not formatted tightly. Because the text
-# is dynamic, one size does not fit all.
-# The lines and icon coordinates can't be
-# pre-set, as they move with each new
-# forecast. The code in this version
-# dynamically calculates y coordinates for
-# screen placement of weather text &
-# icons.
+# v1.1: 03/25/2015-Fixed bug where any
+# missing weather icons didn't download
+# before the scene opened, causing scene
+# to crash.
 '''
+This version uses api.wunderground.com
+as the source for weather info & icons.
+The api here yields forecasts that contain
+a wealth of info including moon info &
+tides.
+
+Because the text is dynamic, one size does
+not fit all. The lines & icon coordinates
+can't be pre-set. They move with each new
+forecast. The code in this version
+dynamically calculates x,y coordinates for
+screen placement of weather text & icons.
+The format is portrait, designed for an
+iPhone. The script was coded on an iPhone
+6+.
+
 Inspiration behind this was @cclauss's
 script,'WeatherAnywhereView.py' in this
 repository. I wanted to add the ability to
 add weather icons and have them scroll
 with the text, so a scene seemed to be the
 best answer.
+
 Basic scrolling example was by Dalorbi on
 the forums @ http://omz-forums.appspot.
 com/pythonista/post/4998190881308672.
@@ -42,6 +52,9 @@ import textwrap
 #import sys
 import ui
 
+# Global
+icon_path = './icons/'
+
 def get_weather():
   print('=' * 20)
   try:
@@ -55,16 +68,7 @@ def get_weather():
   forecast = wa.get_forecast(w,f)
   fmt = '{}\n\nWeather information provided by api.wunderground.com'
   forecast = fmt.format(forecast)
-  icon_path = './icons/'
   weather_icons = wa.get_weather_icons(w, f, icon_path)
-  # Loop list of needed icons
-  for icon in weather_icons:
-    # Check if we have them
-    if os.path.exists(icon):
-      continue
-    # If missing then download what icons are needed
-    print('=' * 20)
-    wa.download_weather_icons(icon_path)
   return w, weather, forecast, weather_icons
 '''
 Function used to compute y coordinates
@@ -141,8 +145,8 @@ def format_plot_weather(forecast):
           line_factor = 11.5
           num_lines = section_lines[1] - section_lines[0]
           #print num_lines
-          if num_lines >= 12:
-            line_factor = 11.25
+          #if num_lines >= 12:
+            #line_factor = 11.25
           y1_y2.append(y1_y2[x] - (num_lines) * line_factor)
           section_lines = []
           section_lines.append(count)
@@ -173,15 +177,31 @@ def get_background_color(day):
 def is_odd(num):
   return num % 2 != 0
 
-# Gather weather data and needed icons
+def check_icons(icons, path):
+  # Loop list of needed icons
+  for icon in icons:
+  # Check if we have them
+    if os.path.exists(icon):
+      continue
+    # If any are missing then download what icons are needed
+    print('=' * 20)
+    wa.download_weather_icons(path)
+
+# Gather current weather, extended forecast, & their needed weather icons
 json_w, w, f, weather_icons = get_weather()
+# Format extended forecast and plot scene coordinates to display it
 txt_wrapped_f, icon_y, y1_y2 = format_plot_weather(f)
+# Header weather info for scene
 city_name, temp_now, conditions = wa.get_scene_header(json_w)
+# Get 24 hour weather data & needed icons
 the_hours, the_temps, the_icons, the_pops = wa.get_24hr_f(json_w)
 
-# Combine both sets of icons
+# Combine both sets of icons, extended & 24 hour
 for icon in weather_icons:
   the_icons.append(icon)
+
+# Check for missing icons before scene runs
+check_icons(the_icons, icon_path)
 
 # Debug
 #for ys in y1_y2:
@@ -304,7 +324,7 @@ class MyScene(scene.Scene):
     for i, image in enumerate(self.images):
       if i >= 24:
         # Tweak icon placement a bit more for best appearance
-        scene.image(image, 113, icon_y[i-24] ,40, 40)
+        scene.image(image, 113, icon_y[i-24], 40, 40)
 
     # Division lines for days of week
     for i in range(len(y1_y2)):
