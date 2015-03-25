@@ -304,7 +304,7 @@ class MyScene(scene.Scene):
     for i, image in enumerate(self.images):
       if i >= 24:
         # Tweak icon placement a bit more for best appearance
-        scene.image(image, 113, icon_y[i-24] + 5, 40, 40)
+        scene.image(image, 113, icon_y[i-24] ,40, 40)
 
     # Division lines for days of week
     for i in range(len(y1_y2)):
