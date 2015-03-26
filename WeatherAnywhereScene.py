@@ -63,13 +63,12 @@ def get_weather():
     print('=' * 20)
     sys.exit('Weather servers are busy. Try again in a few minutes...')
 
-  # Call functions in WeatherAnywhere.py to retrieve weather text & icons
+  # Call functions in WeatherAnywhere.py to retrieve weather data
   weather = wa.get_current_weather(w)
   forecast = wa.get_forecast(w,f)
   fmt = '{}\n\nWeather information provided by api.wunderground.com'
   forecast = fmt.format(forecast)
-  weather_icons = wa.get_weather_icons(w, f, icon_path)
-  return w, weather, forecast, weather_icons
+  return w, f, weather, forecast
 '''
 Function used to compute y coordinates
 for placement of icons and lines on the
@@ -187,20 +186,23 @@ def check_icons(icons, path):
     print('=' * 20)
     wa.download_weather_icons(path)
 
-# Gather current weather, extended forecast, & their needed weather icons
-json_w, w, f, weather_icons = get_weather()
+'''
+Query api for json outputs of current &
+extended weather & their respective
+reformatted outputs for use in scene
+'''
+json_w, json_f, w, f = get_weather()
+
 # Format extended forecast and plot scene coordinates to display it
 txt_wrapped_f, icon_y, y1_y2 = format_plot_weather(f)
-# Header weather info for scene
+
+# Current weather info for scene header
 city_name, temp_now, conditions = wa.get_scene_header(json_w)
-# Get 24 hour weather data & needed icons
-the_hours, the_temps, the_icons, the_pops = wa.get_24hr_f(json_w)
 
-# Combine both sets of icons, extended & 24 hour
-for icon in weather_icons:
-  the_icons.append(icon)
+# Get weather data specific to scene
+the_icons, the_hours, the_temps, the_pops = wa.get_icons_24h_data(json_w, json_f, icon_path)
 
-# Check for missing icons before scene runs
+# Check for any missing icons before scene runs
 check_icons(the_icons, icon_path)
 
 # Debug
