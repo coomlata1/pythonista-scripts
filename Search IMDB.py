@@ -14,7 +14,7 @@
 # rather than converting query results to
 # strings and searching for substrings
 # v2.1: 03/26/2015-Added code to account
-# for apostrophies in actor/director's
+# for apostrophes in actor/director's
 # names during ID searches.
 '''
 This Pythonista script uses the api
