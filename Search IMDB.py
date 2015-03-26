@@ -52,7 +52,6 @@ import console
 import json
 import re
 import requests
-import urllib2
 import string
 import sys
 
@@ -123,22 +122,22 @@ def get_imdbID_name(name):
     # Take care of apostrophe in a name, like "Jack O'Donnell"
     if d['name_popular'][0]['name'].replace('&#x27;',"'") <> name:
       raise Exception
-    #print name + ' popular'
+    #print '{} popular'.format(name)
   except:
     try:
       name_id = d['name_exact'][0]['id']
       if d['name_exact'][0]['name'].replace('&#x27;',"'") <> name:
         raise Exception
-      #print name + ' exact'
+      #print '{} exact'.format(name)
     except:
       try:
         name_id = d['name_approx'][0]['id']
-        #print name + ' approx'
+        #print '{} approx'.format(name)
       except KeyError:
-        #print name + ' name not found'
+        print '{} name not found'.format(name)
         name_id = ''
         pass
-  #print name+' IMDB Id: '+name_id
+  #print '{} IMDB Id: {}'.format(name, name_id)
   return name_id
 
 # Strip any 'N/A's from data mining
@@ -154,7 +153,7 @@ def strip_nas(data):
       line = ''
       #line = line.replace('\n','')
     else:
-      new_data += line + '\n\n'
+      new_data += '{}\n\n'.format(line)
   return new_data
 
 '''
