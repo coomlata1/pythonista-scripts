@@ -30,7 +30,7 @@
 # script over to a scene.
 # v1.7: 03/05/2015-Improved code in icon
 # download process to prevent IO errors.
-# v1.8: 03/07/2015-03/24/2015-Numerous
+# v1.8: 03/07/2015-03/25/2015-Numerous
 # changes & code cleanup to accomodate
 # scene development & api changeover to
 # www.wunderground.com
@@ -59,7 +59,7 @@ icons = []
 weather_icons = []
 missing_icons = []
 icon_path = './icons/'
-api_key = 'Insert API code for wunderground.com here'
+api_key = 'Insert wunderground.com API key here'
 
 # Change to 'metric' if desired
 imperial_or_metric = 'imperial'
@@ -240,7 +240,51 @@ def get_weather_dicts(lat,lon,city = '',st = '',zcode = ''):
 
   return weather,forecast
 
-def get_weather_icons(w, f, icon_path):
+# Called from console version only
+def get_console_icons(w, f, icon_path):
+  '''
+  Call function to get night hrs for this
+  forecast, so we can show night icons
+  when necessary.
+  '''
+  hour_now, sunrise_hr, sunset_hr = get_night_hrs(w)
+  '''
+  Find icon name for current weather and
+  make sure it's a night icon if the
+  current hour is between sunset and
+  sunrise
+  '''
+  current = w['current_observation']
+  ico = '{}.gif'.format(current['icon'])
+
+  if hour_now >= sunset_hr or hour_now <= sunrise_hr:
+    # Night icon
+    current_ico = '{}nt_{}'.format(icon_path, ico)
+  else:
+    current_ico = '{}{}'.format(icon_path, ico)
+
+  # Add icon to list
+  console_icons = [current_ico]
+
+  #day_count = len(f['forecast']['txt_forecast']['forecastday'])
+  day_count = 14
+
+  txt_f = f['forecast']['txt_forecast']['forecastday']
+  for i in range(day_count):
+    ico = '{}{}.gif'.format(icon_path, txt_f[i]['icon'])
+    console_icons.append(ico)
+
+  return console_icons
+
+def get_icons_24h_data(w, f, icon_path):
+  current = w['current_observation']
+  temp_now = int(current['temp_' + unit[0]])
+  temp_now = '{}° {}'.format(str(temp_now),unit[0].title())
+  '''
+  Call function to get night hrs for this
+  forecast, so we can show night icons
+  when necessary.
+  '''
   hour_now, sunrise_hr, sunset_hr = get_night_hrs(w)
   '''
   Find icon name in current weather and
@@ -248,22 +292,72 @@ def get_weather_icons(w, f, icon_path):
   current hour is between sunset and
   sunrise
   '''
-  ico = '{}.gif'.format(w['current_observation']['icon'])
+  # The 'Now' icon(not included in query) for 24 hour forecast
+  ico = '{}.gif'.format(current['icon'])
 
   if hour_now >= sunset_hr or hour_now <= sunrise_hr:
-    ico = '{}nt_{}'.format(icon_path, ico)
+    # Night icon
+    current_ico = '{}nt_{}'.format(icon_path, ico)
   else:
-    ico = '{}{}'.format(icon_path, ico)
+    current_ico = '{}{}'.format(icon_path, ico)
 
-  weather_icons = []
-  weather_icons.append(ico)
-  # Find icon names in forecasted weather
+  # Create a 'Now' hour section
+  the_hours = ['Now']
+  the_temps = [temp_now]
+  the_pops = ['---']
+  the_icons = [current_ico]
+  '''
+  For other 23 hours...'hourly' portion
+  of api query returns 36 hours of data so
+  we subtract 13 to get to first 23. With
+  the 'Now' hr above we have 24.
+  '''
+  hourly_f = w['hourly_forecast']
+  for i in range(len(hourly_f)-13):
+    hour = hourly_f[i]['FCTTIME']['hour']
+    hour = int(hour)
+
+    ico = '{}.gif'.format(hourly_f[i]['icon'])
+    # Nightime icons between sunset & sunrise
+    if hour >= sunset_hr or hour <= sunrise_hr:
+      the_icons.append('{}nt_{}'.format(icon_path, ico))
+    else:
+      the_icons.append('{}{}'.format(icon_path, ico))
+
+    # Convert 24 hr time to 12 hr format
+    if hour >= 13 and hour <= 23:
+      hour = str(hour - 12) + 'PM'
+    elif hour == 12:
+      hour = str(hour) + 'PM'
+    elif hour == 0:
+      hour = '12AM'
+    else:
+      hour = str(hour) + 'AM'
+
+    the_hours.append(hour)
+    the_temps.append('{}°{}'.format(hourly_f[i]['temp'][unit[9]], unit[0].title()))
+    the_pops.append('{}%'.format(hourly_f[i]['pop']))
+  '''
+  Now we need an icon for the current
+  weather portion of scene, which will be
+  the same one as we used for the 'Now'
+  hour of the 24 hour forecast.
+  '''
+  the_icons.append(current_ico)
+  '''
+  Next find icon names for the extended
+  forecast. These icons, unlike the 24 hr
+  ones, already have day-night
+  distinctions in their names
+  '''
   #day_count = len(f['forecast']['txt_forecast']['forecastday'])
   day_count = 14
-  for idx in range(day_count):
-    ico = icon_path + f['forecast']['txt_forecast']['forecastday'][idx]['icon'] + '.gif'
-    weather_icons.append(ico)
-  return weather_icons
+  txt_f = f['forecast']['txt_forecast']['forecastday']
+  for i in range(day_count):
+    ico = '{}{}.gif'.format(icon_path, txt_f[i]['icon'])
+    the_icons.append(ico)
+
+  return the_icons, the_hours, the_temps, the_pops
 
 def download_weather_icons(icon_path):
   # Downloads any missing weather icons
@@ -539,73 +633,13 @@ def get_web_weather(w):
   url = w['current_observation']['forecast_url']
   webbrowser.open(url)
 
-# 24 hr forecast with hrs, temps, icons, & pops...called from scene only
-def get_24hr_f(w):
-  icon_path = './icons/'
-  temp_now = int(w['current_observation']['temp_' + unit[0]])
-  temp_now = '{}° {}'.format(str(temp_now),unit[0].title())
-  '''
-  Call function to get night hrs for this
-  forecast, so we can show night icons
-  when necessary.
-  '''
-  hour_now, sunrise_hr, sunset_hr = get_night_hrs(w)
-
-  # For 'Now' hour(not included in query)
-  ico = '{}.gif'.format(w['current_observation']['icon'])
-
-  if hour_now >= sunset_hr or hour_now <= sunrise_hr:
-    ico = '{}nt_{}'.format(icon_path,ico)
-  else:
-    ico = '{}{}'.format(icon_path,ico)
-
-  # Create a 'Now' hour
-  the_hours = ['Now']
-  the_temps = [temp_now]
-  the_icons = [ico]
-  the_pops = ['---']
-
-  '''
-  For other 23 hours...'hourly' portion
-  of query returns 36 hours of data so we
-  subtract 13 to get to first 23. With the
-  'Now' hr above we have 24.
-  '''
-  hourly_f = w['hourly_forecast']
-  for i in range(len(hourly_f)-13):
-    hour = hourly_f[i]['FCTTIME']['hour']
-    hour = int(hour)
-
-    ico = '{}.gif'.format(hourly_f[i]['icon'])
-    # Nightime icons between sunset & sunrise
-    if hour >= sunset_hr or hour <= sunrise_hr:
-      the_icons.append('{}nt_{}'.format(icon_path, ico))
-    else:
-      the_icons.append('{}{}'.format(icon_path, ico))
-
-    # Convert 24 hr time to 12 hr format
-    if hour >= 13 and hour <= 23:
-      hour = str(hour - 12) + 'PM'
-    elif hour == 12:
-      hour = str(hour) + 'PM'
-    elif hour == 0:
-      hour = '12AM'
-    else:
-      hour = str(hour) + 'AM'
-
-    the_hours.append(hour)
-    the_temps.append('{}°{}'.format(hourly_f[i]['temp'][unit[9]], unit[0].title()))
-    the_pops.append('{}%'.format(hourly_f[i]['pop']))
-
-  return the_hours, the_temps, the_icons, the_pops
-
 # Used only for console display
 def main():
   console.clear()
   w,f = pick_your_weather()
 
   # Get array of weather icons
-  icons = get_weather_icons(w,f,icon_path)
+  icons = get_console_icons(w,f,icon_path)
 
   print('='*20)
 
