@@ -13,6 +13,9 @@
 # to use Python dictionary for mining data
 # rather than converting query results to
 # strings and searching for substrings
+# v2.1: 03/26/2015-Added code to account
+# for apostrophies in actor/director's
+# names during ID searches.
 '''
 This Pythonista script uses the api
 available at www.omdbapi.com to search
@@ -49,18 +52,19 @@ import console
 import json
 import re
 import requests
+import urllib2
 import string
 import sys
 
 # Initialize global variables
-d=''
-url_fmt='http://www.omdbapi.com/?{}={}&y=&plot=full&tomatoes=true&r=json'
+d = ''
+url_fmt = 'http://www.omdbapi.com/?{}={}&y=&plot=full&tomatoes=true&r=json'
 
 # Function that returns a query to IMDB database
 def queryData(url):
   d = requests.get(url).json()
   # Trap errors in user input, if any
-  #error=d.partition('Error: ')[2]
+  #error = d.partition('Error: ')[2]
   return d
 
 '''
@@ -68,7 +72,7 @@ Function that returns a Markdown list of
 names(actors & directors) listed in query.
 '''
 def names_md(names):
-  b=''
+  b = ''
   # Loop through list of names, appending markdown syntax to each one
   '''
   Use enumerate() when you want both index
@@ -76,16 +80,16 @@ def names_md(names):
   only want index
   '''
   for index in xrange(len(names)):
-    names[index]=names[index].strip()
+    names[index] = names[index].strip()
 
     # Call function to return the IMDB name ID for this name
-    imdb_id_name=get_imdbID_name(names[index])
+    imdb_id_name = get_imdbID_name(names[index])
 
     # Append Markdown code
-    names[index]='[{}](http://www.imdb.com/name/{}), '.format(names[index],imdb_id_name)
+    names[index] = '[{}](http://www.imdb.com/name/{}), '.format(names[index], imdb_id_name)
 
     # Consecrate each markdown name into a return variable
-    b+=names[index]
+    b += names[index]
   #print b
   #sys.exit()
   return b
@@ -95,11 +99,11 @@ Function to return the IMDB id number of a
 director or actors name
 '''
 def get_imdbID_name(name):
-  raw_string=re.compile(r' ')
-  searchstring=raw_string.sub('+',name)
-
-  url='http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q='+searchstring
-  d=queryData(url)
+  raw_string = re.compile(r' ')
+  searchstring = raw_string.sub('+', name)
+  url = 'http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=' + searchstring
+  d = queryData(url)
+  #print ''
   #print d
 
   try:
@@ -109,47 +113,48 @@ def get_imdbID_name(name):
     jump to the except to try for
     'name_exact' and so on down the line
     '''
-    name_id=d['name_popular'][0]['id']
+    name_id = d['name_popular'][0]['id']
     '''
     If we get hit but it doesn't match
     name we want then raise an error to
     try 'name_exact'' and so on down the
     line
     '''
-    if d['name_popular'][0]['name']<>name:
+    # Take care of apostrophe in a name, like "Jack O'Donnell"
+    if d['name_popular'][0]['name'].replace('&#x27;',"'") <> name:
       raise Exception
     #print name + ' popular'
   except:
     try:
-      name_id=d['name_exact'][0]['id']
-      if d['name_exact'][0]['name']<>name:
+      name_id = d['name_exact'][0]['id']
+      if d['name_exact'][0]['name'].replace('&#x27;',"'") <> name:
         raise Exception
       #print name + ' exact'
     except:
       try:
-        name_id=d['name_approx'][0]['id']
+        name_id = d['name_approx'][0]['id']
         #print name + ' approx'
       except KeyError:
         #print name + ' name not found'
-        name_id=''
+        name_id = ''
         pass
   #print name+' IMDB Id: '+name_id
   return name_id
 
 # Strip any 'N/A's from data mining
 def strip_nas(data):
-  data=data.split('\n')
-  new_data=''
+  data = data.split('\n')
+  new_data = ''
 
   for line in data:
     # Look for any 'N/A's'
-    na=re.search("(N/A)",line)
+    na = re.search("(N/A)", line)
     if na:
       # Clear them out
-      line=''
-      #line=line.replace('\n','')
+      line = ''
+      #line = line.replace('\n','')
     else:
-      new_data += line+'\n\n'
+      new_data += line + '\n\n'
   return new_data
 
 '''
@@ -160,11 +165,11 @@ console.
 '''
 def mine_console_data(d):
   try:
-    type=str.title(str(d['Type']))
+    type = str.title(str(d['Type']))
   except KeyError:
     sys.exit('No useable query results')
 
-  data=('''Results of your IMDB Search:
+  data = ('''Results of your IMDB Search:
 Title: {Title}
 Type: {}
 Release Date: {Released}
@@ -184,10 +189,10 @@ Writers: {Writer}
 Actors: {Actors}
 Plot: {Plot}
 Rotten Tomatoes Review: {tomatoConsensus}
-  ''').format(type,**d)
+  ''').format(type, **d)
 
   # Call function to remove any N/A's
-  new_data=strip_nas(data)
+  new_data = strip_nas(data)
   return new_data
 
 '''
@@ -197,19 +202,19 @@ those results for copying to the
 clipboard.
 '''
 def mine_md_data(d):
-  title=d['Title']
-  imdb_id=d['imdbID']
+  title = d['Title']
+  imdb_id = d['imdbID']
 
   print '\nGathering director & actor ids for MarkDown text on clipboard'
-  md_directors=d['Director'].split(',')
-  md_directors=names_md(md_directors)
+  md_directors = d['Director'].split(',')
+  md_directors = names_md(md_directors)
   #print md_directors
-  
-  md_actors=d['Actors'].split(',')
-  md_actors=names_md(md_actors)
+
+  md_actors = d['Actors'].split(',')
+  md_actors = names_md(md_actors)
   #print md_actors
 
-  md_data=('''
+  md_data = ('''
 **Type:** #{Type}
 **Release Date:** {Released}
 **Year:** {Year}
@@ -229,14 +234,14 @@ def mine_md_data(d):
 **Plot:** {Plot}
 **Rotten Tomatoes Review:** {tomatoConsensus}
 [Poster]({Poster})
-''').format(imdb_id,md_directors,md_actors,**d)
+''').format(imdb_id, md_directors, md_actors, **d)
 
   # Append a title string in Markdown
   fmt = '**Title:** [{}](http://www.imdb.com/title/{}/){}'
-  md_data=fmt.format(title,imdb_id, md_data)
+  md_data = fmt.format(title, imdb_id,  md_data)
 
   # Call function to remove any N/A's
-  new_md_data=strip_nas(md_data)
+  new_md_data = strip_nas(md_data)
   return new_md_data
 
 '''
@@ -249,15 +254,15 @@ def listData(d):
   #print d
   #sys.exit()
 
-  the_films=[]
-  the_ids=[]
+  the_films = []
+  the_ids = []
 
   # Loop through list of titles and append all but episodes to film array
-  for idx in xrange(len(d['Search'])):
-    if d['Search'][idx]['Type']<>'episode':
-      the_films.append(', '.join([d['Search'][idx]['Title'],d['Search'][idx]['Year'], d['Search'][idx]['Type']]))
+  for i in xrange(len(d['Search'])):
+    if d['Search'][i]['Type'] <> 'episode':
+      the_films.append(', '.join([d['Search'][i]['Title'],d['Search'][i]['Year'], d['Search'][i]['Type']]))
       # Add film's imdbID to the ids array
-      the_ids.append(d['Search'][idx]['imdbID'])
+      the_ids.append(d['Search'][i]['imdbID'])
 
   while True:
     # Print out a new list of film choices
@@ -269,11 +274,11 @@ def listData(d):
       match the  index number of that
       film's imdbID in the ids array.
       '''
-      film_idx=int(raw_input("\nEnter the number of your desired film or TV series: "))
-      film_id=the_ids[film_idx]
+      film_idx = int(raw_input("\nEnter the number of your desired film or TV series: "))
+      film_id = the_ids[film_idx]
       break
     except (IndexError, ValueError):
-      choice=raw_input('\nInvalid entry...Continue? (y/n): ')
+      choice = raw_input('\nInvalid entry...Continue? (y/n): ')
       console.clear()
       if not choice.upper().startswith('Y'):
         sys.exit('Process cancelled...Goodbye')
@@ -289,11 +294,11 @@ def main(args):
   enter movie name as commandline
   arguments
   '''
-  myTitle=' '.join(args) or raw_input('Please enter a movie or TV series title: ')
+  myTitle = ' '.join(args) or raw_input('Please enter a movie or TV series title: ')
 
   print "\nConnecting to server...wait"
 
-  s=myTitle.replace(' ', '+')
+  s = myTitle.replace(' ', '+')
   '''
   Use ?t to search for one item...this
   first pass will give you the most
@@ -302,32 +307,29 @@ def main(args):
   multiple titles with the same name
   '''
   # Call subroutines
-  d=queryData(url_fmt.format('t', s));
-  #console.clear()
+  d = queryData(url_fmt.format('t', s));
   print('='*20)
   print(mine_console_data(d))
 
   while True:
     # Give user a choice to refine search
-    msg='Refine your search? (y/n/c): '
-    choice=raw_input(msg)
+    msg = 'Refine your search? (y/n/c): '
+    choice = raw_input(msg)
     # Accept 'Yes', etc.
     if choice.upper().startswith('Y'):
-      #console.clear()
       print('='*20)
       # Use ?s for a query that yields multiple titles
-      url=url_fmt.format('s', s)
-      d=queryData(url)
+      url = url_fmt.format('s', s)
+      d = queryData(url)
       '''
       Call function to list all the titles
       in the query and return IMDB id
       for title chosen from list
       '''
-      id=listData(d)
+      id = listData(d)
       print "\nRetrieving data from new query..."
       # Use ?i for an exact query on unique imdbID
-      d=queryData(url_fmt.format('i', id));
-      #console.clear()
+      d = queryData(url_fmt.format('i', id));
       print('='*20)
       print(mine_console_data(d))
     elif choice.upper().startswith('N'):
