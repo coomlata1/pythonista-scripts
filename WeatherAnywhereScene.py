@@ -1,45 +1,42 @@
 #coding: utf-8
+
 # Name: WeatherAnywhereScene.py
 # Author: John Coomler
 # v1.0: 03/07/2015 to 03/21/2015-Created
-# v1.1: 03/25/2015-Fixed bug where any
-# missing weather icons didn't download
-# before the scene opened, causing scene
-# to crash.
+# v1.1: 03/25/2015-Fixed bug where any missing
+# weather icons didn't download before the scene
+# opened, causing scene to crash.
+# v1.2: 04/04/2015-Minor string formatting
+# improvements
 '''
-This version uses api.wunderground.com
-as the source for weather info & icons.
-The api here yields forecasts that contain
-a wealth of info including moon info &
-tides.
+This version uses api.wunderground.com as the
+source for weather info & icons. The api here
+yields forecasts that contain a wealth of info
+including moon info & tides.
 
-Because the text is dynamic, one size does
-not fit all. The lines & icon coordinates
-can't be pre-set. They move with each new
-forecast. The code in this version
-dynamically calculates x,y coordinates for
-screen placement of weather text & icons.
-The format is portrait, designed for an
-iPhone. The script was coded on an iPhone
-6+.
+Because the text is dynamic, one size does not fit
+all. The lines & icon coordinates can't be pre-set.
+They move with each new forecast. The code in this
+version dynamically calculates x,y coordinates for
+screen placement of weather text & icons. The
+format is portrait, designed for an iPhone. The
+script was coded on an iPhone 6+.
 
 Inspiration behind this was @cclauss's
-script,'WeatherAnywhereView.py' in this
-repository. I wanted to add the ability to
-add weather icons and have them scroll
-with the text, so a scene seemed to be the
-best answer.
+script,'WeatherAnywhereView.py' in this repository.
+I wanted to add the ability to add weather icons
+and have them scroll with the text, so a scene
+seemed to be the best answer.
 
-Basic scrolling example was by Dalorbi on
-the forums @ http://omz-forums.appspot.
-com/pythonista/post/4998190881308672.
-Ability for scrolling scene with inertia
-added on by hroe @ https://gist.github.com
-/henryroe/6724117.
+Basic scrolling example was by Dalorbi on the
+forums @ http://omz-forums.appspot.com/pythonista
+post/4998190881308672. Ability for scrolling scene
+with inertia added on by hroe @ https:/
+gist.github.com/henryroe/6724117.
 
-Issues: Increasing text size results in
-missing text for portions of last 2 days
-of extended forecast.
+Issues: Increasing text size results in missing
+text for portions of last 2 days of extended
+forecast.
 '''
 import datetime
 from math import exp
@@ -51,6 +48,8 @@ import WeatherAnywhere as wa
 import textwrap
 #import sys
 import ui
+
+#reload(wa)
 
 # Global
 icon_path = './icons/'
@@ -70,9 +69,8 @@ def get_weather():
   forecast = fmt.format(forecast)
   return w, f, weather, forecast
 '''
-Function used to compute y coordinates
-for placement of icons and lines on the
-screen.
+Function used to compute y coordinates for
+placement of icons and lines on the screen.
 '''
 def format_plot_weather(forecast):
   # Variables to aid in plotting coordinates for text & icons
@@ -106,20 +104,18 @@ def format_plot_weather(forecast):
       # If 2 line numbers exist in list
       if len(blank_line) == 2:
         '''
-        Subtract the difference between
-        the 2 blank lines, which gives you
-        the number of lines in a forecast
-        section, multiply that by 11.35,
-        which gives you an equivalent y
-        point to match the end line number
-        of the section, & subtract that
-        from the icon y anchor point on
-        screen to get the approx point to
-        move the icon on the y axis to
-        align it with it's forecast text.
-        The point is then stored in a list
-        to use as one of the y coordinates
-        for the icons in this forecast.
+        Subtract the difference between the 2 blank
+        lines, which gives you the number of lines
+        in a forecast section, multiply that by
+        11.35, which gives you an equivalent y
+        point to match the end line number of the
+        section, & subtract that from the icon y
+        anchor point on screen to get the approx
+        point to move the icon on the y axis to
+        align it with it's forecast text. The point
+        is then stored in a list to use as one of
+        the y coordinates for the icons in this
+        forecast.
         '''
         icon_y.append(icon_y[z] -((blank_line[1] - blank_line[0]) * 11.35))
         # Clear list for next section of text
@@ -131,12 +127,11 @@ def format_plot_weather(forecast):
       # Increment blank line counter
       blanks += 1
       '''
-      Odd numbered blank lines indicate
-      the end of one forecast date section
-      and the start of another so we use
-      the same process as above to
-      determine the y points to draw
-      section lines on the screen.
+      Odd numbered blank lines indicate the end of
+      one forecast date section & the start of
+      another so we use the same process as above
+      to determine the y points to draw section
+      lines on the screen.
       '''
       if is_odd(blanks):
         section_lines.append(count)
@@ -152,9 +147,8 @@ def format_plot_weather(forecast):
           x += 1
   twf = '\n'.join(twf)
   '''
-  Replace anchor point y value with y
-  point for the icon that goes with the
-  current weather section.
+  Replace anchor point y value with y point for the
+  icon that goes with the current weather section.
   '''
   icon_y = [35 if x == -410 else x for x in icon_y]
 
@@ -187,19 +181,19 @@ def check_icons(icons, path):
     wa.download_weather_icons(path)
 
 '''
-Query api for json outputs of current &
-extended weather & their respective
-reformatted outputs for use in scene
+Query api for json outputs of current & extended
+weather & their respective reformatted outputs for
+use in scene
 '''
 json_w, json_f, w, f = get_weather()
 
-# Format extended forecast and plot scene coordinates to display it
+# Format extended forecast & plot scene coordinates to display it
 txt_wrapped_f, icon_y, y1_y2 = format_plot_weather(f)
 
 # Current weather info for scene header
 city_name, temp_now, conditions = wa.get_scene_header(json_w)
 
-# Get weather data specific to scene
+# Get icons & 24 hr weather data for scene
 the_icons, the_hours, the_temps, the_pops = wa.get_icons_24h_data(json_w, json_f, icon_path)
 
 # Check for any missing icons before scene runs
@@ -259,9 +253,9 @@ class MyScene(scene.Scene):
     x1 = -155
     x2 = 155
     '''
-    Set text size for best mix of space
-    and apperance...all text defaults to
-    white unless tint() is used.
+    Set text size for best mix of space &
+    apperance...all text defaults to white unless
+    tint() is used.
     '''
     font_sz = 10
 
@@ -306,7 +300,7 @@ class MyScene(scene.Scene):
       if the_pops[i] == '0%':
         the_pops[i] = ''
       # Display hour, pop, & temp in grid
-      scene.text(the_hours[i] + '\n' + the_pops[i] + '\n\n\n\n' + the_temps[i], font_size = font_sz, x = x, y = y, alignment = 3)
+      scene.text('{}\n{}\n\n\n\n{}'.format(the_hours[i], the_pops[i], the_temps[i]), font_size = font_sz, x = x, y = y, alignment = 3)
 
     # Insert icons into 24 hour forecast
     for i, image in enumerate(self.images):
@@ -361,10 +355,9 @@ class MyScene(scene.Scene):
 
 class SceneViewer(ui.View):
   '''
-  Initialize above scene in a ui view,
-  SceneViewer. Allows for the added
-  functionality of title bar buttons in
-  the scene.
+  Initialize above scene in a ui view, SceneViewer.
+  Allows for the added functionality of title bar
+  buttons in the scene.
   '''
   def __init__(self, in_scene):
     # Set up title bar with web view button
