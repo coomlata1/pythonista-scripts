@@ -3,44 +3,40 @@
 # Name: WeatherAnywhere.py
 # Author: John Coomler
 # v1.0: 02/07/2015 to 02/15/2015-Created
-# v1.1: 02/19/2015-Tightened up code and
-# made function calls to retrieve weather
-# data for printing from main(). Many
-# thanks to @cclauss for his continued
-# expertise, input, & support in sorting
-# out and improving the code.
-# v1.2: 02/20/2015-More code cleanup,
-# improved string formatting techniques,
-# and much improved error handling.
-# v1.3: 02/21/2015-Added function to
-# download weather icons if any or all
-# are missing. More code cleanup.
-# v1.4: 02/23/2015-Conversion functions
-# renamed & now return numbers instead of
-# strings, added ability to convert
-# from imperial to metric units.
+# v1.1: 02/19/2015-Tightened up code and made
+# function calls to retrieve weather data for
+# printing from main(). Many thanks to @cclauss for
+# his continued expertise, input, & support in
+# sorting out and improving the code.
+# v1.2: 02/20/2015-More code cleanup, improved
+# string formatting techniques, & much improved
+# error handling.
+# v1.3: 02/21/2015-Added function to download
+# weather icons if any or all are missing. More
+# code cleanup.
+# v1.4: 02/23/2015-Conversion functions renamed &
+# now return numbers instead of strings, added
+# ability to convert from imperial to metric units.
 # v1.5: 02/24/2015-Cleanup of date string
-# formatting and now show all precip
-# types.
-# v1.6: 03/04/2015-Added ability to store
-# weather icons in a sub folder of script
-# folder. Created 2 new functions,
-# 'pick_your_weather' &
-# 'get_weather_icons' to aid in porting
-# script over to a scene.
-# v1.7: 03/05/2015-Improved code in icon
-# download process to prevent IO errors.
-# v1.8: 03/07/2015-03/25/2015-Numerous
-# changes & code cleanup to accomodate
-# scene development & api changeover to
-# www.wunderground.com
+# formatting & now show all precip types.
+# v1.6: 03/04/2015-Added ability to store weather
+# icons in a sub folder of script folder. Created 2
+# new functions, 'pick_your_weather' &
+# 'get_weather_icons' to aid in porting script over
+# to a scene.
+# v1.7: 03/05/2015-Improved code in icon download
+# process to prevent IO errors.
+# v1.8: 03/07/2015-03/25/2015-Numerous changes &
+# code cleanup to accomodate scene development &
+# api changeover to www.wunderground.com
+# v1.9: 04/04/2015-String formatting enhancements
 '''
-This script provides current and multi day
-weather forecasts for any city you name,
-or coordinates you are currently located
-in, using the api available from
-www.wunderground.com. The inspiration
-for this script came from https://
+This script provides current & multi day weather
+forecasts for any city you name, or coordinates you
+are currently located in, using the api available
+from www.wunderground.com.
+
+The inspiration for this script came from https://
 github.com/cclauss/weather_where_you_are/
 weather_where_you_are.py.
 '''
@@ -59,7 +55,7 @@ icons = []
 weather_icons = []
 missing_icons = []
 icon_path = './icons/'
-api_key = 'Insert wunderground.com API key here'
+api_key = 'Insert www.wunderground.com api key here'
 
 # Change to 'metric' if desired
 imperial_or_metric = 'imperial'
@@ -92,21 +88,21 @@ def pick_your_weather():
       ans = console.input_alert(msg).title()
       if ans:
         print('='*20)
-        print 'Gathering weather data for ' + ans
+        print 'Gathering weather data for {}'.format(ans)
         ans = ans.split(',')
         city = ans[0].replace(' ','%20').strip()
         st = ans[1].strip()
     elif ans == 3:
       # Pick from list
-      theCity,st,zcode = city_zips()
+      theCity, st, zcode = city_zips()
       print('='*20)
       if zcode:
-        print 'Gathering weather data for ' + theCity + ', ' + st
+        print 'Gathering weather data for {}, {}'.format(theCity, st)
   except Exception as e:
     sys.exit('Error: {}'.format(e))
 
   # Call api from www.wunderground.com
-  w,f = get_weather_dicts(lat,lon,city,st,zcode)
+  w,f = get_weather_dicts(lat, lon, city, st, zcode)
   return w,f
 
 def get_current_lat_lon():
@@ -141,7 +137,7 @@ def city_zips(filename = 'cities.txt'):
     except (IndexError, ValueError):
       print('Please enter a vaild number.')
 
-def update_zips(new_line,filename = 'cities.txt'):
+def update_zips(new_line, filename = 'cities.txt'):
   try:
     # Append new city entry
     with open(filename,'a') as f:
@@ -162,7 +158,7 @@ def update_zips(new_line,filename = 'cities.txt'):
   except IOError as e:
     sys.exit('IOError in update_zips(): {}'.format(e))
 
-def get_weather_dicts(lat,lon,city = '',st = '',zcode = ''):
+def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
   url_fmt = 'http://api.wunderground.com/api/{}/{}/q/{}.json'
   if city: # From entered city
     fmt = '{}/{}'
@@ -188,7 +184,7 @@ def get_weather_dicts(lat,lon,city = '',st = '',zcode = ''):
       # Check if query returned nothing
       err = weather['response']['error']['description']
       if err:
-        sys.exit('Error: ' + err)
+        sys.exit('Error: {}'.format(err))
     except KeyError:
       pass
   # Servers down or no internet
@@ -212,10 +208,12 @@ def get_weather_dicts(lat,lon,city = '',st = '',zcode = ''):
   # If city was entered...
   if city:
     w = weather['current_observation']['display_location']
+
     city = w['full'].split(',')
-    city,st = city
-    zipcode = 'zmw:' + w['zip'] + '.' + w['magic'] + '.' + w['wmo']
-    new_line = city.strip() + ',' + st.strip() + ',' + zipcode.strip() + '\n'
+    city, st = city
+    zipcode = 'zmw:{}.{}.{}'.format(w['zip'], w['magic'], w['wmo'])
+
+    new_line = '{},{},{}\n'.format(city.strip(), st.strip(), zipcode.strip())
 
     # Check for existence of city in 'cities.txt'
     try:
@@ -238,21 +236,19 @@ def get_weather_dicts(lat,lon,city = '',st = '',zcode = ''):
     except IOError as e:
       sys.exit('IOError in city_zips(): {}'.format(e))
 
-  return weather,forecast
+  return weather, forecast
 
 # Called from console version only
 def get_console_icons(w, f, icon_path):
   '''
-  Call function to get night hrs for this
-  forecast, so we can show night icons
-  when necessary.
+  Call function to get night hrs for this forecast,
+  so we can show night icons when necessary.
   '''
   hour_now, sunrise_hr, sunset_hr = get_night_hrs(w)
   '''
-  Find icon name for current weather and
-  make sure it's a night icon if the
-  current hour is between sunset and
-  sunrise
+  Find icon name for current weather and make sure
+  it's a night icon if the current hour is between
+  sunset and sunrise
   '''
   current = w['current_observation']
   ico = '{}.gif'.format(current['icon'])
@@ -279,18 +275,16 @@ def get_console_icons(w, f, icon_path):
 def get_icons_24h_data(w, f, icon_path):
   current = w['current_observation']
   temp_now = int(current['temp_' + unit[0]])
-  temp_now = '{}° {}'.format(str(temp_now),unit[0].title())
+  temp_now = '{}° {}'.format(temp_now, unit[0].title())
   '''
-  Call function to get night hrs for this
-  forecast, so we can show night icons
-  when necessary.
+  Call function to get night hrs for this forecast,
+  so we can show night icons when necessary.
   '''
   hour_now, sunrise_hr, sunset_hr = get_night_hrs(w)
   '''
-  Find icon name in current weather and
-  make sure it's a night icon if the
-  current hour is between sunset and
-  sunrise
+  Find icon name in current weather and make sure
+  it's a night icon if the current hour is between
+  sunset and sunrise.
   '''
   # The 'Now' icon(not included in query) for 24 hour forecast
   ico = '{}.gif'.format(current['icon'])
@@ -307,10 +301,10 @@ def get_icons_24h_data(w, f, icon_path):
   the_pops = ['---']
   the_icons = [current_ico]
   '''
-  For other 23 hours...'hourly' portion
-  of api query returns 36 hours of data so
-  we subtract 13 to get to first 23. With
-  the 'Now' hr above we have 24.
+  For other 23 hours...'hourly' portion of api
+  query returns 36 hrs of data so we subtract 13 to
+  get to first 23. With the 'Now' hr above we have
+  24 hrs.
   '''
   hourly_f = w['hourly_forecast']
   for i in range(len(hourly_f)-13):
@@ -326,29 +320,27 @@ def get_icons_24h_data(w, f, icon_path):
 
     # Convert 24 hr time to 12 hr format
     if hour >= 13 and hour <= 23:
-      hour = str(hour - 12) + 'PM'
+      hour = '{}PM'.format(hour - 12)
     elif hour == 12:
-      hour = str(hour) + 'PM'
+      hour = '{}PM'.format(hour)
     elif hour == 0:
       hour = '12AM'
     else:
-      hour = str(hour) + 'AM'
+      hour = '{}AM'.format(hour)
 
     the_hours.append(hour)
     the_temps.append('{}°{}'.format(hourly_f[i]['temp'][unit[9]], unit[0].title()))
     the_pops.append('{}%'.format(hourly_f[i]['pop']))
   '''
-  Now we need an icon for the current
-  weather portion of scene, which will be
-  the same one as we used for the 'Now'
-  hour of the 24 hour forecast.
+  Now we need an icon for the current weather
+  portion of scene, which will be the same one as
+  we used for the 'Now' hr of the 24 hr forecast.
   '''
   the_icons.append(current_ico)
   '''
-  Next find icon names for the extended
-  forecast. These icons, unlike the 24 hr
-  ones, already have day-night
-  distinctions in their names
+  Next find icon names for the extended forecast.
+  These icons, unlike the 24 hr ones, already have
+  day-night distinctions in their names
   '''
   #day_count = len(f['forecast']['txt_forecast']['forecastday'])
   day_count = 14
@@ -410,7 +402,7 @@ def get_current_weather(w):
 
   # Apply conversion units to some of data
   temp = int(current['temp_' + unit[0]])
-  temp = '{}°{}'.format(str(temp),unit[0].title())
+  temp = '{}°{}'.format(temp, unit[0].title())
 
   # Barometric pressure
   pressure = '{} {}'.format(current['pressure_' + unit[1]],unit[2])
@@ -419,26 +411,26 @@ def get_current_weather(w):
   wind = current['wind_string']
   if wind <> 'Calm':
     # Get direction & speed
-    wind = '{} @ {} {}'.format(current['wind_dir'],str(current['wind_' + unit[5]]),unit[5])
+    wind = '{} @ {} {}'.format(current['wind_dir'],current['wind_' + unit[5]], unit[5])
     # Add wind gusts if necessary
     gusts = current['wind_gust_' + unit[5]]
     if gusts <> 0:
-      wind = '{} Gusts to {} {}'.format(wind,str(gusts),unit[5])
+      wind = '{} Gusts to {} {}'.format(wind, gusts, unit[5])
 
   # Get 'Feels Like' temp
   feels_like = current['feelslike_' + unit[0]]
   feels_like = int(float(feels_like))
   # Add degrees symbol & conversion unit
-  feels_like = '{}°{}'.format(str(feels_like),unit[0].title())
+  feels_like = '{}°{}'.format(feels_like, unit[0].title())
 
   # Get precip amount for day
   precip = str(current['precip_today_' + unit[3]])
   if not precip or precip == '-9999.00':
     precip = '0.00'
-  precip = '{} {}'.format(precip,unit[4])
+  precip = '{} {}'.format(precip, unit[4])
 
   # Get visibility
-  visibility = '{} {}'.format(current['visibility_' + unit[10]],unit[11])
+  visibility = '{} {}'.format(current['visibility_' + unit[10]], unit[11])
 
   # Get times for sunrise & sunset
   sunrise, sunset = get_sunrise_sunset(w)
@@ -466,9 +458,9 @@ Moon Illuminated: {moon_phase[percentIlluminated]}%
 def get_extended_forecast(w,f):
   ef = []
   '''
-  Query yields 10 days of weather, but 10
-  days won't display in scene. Last few
-  days are missing, so we go with 7 days.
+  Query yields 10 days of weather, but 10 days
+  won't display in scene. Last few days are
+  missing, so we go with 7 days.
   '''
   #day_count = len(f['forecast']['txt_forecast']['forecastday'])
 
@@ -506,9 +498,9 @@ def get_extended_forecast(w,f):
       # Get low temp
       temp = 'Low: {}° {}'.format(simple_f[i/2]['low'][unit[6]], unit[0].title())
       '''
-      Add date, 9 spaces, & low temp to
-      night header. Now have even spacial
-      appearance between day & night.
+      Add date, 9 spaces, & low temp to night
+      header. Now we have even spacial appearance
+      between day & night.
       '''
       title = '{} {}{}{}'.format(title, the_date, (' ' *9), temp)
 
@@ -557,10 +549,10 @@ def get_extended_forecast(w,f):
     # Show day accumulated precip amts
     if title.find('Night') == -1:
       if rain_day > 0.0:
-        ef.append('Expected Rainfall: {} {}'.format(str(rain_day),unit[4]))
+        ef.append('Expected Rainfall: {} {}'.format(rain_day,unit[4]))
 
       if snow_day > 0.0:
-        ef.append('Expected Snowfall: {} {}'.format(str(snow_day),unit[8]))
+        ef.append('Expected Snowfall: {} {}'.format(snow_day,unit[8]))
 
     # Get accumulated night precip amts
     rain_night = simple_f[i/2]['qpf_night'][unit[4]]
@@ -570,13 +562,13 @@ def get_extended_forecast(w,f):
     # Show night accumulated precip amts
     if title.find('Night') <> -1:
       if rain_night > 0.0:
-        ef.append('Expected Rainfall: {} {}'.format(str(rain_night),unit[4]))
+        ef.append('Expected Rainfall: {} {}'.format(rain_night, unit[4]))
 
       if snow_night > 0.0:
-        ef.append('Expected Snowfall: {} {}'.format(str(snow_night),unit[8]))
+        ef.append('Expected Snowfall: {} {}'.format(snow_night, unit[8]))
 
     # Get % relative humidity
-    ef.append('Humidity: {}%'.format(str(simple_f[i/2]['avehumidity'])))
+    ef.append('Humidity: {}%'.format(simple_f[i/2]['avehumidity']))
   return ef
 
 def get_forecast(w,f):
@@ -591,7 +583,7 @@ def get_scene_header(w):
   city_name = current['display_location']['full']
 
   temp_now = int(current['temp_' + unit[0]])
-  temp_now = '{}° {}'.format(str(temp_now),unit[0].title())
+  temp_now = '{}° {}'.format(temp_now, unit[0].title())
 
   conditions = current['weather']
   return city_name, temp_now, conditions
@@ -655,16 +647,14 @@ def main():
   #print(get_forecast(w,f))
   #sys.exit()
   '''
-  Printing the extended forecast to the
-  console involves a bit more code because
-  we are inserting a weather icon at each
-  blank line.
+  Printing the extended forecast to the console
+  involves a bit more code because we are inserting
+  a weather icon at each blank line.
   '''
   extended_f = get_forecast(w,f).split('\n')
   '''
-  Start getting icons from element 1, as
-  we already used element 0 for current
-  weather.
+  Start getting icons from element 1, as we already
+  used element 0 for current weather.
   '''
   count = 1
   for line in extended_f:
