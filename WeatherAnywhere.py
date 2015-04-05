@@ -62,13 +62,13 @@ imperial_or_metric = 'imperial'
 
 # Conversion units
 if imperial_or_metric == 'imperial':
-  unit = ['f','in','in','in','in','mph',
-        'fahrenheit','','in','english',
-        'mi','miles']
+  unit = ['f', 'in', 'in', 'in', 'in', 'mph',
+        'fahrenheit', '', 'in', 'english',
+        'mi', 'miles']
 else:
-  unit = ['c','mb','hPa','metric','mm','kph',
-    'celsius','_metric','cm','metric',
-    'km','kilometers']
+  unit = ['c', 'mb', 'hPa', 'metric', 'mm', 'kph',
+    'celsius', '_metric', 'cm', 'metric',
+    'km', 'kilometers']
 
 def pick_your_weather():
   city = st = zcode = ''
@@ -76,12 +76,12 @@ def pick_your_weather():
 
   # Pick a weather source
   try:
-    ans = console.alert('Choose Your Weather Source:','','From Your Current Location','From Entering a City Name','From A Pick List of Cities')
+    ans = console.alert('Choose Your Weather Source:', '', 'From Your Current Location', 'From Entering a City Name', 'From A Pick List of Cities')
     if ans == 1:
       # Weather where you are
       print 'Gathering weather data from where you are...'
       # Get lat & lon of where you are
-      lat,lon = get_current_lat_lon()
+      lat, lon = get_current_lat_lon()
     elif ans == 2:
       # Enter a state-country & city
       msg = 'Enter a city and state-country in format "'"New York, NY"'": '
@@ -90,7 +90,7 @@ def pick_your_weather():
         print('='*20)
         print 'Gathering weather data for {}'.format(ans)
         ans = ans.split(',')
-        city = ans[0].replace(' ','%20').strip()
+        city = ans[0].replace(' ', '%20').strip()
         st = ans[1].strip()
     elif ans == 3:
       # Pick from list
@@ -102,8 +102,8 @@ def pick_your_weather():
     sys.exit('Error: {}'.format(e))
 
   # Call api from www.wunderground.com
-  w,f = get_weather_dicts(lat, lon, city, st, zcode)
-  return w,f
+  w, f = get_weather_dicts(lat, lon, city, st, zcode)
+  return w, f
 
 def get_current_lat_lon():
   # Retrieve lat & lon from current locale
@@ -140,18 +140,18 @@ def city_zips(filename = 'cities.txt'):
 def update_zips(new_line, filename = 'cities.txt'):
   try:
     # Append new city entry
-    with open(filename,'a') as f:
+    with open(filename, 'a') as f:
       f.write(new_line)
       f.close()
 
     # Sort list
-    with open(filename,'r') as f:
+    with open(filename, 'r') as f:
       lines = [line for line in f]
       f.close()
     lines.sort()
 
     # Rewrite newly sorted list
-    with open(filename,'w') as f:
+    with open(filename, 'w') as f:
       f.writelines(lines)
       f.close()
 
@@ -162,7 +162,7 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
   url_fmt = 'http://api.wunderground.com/api/{}/{}/q/{}.json'
   if city: # From entered city
     fmt = '{}/{}'
-    query = fmt.format(st,city)
+    query = fmt.format(st, city)
   elif zcode: # From list
     fmt = '{}'
     query = fmt.format(zcode)
@@ -170,8 +170,8 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
     fmt = '{},{}'
     query = fmt.format(lat, lon)
 
-  w_url = url_fmt.format(api_key,'geolookup/conditions/hourly/astronomy', query)
-  f_url = url_fmt.format(api_key,'forecast10day', query)
+  w_url = url_fmt.format(api_key, 'geolookup/conditions/hourly/astronomy', query)
+  f_url = url_fmt.format(api_key, 'forecast10day', query)
   #print w_url
   #print f_url
 
@@ -195,9 +195,9 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
   try:
     # Check if query returned ambiguous results. If so, use zipcode link to redefine query.
     if weather['response']['results']:
-      zcode = 'zmw:' + weather['response']['results'][0]['zmw']
-      w_url = url_fmt.format(api_key,'conditions/hourly/astronomy',zcode)
-      f_url = url_fmt.format(api_key,'forecast10day',zcode)
+      zcode = 'zmw:{}'.format(weather['response']['results'][0]['zmw'])
+      w_url = url_fmt.format(api_key, 'conditions/hourly/astronomy', zcode)
+      f_url = url_fmt.format(api_key, 'forecast10day', zcode)
       # Requery using zipcode link
       weather = requests.get(w_url).json()
       forecast = requests.get(f_url).json()
@@ -217,7 +217,7 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
 
     # Check for existence of city in 'cities.txt'
     try:
-      with open('cities.txt','r') as f:
+      with open('cities.txt', 'r') as f:
         lines = [line for line in f]
         f.close()
 
@@ -229,7 +229,7 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
       # Option to add entered city to city list
       if not found:
         msg = 'Ok to add {} to cities list?'.format(city)
-        ans = console.alert('Update Cities File',msg,'Yes','No',hide_cancel_button = True)
+        ans = console.alert('Update Cities File', msg, 'Yes', 'No', hide_cancel_button = True)
         if ans == 0:
           update_zips(new_line)
 
@@ -307,7 +307,7 @@ def get_icons_24h_data(w, f, icon_path):
   24 hrs.
   '''
   hourly_f = w['hourly_forecast']
-  for i in range(len(hourly_f)-13):
+  for i in range(len(hourly_f) - 13):
     hour = hourly_f[i]['FCTTIME']['hour']
     hour = int(hour)
 
@@ -357,7 +357,7 @@ def download_weather_icons(icon_path):
   import os
   gifs = []
   fmt = 'Downloading {} from {} ...'
-  the_gifs = ['flurries','rain','sleet','snow','tstorms']
+  the_gifs = ['flurries', 'rain', 'sleet', 'snow', 'tstorms']
   for gif in the_gifs:
     gif = '{}.gif'.format(gif)
     gifs.append(gif)
@@ -365,7 +365,7 @@ def download_weather_icons(icon_path):
     gifs.append('nt_{}'.format(gif))
     gifs.append('nt_chance{}'.format(gif))
 
-  the_gifs = ['sunny','cloudy']
+  the_gifs = ['sunny', 'cloudy']
   for gif in the_gifs:
     gif = '{}.gif'.format(gif)
     gifs.append(gif)
@@ -375,7 +375,7 @@ def download_weather_icons(icon_path):
     gifs.append('partly{}'.format(gif))
     gifs.append('nt_partly{}'.format(gif))
 
-  the_gifs = ['clear','fog','hazy']
+  the_gifs = ['clear', 'fog', 'hazy']
   for gif in the_gifs:
     gif = '{}.gif'.format(gif)
     gifs.append(gif)
@@ -384,7 +384,7 @@ def download_weather_icons(icon_path):
   for filename in gifs:
     if os.path.exists(icon_path + filename):
       continue
-    url = 'http://icons.wxug.com/i/c/i/' + filename
+    url = 'http://icons.wxug.com/i/c/i/{}'.format(filename)
     # Create icon folder if it doesn't exist
     if not os.path.exists(icon_path):
       os.makedirs(icon_path)
@@ -394,7 +394,7 @@ def download_weather_icons(icon_path):
         print(fmt.format(filename, url))
         out_file.write(requests.get(url).content)
       except requests.ConnectionError as e:
-        print('ConnectionError on {}: {}'.format(i ,e))
+        print('ConnectionError on {}: {}'.format(i, e))
     print('Done.')
 
 def get_current_weather(w):
@@ -405,7 +405,7 @@ def get_current_weather(w):
   temp = '{}°{}'.format(temp, unit[0].title())
 
   # Barometric pressure
-  pressure = '{} {}'.format(current['pressure_' + unit[1]],unit[2])
+  pressure = '{} {}'.format(current['pressure_' + unit[1]], unit[2])
 
   # Wind
   wind = current['wind_string']
@@ -424,7 +424,7 @@ def get_current_weather(w):
   feels_like = '{}°{}'.format(feels_like, unit[0].title())
 
   # Get precip amount for day
-  precip = str(current['precip_today_' + unit[3]])
+  precip = '{}'.format(current['precip_today_' + unit[3]])
   if not precip or precip == '-9999.00':
     precip = '0.00'
   precip = '{} {}'.format(precip, unit[4])
@@ -440,22 +440,22 @@ def get_current_weather(w):
   # Text to display in console or scene
   return('''Now...{current_observation[observation_time]}:
 \nWeather: {current_observation[weather]}
-Temperature: {}
+Temperature: {0}
 Humidity: {current_observation[relative_humidity]}
-Barometric Pressure: {}
-Wind: {}
-Feels Like: {}
-Precipitation Today: {}
-Visibility: {}
+Barometric Pressure: {1}
+Wind: {2}
+Feels Like: {3}
+Precipitation Today: {4}
+Visibility: {5}
 UV Index: {current_observation[UV]}
-Sunrise: {}
-Sunset: {}
+Sunrise: {6}
+Sunset: {7}
 Moon Age: {moon_phase[ageOfMoon]} days since new moon
 Moon Phase: {moon_phase[phaseofMoon]}
 Moon Illuminated: {moon_phase[percentIlluminated]}%
-'''.format(temp,pressure,wind,feels_like,precip,visibility,sunrise,sunset,**w))
+'''.format(temp, pressure, wind, feels_like, precip, visibility, sunrise, sunset, **w))
 
-def get_extended_forecast(w,f):
+def get_extended_forecast(w, f):
   ef = []
   '''
   Query yields 10 days of weather, but 10 days
@@ -476,7 +476,7 @@ def get_extended_forecast(w,f):
     # Get forecast timestamp & reformat
     the_date = simple_f[i/2]['date']['epoch']
 
-    the_date = datetime.datetime.fromtimestamp(int(the_date)).strftime('%m-%d-%Y')+':'
+    the_date = datetime.datetime.fromtimestamp(int(the_date)).strftime('%m-%d-%Y') + ':'
 
     # Get header for forecast text...can be day or night
     title = txt_f[i]['title']
@@ -537,7 +537,7 @@ def get_extended_forecast(w,f):
       fc_txt1 = fc_txt[:start]
       fc_txt2 = fc_txt[end:].replace('at', '@')
       fc_txt2 = fc_txt2.replace(' to ', '-')
-      fc_txt = fc_txt1 + fc_txt2
+      fc_txt = '{}{}'.format(fc_txt1, fc_txt2)
 
     ef.append(fc_txt)
 
@@ -549,10 +549,10 @@ def get_extended_forecast(w,f):
     # Show day accumulated precip amts
     if title.find('Night') == -1:
       if rain_day > 0.0:
-        ef.append('Expected Rainfall: {} {}'.format(rain_day,unit[4]))
+        ef.append('Expected Rainfall: {} {}'.format(rain_day, unit[4]))
 
       if snow_day > 0.0:
-        ef.append('Expected Snowfall: {} {}'.format(snow_day,unit[8]))
+        ef.append('Expected Snowfall: {} {}'.format(snow_day, unit[8]))
 
     # Get accumulated night precip amts
     rain_night = simple_f[i/2]['qpf_night'][unit[4]]
@@ -571,9 +571,9 @@ def get_extended_forecast(w,f):
     ef.append('Humidity: {}%'.format(simple_f[i/2]['avehumidity']))
   return ef
 
-def get_forecast(w,f):
+def get_forecast(w, f):
   # Text to display in console or scene
-  ef = get_extended_forecast(w,f)
+  ef = get_extended_forecast(w, f)
   return '\n'.join(ef)
 
 # City name, temp, & conditions displayed in first lines of scene
@@ -589,19 +589,19 @@ def get_scene_header(w):
   return city_name, temp_now, conditions
 
 def get_sunrise_sunset(w):
-  sunrise = w['sun_phase']['sunrise']['hour'] + ':' + w['sun_phase']['sunrise']['minute']
+  sunrise = '{}:{}'.format(w['sun_phase']['sunrise']['hour'], w['sun_phase']['sunrise']['minute'])
 
-  sunset = w['sun_phase']['sunset']['hour'] + ':' + w['sun_phase']['sunset']['minute']
+  sunset = '{}:{}'.format(w['sun_phase']['sunset']['hour'], w['sun_phase']['sunset']['minute'])
 
   # Add any date here...we eventually want time only
-  sunrise = '04/30/2014 ' + sunrise
-  new_time = time.strptime(sunrise,'%m/%d/%Y %H:%M')
+  sunrise = '04/30/2014 {}'.format(sunrise)
+  new_time = time.strptime(sunrise, '%m/%d/%Y %H:%M')
   timestamp = time.mktime(new_time)
   sunrise = timestamp
   sunrise = datetime.datetime.fromtimestamp(int(sunrise)).strftime('%I:%M %p')
 
-  sunset = '04/30/2014 ' + sunset
-  new_time = time.strptime(sunset,'%m/%d/%Y %H:%M')
+  sunset = '04/30/2014 {}'.format(sunset)
+  new_time = time.strptime(sunset, '%m/%d/%Y %H:%M')
   timestamp = time.mktime(new_time)
   sunset = timestamp
   sunset = datetime.datetime.fromtimestamp(int(sunset)).strftime('%I:%M %p')
@@ -610,7 +610,7 @@ def get_sunrise_sunset(w):
 def get_night_hrs(w):
   hour_now = w['current_observation']['local_time_rfc822']
   # Slice and dice time string for hour only
-  hour_now = hour_now[hour_now.find(':')-2:hour_now.find(':')].strip()
+  hour_now = hour_now[hour_now.find(':') - 2:hour_now.find(':')].strip()
   hour_now = int(hour_now)
 
   # Get times, split hrs & min, return hrs only
@@ -618,7 +618,7 @@ def get_night_hrs(w):
   sunrise = sunrise.split(':')
   sunrise_hr = int(sunrise[0].strip())
   sunset = sunset.split(':')
-  sunset_hr = int(sunset[0].strip())+12
+  sunset_hr = int(sunset[0].strip()) + 12
   return hour_now, sunrise_hr, sunset_hr
 
 def get_web_weather(w):
@@ -628,30 +628,30 @@ def get_web_weather(w):
 # Used only for console display
 def main():
   console.clear()
-  w,f = pick_your_weather()
+  w, f = pick_your_weather()
 
   # Get array of weather icons
-  icons = get_console_icons(w,f,icon_path)
+  icons = get_console_icons(w, f, icon_path)
 
   print('='*20)
 
   # Print current conditions to console
   try:
     # Open, resize & show icon for current weather, which is 1st one in array
-    img = Image.open(icons[0]).resize((25,25),Image.ANTIALIAS)
+    img = Image.open(icons[0]).resize((25, 25), Image.ANTIALIAS)
     img.show()
   except:
     missing_icons.append(icons[0])
 
   print(get_current_weather(w))
-  #print(get_forecast(w,f))
+  #print(get_forecast(w, f))
   #sys.exit()
   '''
   Printing the extended forecast to the console
   involves a bit more code because we are inserting
   a weather icon at each blank line.
   '''
-  extended_f = get_forecast(w,f).split('\n')
+  extended_f = get_forecast(w, f).split('\n')
   '''
   Start getting icons from element 1, as we already
   used element 0 for current weather.
@@ -659,11 +659,11 @@ def main():
   count = 1
   for line in extended_f:
     # Look for blank lines
-    if not line and count<=20:
+    if not line and count <= 20:
       ico = icons[count]
       try:
         # Open, resize and show weather icon
-        img = Image.open(ico).resize((25,25),Image.ANTIALIAS)
+        img = Image.open(ico).resize((25, 25), Image.ANTIALIAS)
         img.show()
       except:
         missing_icons.append(ico)
