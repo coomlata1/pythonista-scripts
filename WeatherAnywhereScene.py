@@ -117,7 +117,7 @@ def format_plot_weather(forecast):
         the y coordinates for the icons in this
         forecast.
         '''
-        icon_y.append(icon_y[z] -((blank_line[1] - blank_line[0]) * 11.35))
+        icon_y.append(icon_y[z] - ((blank_line[1] - blank_line[0]) * 11.35))
         # Clear list for next section of text
         blank_line = []
         # Store blank line number that starts next forecast section
@@ -364,13 +364,13 @@ class SceneViewer(ui.View):
     b = ui.ButtonItem('View on the Web', action = self.web_weather)
     self.right_button_items = [b]
     self.present('full_screen')
-    self.scene_view = scene.SceneView(frame=self.bounds)
+    self.scene_view = scene.SceneView(frame = self.bounds)
     self.scene_view.scene = in_scene
     self.add_subview(self.scene_view)
 
   #@ ui.in_background
   # Web view of current city's weather
-  def web_weather(self,sender):
+  def web_weather(self, sender):
     wa.get_web_weather(json_w)
     self.close()
 
