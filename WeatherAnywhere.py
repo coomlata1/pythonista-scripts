@@ -211,7 +211,7 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
 
     city = w['full'].split(',')
     city, st = city
-    zipcode = 'zmw:{}.{}.{}'.format(w['zip'], w['magic'], w['wmo'])
+    zipcode = 'zmw:{zip}.{magic}.{wmo}'.format(**w)
 
     new_line = '{},{},{}\n'.format(city.strip(), st.strip(), zipcode.strip())
 
@@ -219,7 +219,6 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
     try:
       with open('cities.txt', 'r') as f:
         lines = [line for line in f]
-        f.close()
 
       found = False
       for line in lines:
@@ -589,18 +588,19 @@ def get_scene_header(w):
   return city_name, temp_now, conditions
 
 def get_sunrise_sunset(w):
-  sunrise = '{}:{}'.format(w['sun_phase']['sunrise']['hour'], w['sun_phase']['sunrise']['minute'])
-
-  sunset = '{}:{}'.format(w['sun_phase']['sunset']['hour'], w['sun_phase']['sunset']['minute'])
+  fmt = '{hour}:{minute}'
+  sunrise = fmt.format(**w['sun_phase']['sunrise'])
+  sunset  = fmt.format(**w['sun_phase']['sunset']))
 
   # Add any date here...we eventually want time only
-  sunrise = '04/30/2014 {}'.format(sunrise)
+  fmt = '04/30/2014 {}'
+  sunrise = fmt.format(sunrise)
   new_time = time.strptime(sunrise, '%m/%d/%Y %H:%M')
   timestamp = time.mktime(new_time)
   sunrise = timestamp
   sunrise = datetime.datetime.fromtimestamp(int(sunrise)).strftime('%I:%M %p')
 
-  sunset = '04/30/2014 {}'.format(sunset)
+  sunset = fmt.format(sunset)
   new_time = time.strptime(sunset, '%m/%d/%Y %H:%M')
   timestamp = time.mktime(new_time)
   sunset = timestamp
