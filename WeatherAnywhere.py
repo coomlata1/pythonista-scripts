@@ -142,18 +142,16 @@ def update_zips(new_line, filename = 'cities.txt'):
     # Append new city entry
     with open(filename, 'a') as f:
       f.write(new_line)
-      f.close()
 
     # Sort list
     with open(filename, 'r') as f:
       lines = [line for line in f]
-      f.close()
+  
     lines.sort()
 
     # Rewrite newly sorted list
     with open(filename, 'w') as f:
       f.writelines(lines)
-      f.close()
 
   except IOError as e:
     sys.exit('IOError in update_zips(): {}'.format(e))
