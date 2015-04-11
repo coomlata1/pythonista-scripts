@@ -227,7 +227,8 @@ class MyScene(scene.Scene):
       self.dy += self.xy_velocity[1] * self.dt
       decay = exp( - self.dt / self.velocity_decay_timescale_seconds )
       self.xy_velocity = (self.xy_velocity[0] * decay, self.xy_velocity[1] * decay)
-      if ((abs(self.xy_velocity[0]) <= self.min_velocity_points_per_second) and (abs(self.xy_velocity[1]) <= self.min_velocity_points_per_second)):
+      if ((abs(self.xy_velocity[0]) <= self.min_velocity_points_per_second)
+      and (abs(self.xy_velocity[1]) <= self.min_velocity_points_per_second)):
         self.xy_velocity = None
 
     # Save battery life
@@ -300,7 +301,8 @@ class MyScene(scene.Scene):
       if the_pops[i] == '0%':
         the_pops[i] = ''
       # Display hour, pop, & temp in grid
-      scene.text('{}\n{}\n\n\n\n{}'.format(the_hours[i], the_pops[i], the_temps[i]), font_size = font_sz, x = x, y = y, alignment = 3)
+      msg = '{}\n{}\n\n\n\n{}'.format(the_hours[i], the_pops[i], the_temps[i])
+      scene.text(msg, font_size = font_sz, x = x, y = y, alignment = 3)
 
     # Insert icons into 24 hour forecast
     for i, image in enumerate(self.images):
