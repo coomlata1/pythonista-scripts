@@ -79,8 +79,8 @@ def GetDateTime(meta):
   # The defaults
   theYear = theDate = theTime = ''
   # Added default
-  exif = meta.get('{Exif}', 'None')
-  if not exif == 'None':
+  exif = meta.get('{Exif}', None)
+  if exif:
     try:
       theDate,theTime = str(exif.get('DateTimeOriginal')).split()
       theDate = theDate.split(':')
@@ -162,7 +162,7 @@ def GetDegreesToRotate(d):
   return rotate_dict.get(str(d), (0, 'unknown'))
 
 def GetLocation(meta):
-  gps = meta.get('{GPS}')
+  gps = meta.get('{GPS}', None)
   if gps:
     lat = gps.get('Latitude',0.0)
     lon = gps.get('Longitude',0.0)
@@ -204,9 +204,8 @@ def Timer(start, end, count):
   Calculates the time it takes to run
   process, based on start and finish
   """
-  elapsed = end - start
   # Add 5 seconds to time for each photo's dropbox upload pause
-  elapsed  += 5 * count
+  elapsed  = (end - start) + (5 * count)
   # Convert process time, if needed
   if elapsed < 60:
     time = '{:.2f}'.format(elapsed) + " seconds\n"
