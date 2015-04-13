@@ -210,12 +210,10 @@ def Timer(start, end, count):
   # Convert process time, if needed
   if elapsed < 60:
     time = '{:.2f}'.format(elapsed) + " seconds\n"
-
-  if 60 <= elapsed <= 3599:
+  elif elapsed < 3600:
     min = elapsed / 60
     time = '{:.2f}'.format(min) + " minutes\n"
-
-  if elapsed >= 3600:
+  else:  # elapsed >= 3600:
     hour = elapsed / 3600
     time = '{:.2f}'.format(hour) + " hours\n"
 
