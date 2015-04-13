@@ -61,10 +61,7 @@ url_fmt = 'http://www.omdbapi.com/?{}={}&y=&plot=full&tomatoes=true&r=json'
 
 # Function that returns a query to IMDB database
 def queryData(url):
-  d = requests.get(url).json()
-  # Trap errors in user input, if any
-  #error = d.partition('Error: ')[2]
-  return d
+  return requests.get(url).json()
 
 '''
 Function that returns a Markdown list of
