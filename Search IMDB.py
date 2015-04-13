@@ -49,7 +49,6 @@ more info is desired.
 '''
 import clipboard
 import console
-import json
 import re
 import requests
 import string
