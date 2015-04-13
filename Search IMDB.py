@@ -119,19 +119,9 @@ def get_imdbID_name(name):
 
 # Strip any 'N/A's from data mining
 def strip_nas(data):
-  data = data.split('\n')
-  new_data = ''
+  return '\n\n'.join(line for line in data.split('\n')
+                     if '(N/A)' not in line) + '\n\n'
 
-  for line in data:
-    # Look for any 'N/A's'
-    na = re.search("(N/A)", line)
-    if na:
-      # Clear them out
-      line = ''
-      #line = line.replace('\n','')
-    else:
-      new_data += '{}\n\n'.format(line)
-  return new_data
 
 '''
 Function to mine query results for desired
