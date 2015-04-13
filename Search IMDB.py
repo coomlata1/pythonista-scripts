@@ -71,36 +71,16 @@ Function that returns a Markdown list of
 names(actors & directors) listed in query.
 '''
 def names_md(names):
-  b = ''
-  # Loop through list of names, appending markdown syntax to each one
-  '''
-  Use enumerate() when you want both index
-  and item...use xrange(len()) when you
-  only want index
-  '''
-  for index in xrange(len(names)):
-    names[index] = names[index].strip()
-
-    # Call function to return the IMDB name ID for this name
-    imdb_id_name = get_imdbID_name(names[index])
-
-    # Append Markdown code
-    names[index] = '[{}](http://www.imdb.com/name/{}), '.format(names[index], imdb_id_name)
-
-    # Consecrate each markdown name into a return variable
-    b += names[index]
-  #print b
-  #sys.exit()
-  return b
+  fmt = '[{}](http://www.imdb.com/name/{})'
+  return ', '.join(fmt.format(name.strip(),
+    get_imdbID_name(name.strip())) for name in names)
 
 '''
 Function to return the IMDB id number of a
 director or actors name
 '''
 def get_imdbID_name(name):
-  raw_string = re.compile(r' ')
-  searchstring = raw_string.sub('+', name)
-  url = 'http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=' + searchstring
+  url = 'http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=' + name.replace(' ', '+')
   d = queryData(url)
   #print ''
   #print d
