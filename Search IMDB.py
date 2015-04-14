@@ -132,13 +132,13 @@ console.
 '''
 def mine_console_data(d):
   try:
-    type = str.title(str(d['Type']))
+    d['Type'] = d['Type'].title()
   except KeyError:
     sys.exit('No useable query results')
 
   data = ('''Results of your IMDB Search:
 Title: {Title}
-Type: {}
+Type: {Type}
 Release Date: {Released}
 Year: {Year}
 Genre: {Genre}
@@ -156,7 +156,7 @@ Writers: {Writer}
 Actors: {Actors}
 Plot: {Plot}
 Rotten Tomatoes Review: {tomatoConsensus}
-  ''').format(type, **d)
+  ''').format(**d)
 
   # Call function to remove any N/A's
   new_data = strip_nas(data)
