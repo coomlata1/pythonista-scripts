@@ -6,7 +6,7 @@
 # function to return IMDB name id's for
 # use with director & actor hypertexts.
 # Added 'while True' loops for user input.
-# v1.2: 02/09/2015-Many thanks to cclaus
+# v1.2: 02/09/2015-Many thanks to @cclauss
 # for code cleanup & great comments.
 # v2.0: 02/25/2015-Complete rewrite of
 # code, based on @cclauss's suggestions,
