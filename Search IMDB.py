@@ -51,9 +51,7 @@ more info is desired.
 '''
 import clipboard
 import console
-import re
 import requests
-import string
 import sys
 
 # Initialize global variables
@@ -159,8 +157,7 @@ Rotten Tomatoes Review: {tomatoConsensus}
   ''').format(**d)
 
   # Call function to remove any N/A's
-  new_data = strip_nas(data)
-  return new_data
+  return strip_nas(data)
 
 '''
 Function to mine query results for desired
@@ -173,12 +170,9 @@ def mine_md_data(d):
   imdb_id = d['imdbID']
 
   print '\nGathering director & actor ids for MarkDown text on clipboard'
-  md_directors = d['Director'].split(',')
-  md_directors = names_md(md_directors)
+  md_directors = names_md(d['Director'].split(','))
   #print md_directors
-
-  md_actors = d['Actors'].split(',')
-  md_actors = names_md(md_actors)
+  md_actors = names_md(d['Actors'].split(','))
   #print md_actors
 
   md_data = ('''
@@ -208,8 +202,7 @@ def mine_md_data(d):
   md_data = fmt.format(title, imdb_id,  md_data)
 
   # Call function to remove any N/A's
-  new_md_data = strip_nas(md_data)
-  return new_md_data
+  return strip_nas(md_data)
 
 '''
 Funtion that provides list of multiple
