@@ -234,13 +234,13 @@ def listData(d):
       match the  index number of that
       film's imdbID in the ids array.
       '''
-      film_idx = int(raw_input("\nEnter the number of your desired film or TV series: "))
+      film_idx = int(raw_input("\nEnter the number of your desired film or TV series: ").strip())
       film_id = the_ids[film_idx]
       break
     except (IndexError, ValueError):
-      choice = raw_input('\nInvalid entry...Continue? (y/n): ')
+      choice = raw_input('\nInvalid entry...Continue? (y/n): ').strip()
       console.clear()
-      if not choice.upper().startswith('Y'):
+      if not choice.lower().startswith('y'):
         sys.exit('Process cancelled...Goodbye')
 
   # Return the film's imdbID to the caller
@@ -254,7 +254,9 @@ def main(args):
   enter movie name as commandline
   arguments
   '''
-  myTitle = ' '.join(args) or raw_input('Please enter a movie or TV series title: ')
+  myTitle = ' '.join(args) or raw_input('Please enter a movie or TV series title: ').strip()
+  if not myTitle:
+    sys.exit('No title provided.')
 
   print "\nConnecting to server...wait"
 
@@ -273,10 +275,9 @@ def main(args):
 
   while True:
     # Give user a choice to refine search
-    msg = 'Refine your search? (y/n/c): '
-    choice = raw_input(msg)
+    choice = raw_input('Refine your search? (y/n/c): ').strip().lower()
     # Accept 'Yes', etc.
-    if choice.upper().startswith('Y'):
+    if choice.startswith('y'):
       print('='*20)
       # Use ?s for a query that yields multiple titles
       url = url_fmt.format('s', s)
@@ -292,12 +293,16 @@ def main(args):
       d = queryData(url_fmt.format('i', id));
       print('='*20)
       print(mine_console_data(d))
-    elif choice.upper().startswith('N'):
+    elif choice.startswith('n'):
       # Clear clipboard, then add formatted text
       clipboard.set('')
       clipboard.set(mine_md_data(d))
 
-      print '\nResults of your search were copied\nto the clipboard in MD for use with\nthe MD text editor or journaling app\nof your choice.\n\n'
+      print '''
+Results of your search were copied
+to the clipboard in MD for use with
+the MD text editor or journaling app
+of your choice.''' + '\n\n'
       break
     else:
       sys.exit('Search Cancelled')
