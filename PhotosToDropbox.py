@@ -19,7 +19,7 @@
 # v1.6: 03/25/2015-Fixed bug in main()
 # where photo with no geotag was not being
 # appended to 'no_gps' list.
-# v1.6: 04/13/2015-Code tightening with
+# v1.7: 04/13/2015-Code tightening with
 # help & thanks to @cclauss.
 '''
 This Pythonista script will RESIZE,
