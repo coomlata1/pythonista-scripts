@@ -16,6 +16,8 @@
 # v2.1: 03/26/2015-Added code to account
 # for apostrophes in actor/director's
 # names during ID searches.
+# v2.2: 04/13/2015-Thanks to @cclauss for
+# more code tightening & cleanup.
 '''
 This Pythonista script uses the api
 available at www.omdbapi.com to search
