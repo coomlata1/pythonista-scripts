@@ -218,11 +218,11 @@ def listData(d):
   the_ids = []
 
   # Loop through list of titles and append all but episodes to film array
-  for i in xrange(len(d['Search'])):
-    if d['Search'][i]['Type'] != 'episode':
-      the_films.append(', '.join([d['Search'][i]['Title'],d['Search'][i]['Year'], d['Search'][i]['Type']]))
+  for title in d['Search']:
+    if title['Type'] != 'episode':
+      the_films.append(', '.join([title['Title'], title['Year'], title['Type']]))
       # Add film's imdbID to the ids array
-      the_ids.append(d['Search'][i]['imdbID'])
+      the_ids.append(title['imdbID'])
 
   while True:
     # Print out a new list of film choices
