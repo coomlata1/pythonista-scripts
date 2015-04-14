@@ -96,13 +96,13 @@ def get_imdbID_name(name):
     line
     '''
     # Take care of apostrophe in a name, like "Jack O'Donnell"
-    if d['name_popular'][0]['name'].replace('&#x27;',"'") <> name:
+    if d['name_popular'][0]['name'].replace('&#x27;',"'") != name:
       raise Exception
     #print '{} popular'.format(name)
   except:
     try:
       name_id = d['name_exact'][0]['id']
-      if d['name_exact'][0]['name'].replace('&#x27;',"'") <> name:
+      if d['name_exact'][0]['name'].replace('&#x27;',"'") != name:
         raise Exception
       #print '{} exact'.format(name)
     except:
@@ -219,7 +219,7 @@ def listData(d):
 
   # Loop through list of titles and append all but episodes to film array
   for i in xrange(len(d['Search'])):
-    if d['Search'][i]['Type'] <> 'episode':
+    if d['Search'][i]['Type'] != 'episode':
       the_films.append(', '.join([d['Search'][i]['Title'],d['Search'][i]['Year'], d['Search'][i]['Type']]))
       # Add film's imdbID to the ids array
       the_ids.append(d['Search'][i]['imdbID'])
