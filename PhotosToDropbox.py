@@ -20,7 +20,7 @@
 # where photo with no geotag was not being
 # appended to 'no_gps' list.
 # v1.6: 04/13/2015-Code tightening with
-# help and thanks to @cclauss.
+# help & thanks to @cclauss.
 '''
 This Pythonista script will RESIZE,
 RENAME, GEO-TAG & UPLOAD all selected
