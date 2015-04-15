@@ -6,7 +6,7 @@
 # function to return IMDB name id's for
 # use with director & actor hypertexts.
 # Added 'while True' loops for user input.
-# v1.2: 02/09/2015-Many thanks to cclaus
+# v1.2: 02/09/2015-Many thanks to @cclauss
 # for code cleanup & great comments.
 # v2.0: 02/25/2015-Complete rewrite of
 # code, based on @cclauss's suggestions,
@@ -51,9 +51,7 @@ more info is desired.
 '''
 import clipboard
 import console
-import re
 import requests
-import string
 import sys
 
 # Initialize global variables
@@ -98,13 +96,13 @@ def get_imdbID_name(name):
     line
     '''
     # Take care of apostrophe in a name, like "Jack O'Donnell"
-    if d['name_popular'][0]['name'].replace('&#x27;',"'") <> name:
+    if d['name_popular'][0]['name'].replace('&#x27;',"'") != name:
       raise Exception
     #print '{} popular'.format(name)
   except:
     try:
       name_id = d['name_exact'][0]['id']
-      if d['name_exact'][0]['name'].replace('&#x27;',"'") <> name:
+      if d['name_exact'][0]['name'].replace('&#x27;',"'") != name:
         raise Exception
       #print '{} exact'.format(name)
     except:
@@ -132,13 +130,13 @@ console.
 '''
 def mine_console_data(d):
   try:
-    type = str.title(str(d['Type']))
+    d['Type'] = d['Type'].title()
   except KeyError:
     sys.exit('No useable query results')
 
   data = ('''Results of your IMDB Search:
 Title: {Title}
-Type: {}
+Type: {Type}
 Release Date: {Released}
 Year: {Year}
 Genre: {Genre}
@@ -156,11 +154,10 @@ Writers: {Writer}
 Actors: {Actors}
 Plot: {Plot}
 Rotten Tomatoes Review: {tomatoConsensus}
-  ''').format(type, **d)
+  ''').format(**d)
 
   # Call function to remove any N/A's
-  new_data = strip_nas(data)
-  return new_data
+  return strip_nas(data)
 
 '''
 Function to mine query results for desired
@@ -173,12 +170,9 @@ def mine_md_data(d):
   imdb_id = d['imdbID']
 
   print '\nGathering director & actor ids for MarkDown text on clipboard'
-  md_directors = d['Director'].split(',')
-  md_directors = names_md(md_directors)
+  md_directors = names_md(d['Director'].split(','))
   #print md_directors
-
-  md_actors = d['Actors'].split(',')
-  md_actors = names_md(md_actors)
+  md_actors = names_md(d['Actors'].split(','))
   #print md_actors
 
   md_data = ('''
@@ -208,8 +202,7 @@ def mine_md_data(d):
   md_data = fmt.format(title, imdb_id,  md_data)
 
   # Call function to remove any N/A's
-  new_md_data = strip_nas(md_data)
-  return new_md_data
+  return strip_nas(md_data)
 
 '''
 Funtion that provides list of multiple
@@ -225,11 +218,11 @@ def listData(d):
   the_ids = []
 
   # Loop through list of titles and append all but episodes to film array
-  for i in xrange(len(d['Search'])):
-    if d['Search'][i]['Type'] <> 'episode':
-      the_films.append(', '.join([d['Search'][i]['Title'],d['Search'][i]['Year'], d['Search'][i]['Type']]))
+  for title in d['Search']:
+    if title['Type'] != 'episode':
+      the_films.append(', '.join([title['Title'], title['Year'], title['Type']]))
       # Add film's imdbID to the ids array
-      the_ids.append(d['Search'][i]['imdbID'])
+      the_ids.append(title['imdbID'])
 
   while True:
     # Print out a new list of film choices
@@ -241,13 +234,13 @@ def listData(d):
       match the  index number of that
       film's imdbID in the ids array.
       '''
-      film_idx = int(raw_input("\nEnter the number of your desired film or TV series: "))
+      film_idx = int(raw_input("\nEnter the number of your desired film or TV series: ").strip())
       film_id = the_ids[film_idx]
       break
     except (IndexError, ValueError):
-      choice = raw_input('\nInvalid entry...Continue? (y/n): ')
+      choice = raw_input('\nInvalid entry...Continue? (y/n): ').strip()
       console.clear()
-      if not choice.upper().startswith('Y'):
+      if not choice.lower().startswith('y'):
         sys.exit('Process cancelled...Goodbye')
 
   # Return the film's imdbID to the caller
@@ -261,7 +254,9 @@ def main(args):
   enter movie name as commandline
   arguments
   '''
-  myTitle = ' '.join(args) or raw_input('Please enter a movie or TV series title: ')
+  myTitle = ' '.join(args) or raw_input('Please enter a movie or TV series title: ').strip()
+  if not myTitle:
+    sys.exit('No title provided.')
 
   print "\nConnecting to server...wait"
 
@@ -280,10 +275,9 @@ def main(args):
 
   while True:
     # Give user a choice to refine search
-    msg = 'Refine your search? (y/n/c): '
-    choice = raw_input(msg)
+    choice = raw_input('Refine your search? (y/n/c): ').strip().lower()
     # Accept 'Yes', etc.
-    if choice.upper().startswith('Y'):
+    if choice.startswith('y'):
       print('='*20)
       # Use ?s for a query that yields multiple titles
       url = url_fmt.format('s', s)
@@ -299,12 +293,16 @@ def main(args):
       d = queryData(url_fmt.format('i', id));
       print('='*20)
       print(mine_console_data(d))
-    elif choice.upper().startswith('N'):
+    elif choice.startswith('n'):
       # Clear clipboard, then add formatted text
       clipboard.set('')
       clipboard.set(mine_md_data(d))
 
-      print '\nResults of your search were copied\nto the clipboard in MD for use with\nthe MD text editor or journaling app\nof your choice.\n\n'
+      print '''
+Results of your search were copied
+to the clipboard in MD for use with
+the MD text editor or journaling app
+of your choice.''' + '\n\n'
       break
     else:
       sys.exit('Search Cancelled')
