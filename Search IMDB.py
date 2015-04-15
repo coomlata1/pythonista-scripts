@@ -18,6 +18,8 @@
 # names during ID searches.
 # v2.2: 04/13/2015-Thanks to @cclauss for
 # more code tightening & cleanup.
+# v2.3: 04/15/2015-More code cleanup &
+# readability improvements from @cclauss
 '''
 This Pythonista script uses the api
 available at www.omdbapi.com to search
@@ -119,7 +121,7 @@ def get_imdbID_name(name):
 # Strip out lines containing '(N/A)'
 def strip_na_lines(data):
   return '\n\n'.join(line for line in data.split('\n')
-                     if '(N/A)' not in line) + '\n\n'
+                     if 'N/A' not in line) + '\n\n'
 
 '''
 Function to mine query results for desired
@@ -222,9 +224,9 @@ def listData(d):
       film_id = the_ids[film_idx]
       break
     except (IndexError, ValueError):
-      choice = raw_input('\nInvalid entry...Continue? (y/n): ').strip()
+      choice = raw_input('\nInvalid entry...Continue? (y/n): ').strip().lower()
       console.clear()
-      if not choice.lower().startswith('y'):
+      if not choice.startswith('y'):
         sys.exit('Process cancelled...Goodbye')
 
   # Return the film's imdbID to the caller
