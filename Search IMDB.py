@@ -116,11 +116,10 @@ def get_imdbID_name(name):
   #print '{} IMDB Id: {}'.format(name, name_id)
   return name_id
 
-# Strip any 'N/A's from data mining
-def strip_nas(data):
+# Strip out lines containing '(N/A)'
+def strip_na_lines(data):
   return '\n\n'.join(line for line in data.split('\n')
                      if '(N/A)' not in line) + '\n\n'
-
 
 '''
 Function to mine query results for desired
@@ -134,7 +133,7 @@ def mine_console_data(d):
   except KeyError:
     sys.exit('No useable query results')
 
-  data = ('''Results of your IMDB Search:
+  return strip_na_lines('''Results of your IMDB Search:
 Title: {Title}
 Type: {Type}
 Release Date: {Released}
@@ -154,10 +153,7 @@ Writers: {Writer}
 Actors: {Actors}
 Plot: {Plot}
 Rotten Tomatoes Review: {tomatoConsensus}
-  ''').format(**d)
-
-  # Call function to remove any N/A's
-  return strip_nas(data)
+'''.format(**d))
 
 '''
 Function to mine query results for desired
@@ -166,16 +162,11 @@ those results for copying to the
 clipboard.
 '''
 def mine_md_data(d):
-  title = d['Title']
-  imdb_id = d['imdbID']
-
   print '\nGathering director & actor ids for MarkDown text on clipboard'
-  md_directors = names_md(d['Director'].split(','))
-  #print md_directors
-  md_actors = names_md(d['Actors'].split(','))
-  #print md_actors
+  d['Director'] = names_md(d['Director'].split(','))
+  d['Actors']   = names_md(d['Actors'].split(','))
 
-  md_data = ('''
+  return strip_na_lines('''**Title:** [{Title}](http://www.imdb.com/title/{imdbID}/)
 **Type:** #{Type}
 **Release Date:** {Released}
 **Year:** {Year}
@@ -183,26 +174,19 @@ def mine_md_data(d):
 **IMDB Rating:** {imdbRating}/10
 **Rating:** {Rated}
 **Runtime:** {Runtime}
-**IMDB Id:** {}
+**IMDB Id:** {imdbID}
 **Language:** {Language}
 **Country:** {Country}
 **Awards:** {Awards}
 **Box Office:** {BoxOffice}
 **Production:** {Production}
-**Director:** {}
+**Director:** {Director}
 **Writers:** {Writer}
-**Actors:** {}
+**Actors:** {Actors}
 **Plot:** {Plot}
 **Rotten Tomatoes Review:** {tomatoConsensus}
 [Poster]({Poster})
-''').format(imdb_id, md_directors, md_actors, **d)
-
-  # Append a title string in Markdown
-  fmt = '**Title:** [{}](http://www.imdb.com/title/{}/){}'
-  md_data = fmt.format(title, imdb_id,  md_data)
-
-  # Call function to remove any N/A's
-  return strip_nas(md_data)
+'''.format(**d))
 
 '''
 Funtion that provides list of multiple
