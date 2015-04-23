@@ -51,6 +51,8 @@ stars, and poster all appear in hypertext
 with a direct link to the IMDB database if
 more info is desired.
 '''
+
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 import clipboard
 import console
 import requests
@@ -61,7 +63,7 @@ d = ''
 url_fmt = 'http://www.omdbapi.com/?{}={}&y=&plot=full&tomatoes=true&r=json'
 
 # Function that returns a query to IMDB database
-def queryData(url):
+def query_data(url):
   return requests.get(url).json()
 
 '''
@@ -79,7 +81,7 @@ director or actors name
 '''
 def get_imdbID_name(name):
   url = 'http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=' + name.replace(' ', '+')
-  d = queryData(url)
+  d = query_data(url)
   #print ''
   #print d
 
@@ -112,7 +114,7 @@ def get_imdbID_name(name):
         name_id = d['name_approx'][0]['id']
         #print '{} approx'.format(name)
       except KeyError:
-        print '{} name not found'.format(name)
+        print('{} name not found'.format(name))
         name_id = ''
         pass
   #print '{} IMDB Id: {}'.format(name, name_id)
@@ -164,7 +166,7 @@ those results for copying to the
 clipboard.
 '''
 def mine_md_data(d):
-  print '\nGathering director & actor ids for MarkDown text on clipboard'
+  print('\nGathering director & actor ids for MarkDown text on clipboard')
   d['Director'] = names_md(d['Director'].split(','))
   d['Actors']   = names_md(d['Actors'].split(','))
 
@@ -196,12 +198,13 @@ title choices if not satisfied with
 results of 1st query & returns the IMDB id
 for the movie title chosen.
 '''
-def listData(d):
+def list_data(d):
   #print d
   #sys.exit()
 
   the_films = []
   the_ids = []
+  film_id = None
 
   # Loop through list of titles and append all but episodes to film array
   for title in d['Search']:
@@ -213,7 +216,7 @@ def listData(d):
   while True:
     # Print out a new list of film choices
     for index, item in enumerate(the_films):
-      print index, item
+      print(index, item)
     try:
       '''
       Number of film selected will
@@ -240,13 +243,13 @@ def main(args):
   enter movie name as commandline
   arguments
   '''
-  myTitle = ' '.join(args) or raw_input('Please enter a movie or TV series title: ').strip()
-  if not myTitle:
+  my_title = ' '.join(args) or raw_input('Please enter a movie or TV series title: ').strip()
+  if not my_title:
     sys.exit('No title provided.')
 
-  print "\nConnecting to server...wait"
+  print("\nConnecting to server...wait")
 
-  s = myTitle.replace(' ', '+')
+  s = my_title.replace(' ', '+')
   '''
   Use ?t to search for one item...this
   first pass will give you the most
@@ -255,7 +258,7 @@ def main(args):
   multiple titles with the same name
   '''
   # Call subroutines
-  d = queryData(url_fmt.format('t', s));
+  d = query_data(url_fmt.format('t', s))
   print('='*20)
   print(mine_console_data(d))
 
@@ -267,16 +270,16 @@ def main(args):
       print('='*20)
       # Use ?s for a query that yields multiple titles
       url = url_fmt.format('s', s)
-      d = queryData(url)
+      d = query_data(url)
       '''
       Call function to list all the titles
       in the query and return IMDB id
       for title chosen from list
       '''
-      id = listData(d)
-      print "\nRetrieving data from new query..."
+      id = list_data(d)
+      print("\nRetrieving data from new query...")
       # Use ?i for an exact query on unique imdbID
-      d = queryData(url_fmt.format('i', id));
+      d = query_data(url_fmt.format('i', id))
       print('='*20)
       print(mine_console_data(d))
     elif choice.startswith('n'):
@@ -284,11 +287,11 @@ def main(args):
       clipboard.set('')
       clipboard.set(mine_md_data(d))
 
-      print '''
+      print('''
 Results of your search were copied
 to the clipboard in MD for use with
 the MD text editor or journaling app
-of your choice.''' + '\n\n'
+of your choice.''' + '\n\n')
       break
     else:
       sys.exit('Search Cancelled')
