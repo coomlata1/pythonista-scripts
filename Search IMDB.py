@@ -21,7 +21,7 @@
 # v2.3: 04/15/2015-More code cleanup &
 # readability improvements from @cclauss
 # v2.4: 04/24/2013-Code changes, courtesy
-# @cclaus, including print as a function
+# @cclauss, including print as a function
 # and naming convention improvements to
 # get ready for Python 3.
 '''
