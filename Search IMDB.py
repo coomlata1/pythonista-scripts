@@ -20,10 +20,12 @@
 # more code tightening & cleanup.
 # v2.3: 04/15/2015-More code cleanup &
 # readability improvements from @cclauss
-# v2.4: 04/24/2013-Code changes, courtesy
+# v2.4: 04/24/2015-Code changes, courtesy
 # @cclauss, including print as a function
 # and naming convention improvements to
 # get ready for Python 3.
+# v2.4: 07/07/2015-Added code to input the
+# year of release.
 '''
 This Pythonista script uses the api
 available at www.omdbapi.com to search
@@ -64,7 +66,7 @@ import sys
 
 # Initialize global variables
 d = ''
-url_fmt = 'http://www.omdbapi.com/?{}={}&y=&plot=full&tomatoes=true&r=json'
+url_fmt = 'http://www.omdbapi.com/?{}={}&y={}&plot=full&tomatoes=true&r=json'
 
 # Function that returns a query to IMDB database
 def query_data(url):
@@ -250,10 +252,13 @@ def main(args):
   my_title = ' '.join(args) or raw_input('Please enter a movie or TV series title: ').strip()
   if not my_title:
     sys.exit('No title provided.')
+    
+  my_year = raw_input('\nPlease enter the year of release, if known: ').strip()  
 
   print("\nConnecting to server...wait")
 
   s = my_title.replace(' ', '+')
+  y = my_year
   '''
   Use ?t to search for one item...this
   first pass will give you the most
@@ -262,7 +267,7 @@ def main(args):
   multiple titles with the same name
   '''
   # Call subroutines
-  d = query_data(url_fmt.format('t', s))
+  d = query_data(url_fmt.format('t', s, y))
   print('='*20)
   print(mine_console_data(d))
 
