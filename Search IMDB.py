@@ -26,6 +26,9 @@
 # get ready for Python 3.
 # v2.4: 07/07/2015-Added code to input the
 # year of release.
+# v2.5: 07/07/2015-Fixed error that occurred
+# when refining search if a release year
+# had been added in original query.
 '''
 This Pythonista script uses the api
 available at www.omdbapi.com to search
@@ -278,7 +281,8 @@ def main(args):
     if choice.startswith('y'):
       print('='*20)
       # Use ?s for a query that yields multiple titles
-      url = url_fmt.format('s', s)
+      y = ''
+      url = url_fmt.format('s', s, y)
       d = query_data(url)
       '''
       Call function to list all the titles
@@ -288,7 +292,7 @@ def main(args):
       id = list_data(d)
       print("\nRetrieving data from new query...")
       # Use ?i for an exact query on unique imdbID
-      d = query_data(url_fmt.format('i', id))
+      d = query_data(url_fmt.format('i', id, y))
       print('='*20)
       print(mine_console_data(d))
     elif choice.startswith('n'):
