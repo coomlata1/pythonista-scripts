@@ -283,12 +283,11 @@ def get_app():
 Function to return a url cmd to send query results
 to the app of choice.
 '''
-def get_url(app, d):
+def get_url(app, title):
   # Retrieve query results from clipboard
   b = clipboard.get()
   quoted_output = urllib.quote(b, safe = '')
-  title = d['Title'].replace(' ', '%20')
-
+  
   if app == 'DayOne':
     # Post query results to a DayOne journal entry
     cmd = 'dayone://post?entry={}'.format(quoted_output)
@@ -363,7 +362,8 @@ def main():
       clipboard.set(mine_md_data(d))
       print('='*20)
       the_app = get_app()
-      cmd = get_url(the_app, d)
+      title = d['Title'].replace(' ', '%20')
+      cmd = get_url(the_app, title)
       if cmd:
         webbrowser.open(cmd)
         clipboard.set('')
