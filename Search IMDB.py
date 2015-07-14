@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 # Name: Search IMDB.py
 # Author: John Coomler
 # v1.0: 11/18/2014-Created
@@ -24,11 +24,12 @@
 # @cclauss, including print as a function
 # and naming convention improvements to
 # get ready for Python 3.
-# v2.4: 07/07/2015-Added code to input the
-# year of release.
-# v2.5: 07/07/2015-Fixed error that occurred
-# when refining search if a release year
-# had been added in original query.
+# v2.5: 07/07/2015-Added code to input year of
+# release.
+# v2.6: 07/14/2015-Added code to allow user
+# a choice of apps to send the query results to.
+# Choices include 1Writer, Editorial, DayOne, and
+# Drafts using URL schemes.
 '''
 This Pythonista script uses the api
 available at www.omdbapi.com to search
@@ -60,12 +61,13 @@ stars, and poster all appear in hypertext
 with a direct link to the IMDB database if
 more info is desired.
 '''
-
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 import clipboard
 import console
 import requests
 import sys
+import urllib
+import webbrowser
 
 # Initialize global variables
 d = ''
@@ -91,8 +93,8 @@ director or actors name
 def get_imdbID_name(name):
   url = 'http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=' + name.replace(' ', '+')
   d = query_data(url)
-  #print ''
-  #print d
+  #print('')
+  #print(d)
 
   try:
     '''
@@ -102,6 +104,7 @@ def get_imdbID_name(name):
     'name_exact' and so on down the line
     '''
     name_id = d['name_popular'][0]['id']
+    #print(name_id)
     '''
     If we get hit but it doesn't match
     name we want then raise an error to
@@ -111,17 +114,22 @@ def get_imdbID_name(name):
     # Take care of apostrophe in a name, like "Jack O'Donnell"
     if d['name_popular'][0]['name'].replace('&#x27;',"'") != name:
       raise Exception
-    #print '{} popular'.format(name)
+    # Take care of accent character in a name, like "Téa Leone"
+    if d['name_popular'][0]['name'].replace('&#xE9;',"é") != name:
+      raise Exception
+    #print('{} popular'.format(name))
   except:
     try:
       name_id = d['name_exact'][0]['id']
       if d['name_exact'][0]['name'].replace('&#x27;',"'") != name:
         raise Exception
-      #print '{} exact'.format(name)
+      if d['name_exact'][0]['name'].replace('&#xE9;',"é") != name:
+        raise Exception
+      #print('{} exact'.format(name))
     except:
       try:
         name_id = d['name_approx'][0]['id']
-        #print '{} approx'.format(name)
+        #print('{} approx'.format(name))
       except KeyError:
         print('{} name not found'.format(name))
         name_id = ''
@@ -175,7 +183,7 @@ those results for copying to the
 clipboard.
 '''
 def mine_md_data(d):
-  print('\nGathering director & actor ids for MarkDown text on clipboard')
+  print('\nGathering director & actor ids for MarkDown text.\n\n')
   d['Director'] = names_md(d['Director'].split(','))
   d['Actors']   = names_md(d['Actors'].split(','))
 
@@ -208,7 +216,7 @@ results of 1st query & returns the IMDB id
 for the movie title chosen.
 '''
 def list_data(d):
-  #print d
+  #print(d)
   #sys.exit()
 
   the_films = []
@@ -244,24 +252,78 @@ def list_data(d):
   # Return the film's imdbID to the caller
   return film_id
 
-def main(args):
+'''
+Function to allow a choice of apps for sending the
+query results to.
+'''
+def get_app():
+  the_apps = ['DayOne', 'Drafts4', 'Editorial', '1Writer', 'Clipboard']
+
+  while True:
+    # Print out list of app choices
+    for index, item in enumerate(the_apps):
+      print(index, item)
+
+    try:
+      '''
+      Number of app selected will
+      match the  index number of that
+      app in the_apps array.
+      '''
+      idx = int(raw_input("\nEnter the number of your desired app for query output: ").strip())
+      the_app = the_apps[idx]
+      break
+    except (IndexError, ValueError):
+      choice = raw_input('\nInvalid entry...Continue? (y/n): ').strip().lower()
+      if not choice.startswith('y'):
+        sys.exit('Process cancelled...Goodbye')
+  return the_app
+
+'''
+Function to return a url cmd to send query results
+to the app of choice.
+'''
+def get_url(app, d):
+  # Retrieve query results from clipboard
+  b = clipboard.get()
+  quoted_output = urllib.quote(b, safe = '')
+  title = d['Title'].replace(' ', '%20')
+
+  if app == 'DayOne':
+    # Post query results to a DayOne journal entry
+    cmd = 'dayone://post?entry={}'.format(quoted_output)
+
+  if app == 'Drafts4':
+    # Write query results to new draft text
+    cmd = 'drafts4://x-callback-url/create?text={}'.format(quoted_output)
+
+  if app == 'Editorial':
+    # Write query results to a new Editorial markdown doc
+    cmd = 'editorial://new/{}.md?root=local&content={}'.format(title, quoted_output)
+
+  if app == '1Writer':
+    # Write query results to a new 1Writer markdown doc.
+    cmd = 'onewriter://x-callback-url/create?path=Documents&name={}.md&text={}'.format(title, quoted_output)
+
+  if app == 'Clipboard':
+    cmd = ''
+  return cmd
+
+def main():
   console.clear()
   clipboard.set('')
-  '''
-  Tap-and-hold on Pythonista run button to
-  enter movie name as commandline
-  arguments
-  '''
-  my_title = ' '.join(args) or raw_input('Please enter a movie or TV series title: ').strip()
+
+  my_title = raw_input('Please enter a movie or TV series title: ').strip()
   if not my_title:
     sys.exit('No title provided.')
-    
-  my_year = raw_input('\nPlease enter the year of release, if known: ').strip()  
+
+  my_year = raw_input('\nPlease enter year of release if known: ')
 
   print("\nConnecting to server...wait")
 
   s = my_title.replace(' ', '+')
   y = my_year
+
   '''
   Use ?t to search for one item...this
   first pass will give you the most
@@ -299,8 +361,14 @@ def main(args):
       # Clear clipboard, then add formatted text
       clipboard.set('')
       clipboard.set(mine_md_data(d))
-
-      print('''
+      print('='*20)
+      the_app = get_app()
+      cmd = get_url(the_app, d)
+      if cmd:
+        webbrowser.open(cmd)
+        clipboard.set('')
+      else:
+        print('''
 Results of your search were copied
 to the clipboard in MD for use with
 the MD text editor or journaling app
@@ -310,4 +378,4 @@ of your choice.''' + '\n\n')
       sys.exit('Search Cancelled')
 
 if __name__ == '__main__':
-  main(sys.argv[1:])  # strip off script name
+  main()
