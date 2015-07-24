@@ -5,7 +5,9 @@ SendGpsData.py
 A Pythonista script for texting your GPS location &
 current weather using clipboard, email, or SMS
 messaging. Requires Launch Center Pro to provide
-ability to email and SMS msg the text. The script
+ability to email and SMS msg the text, and an api
+key from http://www.wunderground.com/weather/api
+to retrieve the weather data. The script
 can be run stand alone from Pythonista or be
 called from 1Writer, Editorial, or Drafts via a
 URL, in which case the text will be appended to the
@@ -59,7 +61,7 @@ def get_weather(lat, lon, bold):
   You will need an to replace the empty quotes
   below with an API key to get weather data.
   Register for your free key at
-  http://www.wunderground.com
+  http://www.wunderground.com/weather/api
   '''
   api_key = ''
 
