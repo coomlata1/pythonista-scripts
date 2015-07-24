@@ -98,7 +98,7 @@ def get_weather(lat, lon, bold):
     # If no api key...
     except KeyError:
       err = True
-      w_data = '\n\nNo weather data was returned. You will need to register for a free API key @  http://www.wunderground.com to access the weather stats.'
+      w_data = '\n\nNo weather data was returned. You will need to register for a free API key @  http://www.wunderground.com/weather/api to access the weather stats.'
     # And on we go...
     if not err:
       # Apply conversion units to temperature
