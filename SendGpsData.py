@@ -2,11 +2,11 @@
 '''
 SendGpsData.py
 
-A Pythonista script for texting your GPS location &
-current weather using clipboard, email, or SMS
-messaging. Requires Launch Center Pro to provide
-ability to email and SMS msg the text, and an api
-key from http://www.wunderground.com/weather/api
+A Pythonista script for texting your GPS location
+and current weather using clipboard, email, or SMS
+messaging. Requires Launch Center Pro to be able
+to email and SMS msg the text, and an api key
+from http://www.wunderground.com/weather/api
 to retrieve the weather data. The script
 can be run stand alone from Pythonista or be
 called from 1Writer, Editorial, or Drafts via a
@@ -216,7 +216,7 @@ def main():
   w_data = get_weather(lat, lon, bold)
 
   if ans == 1:
-    data_type = 'address was'
+    data_type = 'address and weather were'
     a = location.reverse_geocode({'latitude': lat,'longitude': lon})
 
     b = '{}{}, {} {} {}{}, {}'.format(bold, a[0]['Street'], a[0]['City'], a[0]['State'], a[0]['ZIP'], bold, a[0]['Country'])
@@ -227,43 +227,54 @@ def main():
     output = 'My location as of {} is {}, with an accuracy of about {} meters.'.format(d, b, str(best_acc))
 
   if ans == 2:
-    data_type = 'coordinates were'
+    data_type = 'coordinates and weather were'
     output = 'Click on http://maps.apple.com/?q={},{} for a map to my current location.'.format(str(lat), str(lon))
 
-  quoted_output = urllib.quote(output + w_data, safe = '')
+  output = output + w_data
+  quoted_output = urllib.quote(output, safe = '')
 
   # Call procedure if script called from another app
   if arg:
-    do_args(arg, quoted_output, output + w_data)
+    do_args(arg, quoted_output, output)
 
-  # Setup alert box if called as stand alone script
-  title = 'Send Your GPS & Weather Data To:'
-  butt1 = "Clipboard"
-  butt2 = "SMS msg"
-  butt3 = "Email"
+  # Code below is excuted if script called as stand alone from Pythonista...
 
-  # Allow a cancel
-  try:
-    ans = console.alert(title, '', butt1, butt2, butt3)
-  except:
-    console.clear()
-    sys.exit('Cancelled')
+  # Check if Launch Center Pro is installed...
+  if webbrowser.can_open('launch://'):
+    # Setup alert box
+    title = 'Send Your GPS & Weather Data To:'
+    butt1 = "Clipboard"
+    butt2 = "SMS msg"
+    butt3 = "Email"
 
-  if ans == 1:
+    # Allow a cancel
+    try:
+      ans = console.alert(title, '', butt1, butt2, butt3)
+    except:
+      console.clear()
+      sys.exit('Cancelled')
+
+    if ans == 1:
+      clipboard.set('')
+      clipboard.set(output + w_data)
+      console.clear()
+      print 'Your GPS {} copied to the clipboard.'.format(data_type)
+
+    if ans == 2:
+      cmd = 'launch://messaging?body={}'.format(quoted_output)
+      webbrowser.open(cmd)
+      console.clear()
+
+    if ans == 3:
+      cmd = 'launch://email?body={}'.format(quoted_output)
+      webbrowser.open(cmd)
+      console.clear()
+  else:
+    # Output to clipboard only
     clipboard.set('')
     clipboard.set(output)
     console.clear()
     print 'Your GPS {} copied to the clipboard.'.format(data_type)
-
-  if ans == 2:
-    cmd = 'launch://messaging?body={}'.format(quoted_output)
-    webbrowser.open(cmd)
-    console.clear()
-
-  if ans == 3:
-    cmd = 'launch://email?body={}'.format(quoted_output)
-    webbrowser.open(cmd)
-    console.clear()
 
   sys.exit('Finished!!')
 
