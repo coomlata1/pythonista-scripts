@@ -15,5 +15,5 @@ Useful scripts to be run in Pythonista for iOS.  Kudos to [@cclauss](https://git
 
 - **ListToFantastical2.py** - This script parses BOTH reminders and events from comma seperated text passed from URL's in LCP, 1Writer, or Drafts and posts them in Fantastical2. Thanks to Fantastical's natural language parsing, your 'tasks' can be reminders or events.  The reminders must start with a 'Task', 'Todo', 'Reminder', or 'Remind me' pre-text followed by the
 todo itself.  Events don't need the pre-text. For more on this see [here](http://www.geekswithjuniors.com/note/5-awesome-things-from-fantastical-2-that-can-improve-your-wo.html)
-for a well documented intro to the proper syntax. Inspiration from this script.  Thanks to @. 
+for a well documented intro to the proper syntax. Inspiration came from [this](https://gist.github.com/pslobo/25af95742e1480210e2e) script.  Thanks goes to @pslobo for his Github contribution. 
 
