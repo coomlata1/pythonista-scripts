@@ -57,7 +57,7 @@ save = '1'
 # Split the list by commas and iterate over each resulting item
 for task in tasks.split(','):
   '''
-  # Check to see if there is already an item in the
+  Check to see if there is already an item in the
   x-callback-url. If not, create it, allowing for a
   return to calling app, which is argv[2], upon
   success. If there is, then add task_str + &x
