@@ -222,7 +222,7 @@ def main():
     b = '{}{}, {} {} {}{}, {}'.format(bold, a[0]['Street'], a[0]['City'], a[0]['State'], a[0]['ZIP'], bold, a[0]['Country'])
 
     datestamp = datetime.datetime.fromtimestamp(best_loc['timestamp'])
-    d = datestamp.strftime('%m-%d-%Y @ %I:%M:%S %p')
+    d = datestamp.strftime('%A, %m-%d-%Y @ %I:%M:%S %p')
 
     output = 'My location as of {} is {}, with an accuracy of about {} meters.'.format(d, b, str(best_acc))
 
