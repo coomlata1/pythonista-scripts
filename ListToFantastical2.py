@@ -13,7 +13,9 @@ reminders must start with a 'Task', 'Todo',
 todo itself.  Events don't need the pre-text. For
 more on this see:
    http://www.geekswithjuniors.com/note/5-awesome-things-from-fantastical-2-that-can-improve-your-wo.html
-for a well documented intro to the proper syntax.
+and:
+   http://plobo.net/recursive-actions-with-launchcenterpro-and-pythonista
+for well documented intros to the proper syntax.
 
 Example caller URL's:
   1Writer:
