@@ -116,7 +116,6 @@ def do_args(arg, quoted_output, output):
     if arg == 'onewriter':
       cmd = '{}://x-callback-url/append?path=Documents%2F&name=Notepad.txt&type=Local&text={}'.format(arg, quoted_output)
     if arg == 'editorial':
-      # clipboard.set('')  # not required
       clipboard.set(output)
       cmd = "{}://?command=Append%20Open%20Doc".format(arg)
     if arg == 'drafts4':
@@ -261,7 +260,6 @@ def main():
       console.clear()
   else:
     # Output to clipboard only
-    # clipboard.set('')  # not required
     clipboard.set(output)
     console.clear()
     print('Your GPS {} copied to the clipboard.'.format(data_type))
