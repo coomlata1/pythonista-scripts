@@ -69,11 +69,7 @@ def get_weather(lat, lon, bold):
   imperial_or_metric = 'imperial'
 
   # Conversion units
-  if imperial_or_metric == 'imperial':
-    unit = 'f'
-  else:
-    unit = 'c'
-
+  unit = 'f' if imperial_or_metric == 'imperial' else 'c'
   url_fmt = 'http://api.wunderground.com/api/{}/{}/q/{}.json'
 
   # Weather from where you are now
@@ -120,7 +116,7 @@ def do_args(arg, quoted_output, output):
     if arg == 'onewriter':
       cmd = '{}://x-callback-url/append?path=Documents%2F&name=Notepad.txt&type=Local&text={}'.format(arg, quoted_output)
     if arg == 'editorial':
-      clipboard.set('')
+      # clipboard.set('')  # not required
       clipboard.set(output)
       cmd = "{}://?command=Append%20Open%20Doc".format(arg)
     if arg == 'drafts4':
@@ -146,7 +142,7 @@ def main():
   # Start getting the location
   location.start_updates()
 
-  for i in range(4):
+  for i in range(4):  # why 4?  What does the represent?
     time.sleep(5)
     my_loc = location.get_location()
     acc = my_loc['horizontal_accuracy']
@@ -208,27 +204,23 @@ def main():
       sys.exit('Cancelled')
 
   # Set up for Markdown if called from apps
-  if arg:
-    bold = '**'
-  else:
-    bold = ''
-
+  bold = '**' if arg else ''
   w_data = get_weather(lat, lon, bold)
 
   if ans == 1:
     data_type = 'address and weather were'
     a = location.reverse_geocode({'latitude': lat,'longitude': lon})
 
-    b = '{}{}, {} {} {}{}, {}'.format(bold, a[0]['Street'], a[0]['City'], a[0]['State'], a[0]['ZIP'], bold, a[0]['Country'])
+    b = '{0}{Street}, {City} {State} {ZIP}{0}, {Country}'.format(bold, **a[0])
 
     datestamp = datetime.datetime.fromtimestamp(best_loc['timestamp'])
     d = datestamp.strftime('%A, %m-%d-%Y @ %I:%M:%S %p')
 
-    output = 'My location as of {} is {}, with an accuracy of about {} meters.'.format(d, b, str(best_acc))
+    output = 'My location as of {} is {}, with an accuracy of about {} meters.'.format(d, b, best_acc)
 
-  if ans == 2:
+  elif ans == 2:
     data_type = 'coordinates and weather were'
-    output = 'Click on http://maps.apple.com/?q={},{} for a map to my current location.'.format(str(lat), str(lon))
+    output = 'Click on http://maps.apple.com/?q={},{} for a map to my current location.'.format(lat, lon)
 
   output = output + w_data
   quoted_output = urllib.quote(output, safe = '')
@@ -259,22 +251,20 @@ def main():
       clipboard.set(output + w_data)
       console.clear()
       print 'Your GPS {} copied to the clipboard.'.format(data_type)
-
-    if ans == 2:
+    elif ans == 2:
       cmd = 'launch://messaging?body={}'.format(quoted_output)
       webbrowser.open(cmd)
       console.clear()
-
-    if ans == 3:
+    elif ans == 3:
       cmd = 'launch://email?body={}'.format(quoted_output)
       webbrowser.open(cmd)
       console.clear()
   else:
     # Output to clipboard only
-    clipboard.set('')
+    # clipboard.set('')  # not required
     clipboard.set(output)
     console.clear()
-    print 'Your GPS {} copied to the clipboard.'.format(data_type)
+    print('Your GPS {} copied to the clipboard.'.format(data_type))
 
   sys.exit('Finished!!')
 
