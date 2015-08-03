@@ -32,7 +32,8 @@ Used code and ideas from:
   https://gist.github.com/miklb/8346411
 
 Many thanks to @drdrang, @hiilppp, @n8henrie, and
-@miklb for their inspiration.
+@miklb for their inspiration and to @cclauss for
+tightening up code.
 '''
 import location
 import time
@@ -47,12 +48,6 @@ import clipboard
 
 console.clear()
 console.show_activity()
-
-# Initialize global variables
-arg = ''
-quoted_output = ''
-output = ''
-cmd = ''
 
 # Procedure for getting weather from lat & lon
 def get_weather(lat, lon, bold):
@@ -94,7 +89,7 @@ def get_weather(lat, lon, bold):
     # If no api key...
     except KeyError:
       err = True
-      w_data = '\n\nNo weather data was returned. You will need to register for a free API key @  http://www.wunderground.com/weather/api to access the weather stats.'
+      w_data = '\n\nNo weather data was returned. You will need to register for a free API key @ http://www.wunderground.com/weather/api to access the weather stats.'
     # And on we go...
     if not err:
       # Apply conversion units to temperature
@@ -104,7 +99,7 @@ def get_weather(lat, lon, bold):
       current_weather = w['current_observation']['weather'].lower()
       humidity = w['current_observation']['relative_humidity']
 
-      w_data = '\n\nCurrent weather here is {}{}{}, {}{}{}, with {}{} humidity{}.'.format(bold, current_weather, bold, bold, temp, bold, bold, humidity, bold)
+      w_data = '\n\nCurrent weather here: {}{}, {}, & {} humidity{}.'.format(bold, current_weather, temp, humidity, bold)
 
   return w_data
 
@@ -114,9 +109,15 @@ def do_args(arg, quoted_output, output):
     cmd = '{}://x-callback-url/'.format(arg)
   else:
     if arg == 'onewriter':
+      # Replace 'Notepad.txt' with the name of your open doc in 1Writer
       cmd = '{}://x-callback-url/append?path=Documents%2F&name=Notepad.txt&type=Local&text={}'.format(arg, quoted_output)
     if arg == 'editorial':
       clipboard.set(output)
+      '''
+      'Append Open Doc' is an Editorial workflow
+      available here:
+      http://www.editorial-workflows.com/workflow/5278032428269568/g2tYM1p0OZ4
+      '''
       cmd = "{}://?command=Append%20Open%20Doc".format(arg)
     if arg == 'drafts4':
       '''
@@ -130,18 +131,23 @@ def do_args(arg, quoted_output, output):
   sys.exit('Finished!')
 
 def main():
+  # Initialize variables
+  quoted_output = ''
+  output = ''
+
   # Allow to run script stand alone
   try:
     arg = sys.argv[1]
   except IndexError:
     arg = ''
 
-  print '\nThis script is now gathering your current GPS coordinates, allowing you to text your location and current weather.\n'
+  print('\nThis script is now gathering your current GPS coordinates, allowing you to text your location and current weather.\n')
 
   # Start getting the location
   location.start_updates()
 
-  for i in range(4):  # why 4?  What does the represent?
+  # Allow for 4 loops for gps accuracy, if desired
+  for i in range(4):
     time.sleep(5)
     my_loc = location.get_location()
     acc = my_loc['horizontal_accuracy']
@@ -249,7 +255,7 @@ def main():
       clipboard.set('')
       clipboard.set(output + w_data)
       console.clear()
-      print 'Your GPS {} copied to the clipboard.'.format(data_type)
+      print('Your GPS {} copied to the clipboard.'.format(data_type))
     elif ans == 2:
       cmd = 'launch://messaging?body={}'.format(quoted_output)
       webbrowser.open(cmd)
