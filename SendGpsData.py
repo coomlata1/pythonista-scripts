@@ -146,7 +146,7 @@ def main():
   # Start getting the location
   location.start_updates()
 
-  # Allow for 4 loops for gps accuracy, if desired
+  # Allow for 4 loops to improve gps accuracy, if desired
   for i in range(4):
     time.sleep(5)
     my_loc = location.get_location()
