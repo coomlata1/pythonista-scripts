@@ -118,14 +118,14 @@ def do_args(arg, quoted_output, output):
       available here:
       http://www.editorial-workflows.com/workflow/5278032428269568/g2tYM1p0OZ4
       '''
-      cmd = "{}://?command=Append%20Open%20Doc".format(arg)
+      cmd = '{}://?command=Append%20Open%20Doc'.format(arg)
     if arg == 'drafts4':
       '''
       Append gps data to open Draft doc using the
       2nd argument from calling URL as the UUID of
       the open doc
       '''
-      cmd = 'drafts4://x-callback-url/append?uuid={}&text={}'.format(sys.argv[2], quoted_output)
+      cmd = '{}://x-callback-url/append?uuid={}&text={}'.format(arg, sys.argv[2], quoted_output)
 
   webbrowser.open(cmd)
   sys.exit('Finished!')
@@ -241,7 +241,7 @@ def main():
     # Setup alert box
     title = 'Send Your GPS & Weather Data To:'
     butt1 = "Clipboard"
-    butt2 = "SMS msg"
+    butt2 = "SMS Msg"
     butt3 = "Email"
 
     # Allow a cancel
