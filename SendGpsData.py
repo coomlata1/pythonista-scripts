@@ -53,7 +53,7 @@ console.show_activity()
 def get_weather(lat, lon, bold):
   err = ''
   '''
-  You will need an to replace the empty quotes
+  You will need to replace the empty quotes
   below with an API key to get weather data.
   Register for your free key at
   http://www.wunderground.com/weather/api
