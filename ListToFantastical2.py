@@ -58,7 +58,6 @@ being processed in Fantastical.
 save = '1'
 
 # Split the list by commas and iterate over each resulting item
-#tasks = [urllib2.quote(task,'') for task in tasks]
 fmt = 'fantastical2://x-callback-url/parse?sentence={}&add={}&x-success={}'
 for task in tasks.split(','):
   '''
