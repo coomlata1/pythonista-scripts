@@ -26,7 +26,7 @@ Credit Due:
 list2Fantastical.py
 https://gist.github.com/pslobo/25af95742e1480210e2e
 Thanks to @pslobo for his contribution to GitHub
-Thanks to @ccclaus for code tightening and cleanup
+Thanks to @cclauss for code tightening and cleanup
 '''
 
 import sys
