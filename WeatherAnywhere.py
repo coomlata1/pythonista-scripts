@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 
 # Name: WeatherAnywhere.py
 # Author: John Coomler
@@ -30,6 +30,15 @@
 # code cleanup to accomodate scene development &
 # api changeover to www.wunderground.com
 # v1.9: 04/04/2015-String formatting enhancements
+# v2.0: 04/11/2015-Code readability & string
+# formatting improvements
+# v2.1: 11/21/2015-Added code for record highs &
+# lows and length of day in weather 'now' section
+# v2.2: 11/28/2015-Added code for precip daily
+# average and min-max range. Added code for average
+# high & low daily temp and record high & low daily
+# temp. Also added dew point and heat index
+# readings.
 '''
 This script provides current & multi day weather
 forecasts for any city you name, or coordinates you
@@ -55,7 +64,8 @@ icons = []
 weather_icons = []
 missing_icons = []
 icon_path = './icons/'
-api_key = 'Insert www.wunderground.com api key here'
+# Insert API key
+api_key = 'Your API key'
 
 # Change to 'metric' if desired
 imperial_or_metric = 'imperial'
@@ -135,7 +145,7 @@ def city_zips(filename = 'cities.txt'):
       city, st, zcode = zips[ans]
       return city, st, zcode
     except (IndexError, ValueError):
-      print('Please enter a vaild number.')
+      print('Please enter a valid number.')
 
 def update_zips(new_line, filename = 'cities.txt'):
   try:
@@ -146,7 +156,7 @@ def update_zips(new_line, filename = 'cities.txt'):
     # Sort list
     with open(filename, 'r') as f:
       lines = [line for line in f]
-  
+
     lines.sort()
 
     # Rewrite newly sorted list
@@ -168,7 +178,11 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
     fmt = '{},{}'
     query = fmt.format(lat, lon)
 
-  w_url = url_fmt.format(api_key, 'geolookup/conditions/hourly/astronomy', query)
+  # Set today's month and day for Planner module
+  month_day = time.strftime('%m%d')
+
+  # Create urls
+  w_url = url_fmt.format(api_key, 'geolookup/conditions/hourly/astronomy/almanac/planner_{0}{0}/'.format(month_day), query)
   f_url = url_fmt.format(api_key, 'forecast10day', query)
   #print w_url
   #print f_url
@@ -394,15 +408,36 @@ def download_weather_icons(icon_path):
         print('ConnectionError on {}: {}'.format(i, e))
     print('Done.')
 
-def get_current_weather(w):
-  current = w['current_observation']
+def get_current_weather(w, f):
+  simple_f = f['forecast']['simpleforecast']['forecastday'][0]
 
-  # Apply conversion units to some of data
-  temp = int(current['temp_' + unit[0]])
-  temp = '{}°{}'.format(temp, unit[0].title())
+  # Get high temp & apply conversion units
+  h_temp = '{}°{}'.format(simple_f['high'][unit[6]], unit[0].title())
+  # Get low temp & apply conversion units
+  l_temp = '{}°{}'.format(simple_f['low'][unit[6]], unit[0].title())
+
+  # Get temperature records & apply conversions
+  avg_high, avg_low, record_high, record_high_year, record_low, record_low_year = get_records(w)
+  avg_high = '{}°{}'.format(avg_high, unit[0].title())
+  record_high = '{}°{}'.format(record_high, unit[0].title())
+  avg_low = '{}°{}'.format(avg_low, unit[0].title())
+  record_low = '{}°{}'.format(record_low, unit[0].title())
+
+  current = w['current_observation']
+  # Current temperature
+  #temp = int(current['temp_' + unit[0]])
+  #temp = '{}°{}'.format(temp, unit[0].title())
 
   # Barometric pressure
   pressure = '{} {}'.format(current['pressure_' + unit[1]], unit[2])
+
+  # Dew point
+  dew_point = int(current['dewpoint_' + unit[0]])
+  dew_point = '{}°{}'.format(dew_point, unit[0].title())
+
+  # Heat Index
+  heat_index = current['heat_index_' + unit[0]]
+  heat_index = '{}°{}'.format(heat_index, unit[0].title())
 
   # Wind
   wind = current['wind_string']
@@ -420,37 +455,40 @@ def get_current_weather(w):
   # Add degrees symbol & conversion unit
   feels_like = '{}°{}'.format(feels_like, unit[0].title())
 
-  # Get precip amount for day
+  # Get precip amount, avg and range for day
   precip = '{}'.format(current['precip_today_' + unit[3]])
   if not precip or precip == '-9999.00':
     precip = '0.00'
   precip = '{} {}'.format(precip, unit[4])
+  precip_avg = '{} {}'.format(w['trip']['precip']['avg'][unit[4]], unit[4])
+  precip_min = '{}'.format(w['trip']['precip']['min'][unit[4]])
+  precip_max = '{} {}'.format(w['trip']['precip']['max'][unit[4]], unit[4])
 
   # Get visibility
   visibility = '{} {}'.format(current['visibility_' + unit[10]], unit[11])
 
   # Get times for sunrise & sunset
-  sunrise, sunset = get_sunrise_sunset(w)
+  sunrise, sunset, length_of_day = get_sunrise_sunset(w)
 
   #return('''Today's Weather in {current_observation[display_location][full]}:
 
   # Text to display in console or scene
   return('''Now...{current_observation[observation_time]}:
-\nWeather: {current_observation[weather]}
-Temperature: {0}
+\nToday's Forecasted Temperatures: High: {0}    Low: {1}
+Today's Averages: High: {2}    Low: {3}
+Today's Records: High: {4} [{5}]    Low: {6} [{7}]
 Humidity: {current_observation[relative_humidity]}
-Barometric Pressure: {1}
-Wind: {2}
-Feels Like: {3}
-Precipitation Today: {4}
-Visibility: {5}
+Barometric Pressure: {8}
+Dew Point: {9}
+Heat Index: {10}
+Wind: {11}
+Feels Like: {12}
+Precipitation: {13}    Average: {14}    Range: {15} to {16}
+Visibility: {17}
 UV Index: {current_observation[UV]}
-Sunrise: {6}
-Sunset: {7}
-Moon Age: {moon_phase[ageOfMoon]} days since new moon
-Moon Phase: {moon_phase[phaseofMoon]}
-Moon Illuminated: {moon_phase[percentIlluminated]}%
-'''.format(temp, pressure, wind, feels_like, precip, visibility, sunrise, sunset, **w))
+Sunrise: {18}      Sunset: {19}      Length Of Day: {20}
+Moon Age: {moon_phase[ageOfMoon]} days    Phase: {moon_phase[phaseofMoon]}     Illuminated: {moon_phase[percentIlluminated]}%
+'''.format(h_temp, l_temp, avg_high, avg_low, record_high, record_high_year, record_low, record_low_year, pressure, dew_point, heat_index, wind, feels_like, precip, precip_avg, precip_min, precip_max, visibility, sunrise, sunset, length_of_day, **w))
 
 def get_extended_forecast(w, f):
   ef = []
@@ -588,7 +626,7 @@ def get_scene_header(w):
 def get_sunrise_sunset(w):
   fmt = '{hour}:{minute}'
   sunrise = fmt.format(**w['sun_phase']['sunrise'])
-  sunset  = fmt.format(**w['sun_phase']['sunset']))
+  sunset = fmt.format(**w['sun_phase']['sunset'])
 
   # Add any date here...we eventually want time only
   fmt = '04/30/2014 {}'
@@ -596,14 +634,37 @@ def get_sunrise_sunset(w):
   new_time = time.strptime(sunrise, '%m/%d/%Y %H:%M')
   timestamp = time.mktime(new_time)
   sunrise = timestamp
+  t1 = datetime.datetime.fromtimestamp(int(sunrise)).strftime('%H:%M')
   sunrise = datetime.datetime.fromtimestamp(int(sunrise)).strftime('%I:%M %p')
 
   sunset = fmt.format(sunset)
   new_time = time.strptime(sunset, '%m/%d/%Y %H:%M')
   timestamp = time.mktime(new_time)
   sunset = timestamp
+  t2 = datetime.datetime.fromtimestamp(int(sunset)).strftime('%H:%M')
   sunset = datetime.datetime.fromtimestamp(int(sunset)).strftime('%I:%M %p')
-  return sunrise, sunset
+
+  t1 = t1.split(':')
+  t2 = t2.split(':')
+
+  t1_mins = int(t1[1]) + (int(t1[0]) * 60)
+  t2_mins = int(t2[1]) + (int(t2[0]) * 60)
+
+  hrs = (t2_mins - t1_mins) / 60
+  mins = (t2_mins - t1_mins) - (hrs * 60)
+
+  length_of_day = '{}h {}m'.format(hrs, mins)
+  return sunrise, sunset, length_of_day
+
+def get_records(w):
+  a = w['almanac']
+  avg_high = a['temp_high']['normal'][unit[0].upper()]
+  record_high = a['temp_high']['record'][unit[0].upper()]
+  record_high_year = a['temp_high']['recordyear']
+  avg_low = a['temp_low']['normal'][unit[0].upper()]
+  record_low = a['temp_low']['record'][unit[0].upper()]
+  record_low_year = a['temp_low']['recordyear']
+  return avg_high, avg_low, record_high, record_high_year, record_low, record_low_year
 
 def get_night_hrs(w):
   hour_now = w['current_observation']['local_time_rfc822']
@@ -612,7 +673,7 @@ def get_night_hrs(w):
   hour_now = int(hour_now)
 
   # Get times, split hrs & min, return hrs only
-  sunrise, sunset = get_sunrise_sunset(w)
+  sunrise, sunset, daylight_hrs = get_sunrise_sunset(w)
   sunrise = sunrise.split(':')
   sunrise_hr = int(sunrise[0].strip())
   sunset = sunset.split(':')
@@ -641,9 +702,10 @@ def main():
   except:
     missing_icons.append(icons[0])
 
-  print(get_current_weather(w))
+  print(get_current_weather(w, f))
   #print(get_forecast(w, f))
   #sys.exit()
+
   '''
   Printing the extended forecast to the console
   involves a bit more code because we are inserting
