@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 
 # Name: WeatherAnywhereScene.py
 # Author: John Coomler
@@ -8,11 +8,14 @@
 # opened, causing scene to crash.
 # v1.2: 04/04/2015-Minor string formatting
 # improvements
+# v1.3: 11/28/2015-Minor changes to accomodate
+# additional forecast info added in
+# WeatherAnywhere.py
 '''
 This version uses api.wunderground.com as the
 source for weather info & icons. The api here
 yields forecasts that contain a wealth of info
-including moon info & tides.
+includingr moon info & tides.
 
 Because the text is dynamic, one size does not fit
 all. The lines & icon coordinates can't be pre-set.
@@ -49,7 +52,7 @@ import textwrap
 #import sys
 import ui
 
-#reload(wa)
+reload(wa)
 
 # Global
 icon_path = './icons/'
@@ -63,8 +66,8 @@ def get_weather():
     sys.exit('Weather servers are busy. Try again in a few minutes...')
 
   # Call functions in WeatherAnywhere.py to retrieve weather data
-  weather = wa.get_current_weather(w)
-  forecast = wa.get_forecast(w,f)
+  weather = wa.get_current_weather(w, f)
+  forecast = wa.get_forecast(w, f)
   fmt = '{}\n\nWeather information provided by api.wunderground.com'
   forecast = fmt.format(forecast)
   return w, f, weather, forecast
@@ -139,8 +142,8 @@ def format_plot_weather(forecast):
           line_factor = 11.5
           num_lines = section_lines[1] - section_lines[0]
           #print num_lines
-          #if num_lines >= 12:
-            #line_factor = 11.25
+          if num_lines >= 12:
+            line_factor = 11.63
           y1_y2.append(y1_y2[x] - (num_lines) * line_factor)
           section_lines = []
           section_lines.append(count)
@@ -155,13 +158,13 @@ def format_plot_weather(forecast):
   return twf, icon_y, y1_y2
 
 def get_background_color(day):
-  color = {1: [.5,.5,.5],  # Medium grey
-           2: [.5,0,.75],  # Purple
-           3: [.75,0,0],   # Light red
-           4: [.8,.52,.25],# Tan
-           5: [0,.5,.5],   # Medium green
-           6: [1,.5,0],    # Orange
-           7: [.25,.25,1]} # Light blue
+  color = {1: [.5, .5, .5],   # Medium grey
+           2: [.5, 0, .75],   # Purple
+           3: [.75, 0, 0],    # Light red
+           4: [.8, .52, .25], # Tan
+           5: [0, .5, .5],    # Medium green
+           6: [1, .5, 0],     # Orange
+           7: [.25, .25, 1]}  # Light blue
 
   # Monday is 1, Sunday is 7
   r, g, b = color[day]
@@ -227,8 +230,7 @@ class MyScene(scene.Scene):
       self.dy += self.xy_velocity[1] * self.dt
       decay = exp( - self.dt / self.velocity_decay_timescale_seconds )
       self.xy_velocity = (self.xy_velocity[0] * decay, self.xy_velocity[1] * decay)
-      if ((abs(self.xy_velocity[0]) <= self.min_velocity_points_per_second)
-      and (abs(self.xy_velocity[1]) <= self.min_velocity_points_per_second)):
+      if ((abs(self.xy_velocity[0]) <= self.min_velocity_points_per_second) and (abs(self.xy_velocity[1]) <= self.min_velocity_points_per_second)):
         self.xy_velocity = None
 
     # Save battery life
@@ -301,8 +303,7 @@ class MyScene(scene.Scene):
       if the_pops[i] == '0%':
         the_pops[i] = ''
       # Display hour, pop, & temp in grid
-      msg = '{}\n{}\n\n\n\n{}'.format(the_hours[i], the_pops[i], the_temps[i])
-      scene.text(msg, font_size = font_sz, x = x, y = y, alignment = 3)
+      scene.text('{}\n{}\n\n\n\n{}'.format(the_hours[i], the_pops[i], the_temps[i]), font_size = font_sz, x = x, y = y, alignment = 3)
 
     # Insert icons into 24 hour forecast
     for i, image in enumerate(self.images):
@@ -322,7 +323,7 @@ class MyScene(scene.Scene):
     for i, image in enumerate(self.images):
       if i >= 24:
         # Tweak icon placement a bit more for best appearance
-        scene.image(image, 113, icon_y[i-24], 40, 40)
+        scene.image(image, 113, icon_y[i - 24], 40, 40)
 
     # Division lines for days of week
     for i in range(len(y1_y2)):
