@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 # Name: Search IMDB.py
 # Author: John Coomler
 # v1.0: 11/18/2014-Created
@@ -26,10 +26,10 @@
 # get ready for Python 3.
 # v2.5: 07/07/2015-Added code to input year of
 # release.
-# v2.6: 07/13/2015-Added code to allow this
-# script to be called from and query results
-# appended to open docs in 1Writer, Editorial,
-# and Drafts using URL schemes.
+# v2.6: 07/14/2015-Added code to allow user
+# a choice of apps to send the query results to.
+# Choices include 1Writer, Editorial, DayOne, and
+# Drafts using URL schemes.
 # v2.7: 11/15/2015-Added code to strip out any
 # unicode characters in the names of directors &
 # actors before querying the names for an Imdb id.
@@ -69,6 +69,7 @@ import clipboard
 import console
 import requests
 import sys
+import urllib
 import re
 import unicodedata
 import webbrowser
@@ -82,10 +83,8 @@ def query_data(url):
   return requests.get(url).json()
 
 '''
-Function that returns a Markdown list of queried
-actors & directors names & a url for each name that
-contains their respective IMDB ids for mining more
-info.
+Function that returns a Markdown list of
+names(actors & directors) listed in query.
 '''
 def names_md(names):
   fmt = '[{}](http://www.imdb.com/{})'
@@ -190,9 +189,9 @@ those results for copying to the
 clipboard.
 '''
 def mine_md_data(d):
-  print('\nGathering director & actor ids for MarkDown text on clipboard.')
+  print('\nGathering director & actor ids for MarkDown text.\n\n')
   d['Director'] = names_md(d['Director'].split(','))
-  d['Actors'] = names_md(d['Actors'].split(','))
+  d['Actors']   = names_md(d['Actors'].split(','))
 
   return strip_na_lines('''**Title:** [{Title}](http://www.imdb.com/title/{imdbID}/)
 **Type:** #{Type}
@@ -217,7 +216,7 @@ def mine_md_data(d):
 '''.format(**d))
 
 '''
-Function that provides list of multiple
+Funtion that provides list of multiple
 title choices if not satisfied with
 results of 1st query & returns the IMDB id
 for the movie title chosen.
@@ -260,29 +259,59 @@ def list_data(d):
   return film_id
 
 '''
-Function to return a url cmd to send query results
-to the app, named in the arg, that called this
-script.
+Function to allow a choice of apps for sending the
+query results to.
 '''
-def get_url(arg):
-  if arg == 'onewriter':
-    # Append query to open 1Writer doc
-    cmd = 'onewriter://x-callback-url/append?path=Documents%2F&name=Notepad.txt&type=Local&text='
-  if arg == 'editorial':
-    # Append query to open Editorial doc
-    cmd = 'editorial://?command=Append%20Open%20Doc'
-  if arg == 'drafts4':
-    import urllib
+def get_app():
+  the_apps = ['DayOne', 'Drafts4', 'Editorial', '1Writer', 'Clipboard']
 
-    # Retrieve query from clipboard
-    b = clipboard.get()
-    quoted_output = urllib.quote(b, safe = '')
-    '''
-    Append query to open Draft doc using the 2nd
-    argument from calling URL as the UUID of the
-    open doc
-    '''
-    cmd = 'drafts4://x-callback-url/append?uuid={}&text={}'.format(sys.argv[2], quoted_output)
+  while True:
+    # Print out list of app choices
+    for index, item in enumerate(the_apps):
+      print(index, item)
+
+    try:
+      '''
+      Number of app selected will
+      match the  index number of that
+      app in the_apps array.
+      '''
+      idx = int(raw_input("\nEnter the number of your desired app for query output: ").strip())
+      the_app = the_apps[idx]
+      break
+    except (IndexError, ValueError):
+      choice = raw_input('\nInvalid entry...Continue? (y/n): ').strip().lower()
+      if not choice.startswith('y'):
+        sys.exit('Process cancelled...Goodbye')
+  return the_app
+
+'''
+Function to return a url cmd to send query results
+to the app of choice.
+'''
+def get_url(app, title):
+  # Retrieve query results from clipboard
+  b = clipboard.get()
+  quoted_output = urllib.quote(b, safe = '')
+
+  if app == 'DayOne':
+    # Post query results to a DayOne journal entry
+    cmd = 'dayone://post?entry={}'.format(quoted_output)
+
+  if app == 'Drafts4':
+    # Write query results to new draft text
+    cmd = 'drafts4://x-callback-url/create?text={}'.format(quoted_output)
+
+  if app == 'Editorial':
+    # Write query results to a new Editorial markdown doc named by title of movie
+    cmd = 'editorial://new/{}.md?root=local&content={}'.format(title, quoted_output)
+
+  if app == '1Writer':
+    # Write query results to a new 1Writer markdown doc named by title of movie
+    cmd = 'onewriter://x-callback-url/create?path=Documents&name={}.md&text={}'.format(title, quoted_output)
+
+  if app == 'Clipboard':
+    cmd = ''
   return cmd
 
 def main():
@@ -296,15 +325,6 @@ def main():
   my_year = raw_input('\nPlease enter year of release if known: ')
 
   print("\nConnecting to server...wait")
-
-  '''
-  Allow to run script stand alone or from another
-  app using command line arguments via URL's.
-  '''
-  try:
-    arg = sys.argv[1]
-  except IndexError:
-    arg = ''
 
   s = my_title.replace(' ', '+')
   y = my_year
@@ -346,13 +366,15 @@ def main():
       # Clear clipboard, then add formatted text
       clipboard.set('')
       clipboard.set(mine_md_data(d))
-      # If script called from another app...
-      if arg:
-        cmd = get_url(arg)
-        import webbrowser
+      print('='*20)
+      the_app = get_app()
+      title = d['Title'].replace(' ', '%20')
+      cmd = get_url(the_app, title)
+      if cmd:
         webbrowser.open(cmd)
-        break
-      print('''
+        clipboard.set('')
+      else:
+        print('''
 Results of your search were copied
 to the clipboard in MD for use with
 the MD text editor or journaling app
