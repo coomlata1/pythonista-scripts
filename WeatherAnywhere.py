@@ -39,6 +39,13 @@
 # high & low daily temp and record high & low daily
 # temp. Also added dew point and heat index
 # readings.
+# v2.3: 12/03/2015-Fixed problem with moon stats.
+# When planner api module was combined with the
+# astronomy api module in the weather url query the
+# moon stats were incorrect for the current time
+# period. Moved planner module to the forecast url
+# query and that solved the issue. Added % clouds
+# to current forecast stats.
 '''
 This script provides current & multi day weather
 forecasts for any city you name, or coordinates you
@@ -64,8 +71,7 @@ icons = []
 weather_icons = []
 missing_icons = []
 icon_path = './icons/'
-# Insert API key
-api_key = 'Your API key'
+api_key = 'Your API Key here'
 
 # Change to 'metric' if desired
 imperial_or_metric = 'imperial'
@@ -182,8 +188,8 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
   month_day = time.strftime('%m%d')
 
   # Create urls
-  w_url = url_fmt.format(api_key, 'geolookup/conditions/hourly/astronomy/almanac/planner_{0}{0}/'.format(month_day), query)
-  f_url = url_fmt.format(api_key, 'forecast10day', query)
+  w_url = url_fmt.format(api_key, 'geolookup/conditions/hourly/astronomy/almanac/', query)
+  f_url = url_fmt.format(api_key, 'forecast10day/planner_{0}{0}/'.format(month_day), query)
   #print w_url
   #print f_url
 
@@ -208,7 +214,7 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
     # Check if query returned ambiguous results. If so, use zipcode link to redefine query.
     if weather['response']['results']:
       zcode = 'zmw:{}'.format(weather['response']['results'][0]['zmw'])
-      w_url = url_fmt.format(api_key, 'conditions/hourly/astronomy', zcode)
+      w_url = url_fmt.format(api_key, 'conditions/hourly/astronomy/almanac/planner_{0}{0}/'.format(month_day), zcode)
       f_url = url_fmt.format(api_key, 'forecast10day', zcode)
       # Requery using zipcode link
       weather = requests.get(w_url).json()
@@ -455,19 +461,24 @@ def get_current_weather(w, f):
   # Add degrees symbol & conversion unit
   feels_like = '{}°{}'.format(feels_like, unit[0].title())
 
-  # Get precip amount, avg and range for day
+  # Get precip amount
   precip = '{}'.format(current['precip_today_' + unit[3]])
   if not precip or precip == '-9999.00':
     precip = '0.00'
   precip = '{} {}'.format(precip, unit[4])
-  precip_avg = '{} {}'.format(w['trip']['precip']['avg'][unit[4]], unit[4])
-  precip_min = '{}'.format(w['trip']['precip']['min'][unit[4]])
-  precip_max = '{} {}'.format(w['trip']['precip']['max'][unit[4]], unit[4])
+
+  # Get precip avg and range for day from planner api module
+  precip_avg = '{} {}'.format(f['trip']['precip']['avg'][unit[4]], unit[4])
+  precip_min = '{}'.format(f['trip']['precip']['min'][unit[4]])
+  precip_max = '{} {}'.format(f['trip']['precip']['max'][unit[4]], unit[4])
 
   # Get visibility
   visibility = '{} {}'.format(current['visibility_' + unit[10]], unit[11])
 
-  # Get times for sunrise & sunset
+  # Get percentage of cloudiness from first hour of hourly forecast
+  clouds = w['hourly_forecast'][0]['sky']
+
+  # Get times for sunrise & sunset & day length
   sunrise, sunset, length_of_day = get_sunrise_sunset(w)
 
   #return('''Today's Weather in {current_observation[display_location][full]}:
@@ -484,11 +495,11 @@ Heat Index: {10}
 Wind: {11}
 Feels Like: {12}
 Precipitation: {13}    Average: {14}    Range: {15} to {16}
-Visibility: {17}
+Visibility: {17}     Cloud Cover: {18}%
 UV Index: {current_observation[UV]}
-Sunrise: {18}      Sunset: {19}      Length Of Day: {20}
-Moon Age: {moon_phase[ageOfMoon]} days    Phase: {moon_phase[phaseofMoon]}     Illuminated: {moon_phase[percentIlluminated]}%
-'''.format(h_temp, l_temp, avg_high, avg_low, record_high, record_high_year, record_low, record_low_year, pressure, dew_point, heat_index, wind, feels_like, precip, precip_avg, precip_min, precip_max, visibility, sunrise, sunset, length_of_day, **w))
+Sunrise: {19}      Sunset: {20}      Length Of Day: {21}
+Moon Age: {moon_phase[ageOfMoon]} days     Phase: {moon_phase[phaseofMoon]}     Illuminated: {moon_phase[percentIlluminated]}%
+'''.format(h_temp, l_temp, avg_high, avg_low, record_high, record_high_year, record_low, record_low_year, pressure, dew_point, heat_index, wind, feels_like, precip, precip_avg, precip_min, precip_max, visibility, clouds, sunrise, sunset, length_of_day, **w))
 
 def get_extended_forecast(w, f):
   ef = []
@@ -625,6 +636,7 @@ def get_scene_header(w):
 
 def get_sunrise_sunset(w):
   fmt = '{hour}:{minute}'
+  # Get times from astronomy api module
   sunrise = fmt.format(**w['sun_phase']['sunrise'])
   sunset = fmt.format(**w['sun_phase']['sunset'])
 
@@ -647,6 +659,7 @@ def get_sunrise_sunset(w):
   t1 = t1.split(':')
   t2 = t2.split(':')
 
+  # Compute time difference between sunrise & sunset...length of day
   t1_mins = int(t1[1]) + (int(t1[0]) * 60)
   t2_mins = int(t2[1]) + (int(t2[0]) * 60)
 
