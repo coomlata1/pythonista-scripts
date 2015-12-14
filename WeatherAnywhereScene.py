@@ -1,21 +1,33 @@
 # coding: utf-8
-
-# Name: WeatherAnywhereScene.py
-# Author: John Coomler
-# v1.0: 03/07/2015 to 03/21/2015-Created
-# v1.1: 03/25/2015-Fixed bug where any missing
-# weather icons didn't download before the scene
-# opened, causing scene to crash.
-# v1.2: 04/04/2015-Minor string formatting
-# improvements
-# v1.3: 11/28/2015-Minor changes to accomodate
-# additional forecast info added in
-# WeatherAnywhere.py
 '''
+Name: WeatherAnywhereScene.py
+Author: John Coomler
+
+v1.0: 03/07/2015 to 03/21/2015-Created
+
+v1.1: 03/25/2015-Fixed bug where any missing
+weather icons didn't download before the scene
+opened, causing scene to crash.
+
+v1.2: 04/04/2015-Minor string formatting
+improvements
+
+v1.3: 11/28/2015-Minor changes to accomodate
+additional forecast info added in
+WeatherAnywhere.py
+
+v1.4: 12/06/2015-Added title bar button and code
+for access to severe weather alerts when
+necessary.
+
+v1.5: 12/10/2015-Weather alerts and web view
+weather are now loaded via textview and webview
+subviews that open & close within the ui view.
+
 This version uses api.wunderground.com as the
 source for weather info & icons. The api here
 yields forecasts that contain a wealth of info
-includingr moon info & tides.
+including moon info & tides.
 
 Because the text is dynamic, one size does not fit
 all. The lines & icon coordinates can't be pre-set.
@@ -46,7 +58,7 @@ from math import exp
 import os
 import requests
 import scene
-from threading import Thread
+#from threading import Thread
 import WeatherAnywhere as wa
 import textwrap
 #import sys
@@ -183,32 +195,6 @@ def check_icons(icons, path):
     print('=' * 20)
     wa.download_weather_icons(path)
 
-'''
-Query api for json outputs of current & extended
-weather & their respective reformatted outputs for
-use in scene
-'''
-json_w, json_f, w, f = get_weather()
-
-# Format extended forecast & plot scene coordinates to display it
-txt_wrapped_f, icon_y, y1_y2 = format_plot_weather(f)
-
-# Current weather info for scene header
-city_name, temp_now, conditions = wa.get_scene_header(json_w)
-
-# Get icons & 24 hr weather data for scene
-the_icons, the_hours, the_temps, the_pops = wa.get_icons_24h_data(json_w, json_f, icon_path)
-
-# Check for any missing icons before scene runs
-check_icons(the_icons, icon_path)
-
-# Debug
-#for ys in y1_y2:
-  #print ys
-#for ys in icon_y:
-  #print ys
-#sys.exit()
-
 class MyScene(scene.Scene):
   #def __init__(self):
     #scene.run(self)
@@ -240,6 +226,8 @@ class MyScene(scene.Scene):
     scene.stroke(1, 1, 1)
     # Line thickness
     scene.stroke_weight(1)
+
+    scene.line(1, 25, 20, 25)
 
     # Get day of week...Monday=1, etc
     day = datetime.datetime.today().isoweekday()
@@ -364,18 +352,110 @@ class SceneViewer(ui.View):
   '''
   def __init__(self, in_scene):
     # Set up title bar with web view button
-    b = ui.ButtonItem('View on the Web', action = self.web_weather)
-    self.right_button_items = [b]
+    b1 = ui.ButtonItem('Web View', action = self.web_weather, tint_color = 'black')
+    self.right_button_items = [b1]
+    # If any severe weather then set up a button to view the alerts
+    if len(wa.get_alerts(json_w, json_f)) != 0:
+      b2 = ui.ButtonItem('Severe Weather Alert', action = self.alerts, tint_color = 'red')
+      self.left_button_items = [b2]
     self.present('full_screen')
     self.scene_view = scene.SceneView(frame = self.bounds)
     self.scene_view.scene = in_scene
     self.add_subview(self.scene_view)
 
-  #@ ui.in_background
-  # Web view of current city's weather
-  def web_weather(self, sender):
-    wa.get_web_weather(json_w)
-    self.close()
+  # Create close button('X') for webview and textview
+  def closebutton(self, view):
+    closebutton = ui.Button(frame=(295,0,25,25), bg_color='grey')
+    closebutton.image=ui.Image.named('ionicons-close-round-32')
+    closebutton.flex = 'bl'
+    closebutton.action = self.closeview
+    view.add_subview(closebutton)
 
-SceneViewer(MyScene())
-#MyScene()
+  # Assign action for closebutton...closes textview & webview
+  def closeview(self, sender):
+    # Close textview or webview subviews
+    sender.superview.superview.remove_subview(sender.superview)
+    # Reload sceneview subview
+    self.scene_view = scene.SceneView(frame = self.bounds)
+    self.scene_view.scene = MyScene()
+    self.add_subview(self.scene_view)
+
+  # Print weather alerts to textview subview
+  def alerts(self, sender):
+    # Retrieve alerts
+    alerts = wa.get_alerts(json_w, json_f)
+    '''
+    Kill sceneview to cut memory overhead, textview
+    then loads much faster.  Note too that when
+    textview is loaded via .present() without
+    killing the sceneview, the sceneview will lock
+    up after closing the textview window.
+    '''
+    self.remove_subview(self.scene_view)
+    tv = ui.TextView()
+    #w, h = ui.get_screen_size()
+    #tv.frame = (0, 20, w, h / 1.2)
+    tv.frame = self.bounds
+    tv.border_color='grey'
+    tv.border_width = 3
+    tv.background_color = ('white')
+    tv.text = alerts
+    tv.editable = False
+    tv.selectable = False
+    tv.font = ('<system>', 9)
+
+    self.closebutton(tv)
+    self.add_subview(tv)
+
+  # Webview subview of current city's weather
+  def web_weather(self, sender):
+    '''
+    Kill sceneview to cut memory overhead...webview
+    then loads much faster. Note too that when
+    webview is loaded via .present() without
+    killing the sceneview, the sceneview will lock
+    up after closing the webview window.
+    '''
+    self.remove_subview(self.scene_view)
+    wv = ui.WebView()
+    #w, h = ui.get_screen_size()
+    #wv.frame = (0, 20, w, h / 1.2)
+    wv.frame = self.bounds
+    wv.border_color='grey'
+    wv.border_width = 3
+    wv.scales_page_to_fit = True
+    url = wa.get_web_weather(json_w)
+    wv.load_url(url)
+
+    self.closebutton(wv)
+    self.add_subview(wv)
+
+if __name__ == '__main__':
+  '''
+  Query api for json outputs of current & extended
+  weather & their respective reformatted outputs
+  for use in scene.
+  '''
+  json_w, json_f, w, f = get_weather()
+
+  # Format extended forecast & plot scene coordinates to display it
+  txt_wrapped_f, icon_y, y1_y2 = format_plot_weather(f)
+
+  # Current weather info for scene header
+  city_name, temp_now, conditions = wa.get_scene_header(json_w)
+
+  # Get icons & 24 hr weather data for scene
+  the_icons, the_hours, the_temps, the_pops = wa.get_icons_24h_data(json_w, json_f, icon_path)
+
+  # Check for any missing icons before scene runs
+  check_icons(the_icons, icon_path)
+
+  # Debug
+  #for ys in y1_y2:
+    #print ys
+  #for ys in icon_y:
+    #print ys
+  #sys.exit()
+
+  #MyScene()
+  SceneViewer(MyScene())
