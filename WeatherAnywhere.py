@@ -46,6 +46,10 @@
 # period. Moved planner module to the forecast url
 # query and that solved the issue. Added % clouds
 # to current forecast stats.
+# v2.4: 12/06/2015-Added function to get severe
+# weather alerts when necessary. Added code to get
+# name & stats for weather station that is
+# reporting.
 '''
 This script provides current & multi day weather
 forecasts for any city you name, or coordinates you
@@ -71,7 +75,7 @@ icons = []
 weather_icons = []
 missing_icons = []
 icon_path = './icons/'
-api_key = 'Your API Key here'
+api_key = 'Your API key goes here'
 
 # Change to 'metric' if desired
 imperial_or_metric = 'imperial'
@@ -189,7 +193,7 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
 
   # Create urls
   w_url = url_fmt.format(api_key, 'geolookup/conditions/hourly/astronomy/almanac/', query)
-  f_url = url_fmt.format(api_key, 'forecast10day/planner_{0}{0}/'.format(month_day), query)
+  f_url = url_fmt.format(api_key, 'forecast10day/planner_{0}{0}/alerts/'.format(month_day), query)
   #print w_url
   #print f_url
 
@@ -415,6 +419,9 @@ def download_weather_icons(icon_path):
     print('Done.')
 
 def get_current_weather(w, f):
+  current = w['current_observation']
+  forecast_time = current['observation_time']
+  
   simple_f = f['forecast']['simpleforecast']['forecastday'][0]
 
   # Get high temp & apply conversion units
@@ -429,21 +436,22 @@ def get_current_weather(w, f):
   avg_low = '{}°{}'.format(avg_low, unit[0].title())
   record_low = '{}°{}'.format(record_low, unit[0].title())
 
-  current = w['current_observation']
-  # Current temperature
-  #temp = int(current['temp_' + unit[0]])
-  #temp = '{}°{}'.format(temp, unit[0].title())
-
+  location = current['observation_location']
+  
+  # Reporting weather station stats
+  w_station = location['city']
+  lat = location['latitude']
+  lon = location['longitude']
+  elevation = location['elevation']
+  
+  # Relative humidity
+  humidity =  current['relative_humidity']
   # Barometric pressure
   pressure = '{} {}'.format(current['pressure_' + unit[1]], unit[2])
 
   # Dew point
   dew_point = int(current['dewpoint_' + unit[0]])
   dew_point = '{}°{}'.format(dew_point, unit[0].title())
-
-  # Heat Index
-  heat_index = current['heat_index_' + unit[0]]
-  heat_index = '{}°{}'.format(heat_index, unit[0].title())
 
   # Wind
   wind = current['wind_string']
@@ -474,32 +482,41 @@ def get_current_weather(w, f):
 
   # Get visibility
   visibility = '{} {}'.format(current['visibility_' + unit[10]], unit[11])
-
+  
   # Get percentage of cloudiness from first hour of hourly forecast
   clouds = w['hourly_forecast'][0]['sky']
+  
+  # Heat Index
+  heat_index = current['heat_index_' + unit[0]]
+  heat_index = '{}°{}'.format(heat_index, unit[0].title())
+  # UV Index
+  uv = current['UV']
 
   # Get times for sunrise & sunset & day length
   sunrise, sunset, length_of_day = get_sunrise_sunset(w)
-
-  #return('''Today's Weather in {current_observation[display_location][full]}:
-
+  
+  moon = w['moon_phase']
+  age = moon['ageOfMoon']
+  phase = moon['phaseofMoon']
+  illum = moon['percentIlluminated']
+  
   # Text to display in console or scene
-  return('''Now...{current_observation[observation_time]}:
-\nToday's Forecasted Temperatures: High: {0}    Low: {1}
-Today's Averages: High: {2}    Low: {3}
-Today's Records: High: {4} [{5}]    Low: {6} [{7}]
-Humidity: {current_observation[relative_humidity]}
-Barometric Pressure: {8}
-Dew Point: {9}
-Heat Index: {10}
-Wind: {11}
-Feels Like: {12}
-Precipitation: {13}    Average: {14}    Range: {15} to {16}
-Visibility: {17}     Cloud Cover: {18}%
-UV Index: {current_observation[UV]}
-Sunrise: {19}      Sunset: {20}      Length Of Day: {21}
-Moon Age: {moon_phase[ageOfMoon]} days     Phase: {moon_phase[phaseofMoon]}     Illuminated: {moon_phase[percentIlluminated]}%
-'''.format(h_temp, l_temp, avg_high, avg_low, record_high, record_high_year, record_low, record_low_year, pressure, dew_point, heat_index, wind, feels_like, precip, precip_avg, precip_min, precip_max, visibility, clouds, sunrise, sunset, length_of_day, **w))
+  return('''Now...{0}:
+\nToday's Forecast: High: {1}    Low: {2}
+Today's Averages: High: {3}    Low: {4}
+Today's Records: High: {5} [{6}]    Low: {7} [{8}]
+Reporting Station: {9}
+Lat: {10}     Lon: {11}     Elevation: {12}
+Humidity: {13}     Dew Point: {14}   
+Barometric Pressure: {15}
+Wind: {16}
+Feels Like: {17}
+Precipitation: {18}    Average: {19}    Range: {20} to {21}
+Visibility: {22}     Cloud Cover: {23}%
+Heat Index: {24}    UV Index: {25}
+Sunrise: {26}      Sunset: {27}      Length Of Day: {28}
+Moon Age: {29} days     Phase: {30}     Illuminated: {31}%
+'''.format(forecast_time, h_temp, l_temp, avg_high, avg_low, record_high, record_high_year, record_low, record_low_year, w_station, lat, lon, elevation, humidity, dew_point, pressure, wind, feels_like, precip, precip_avg, precip_min, precip_max, visibility, clouds, heat_index, uv, sunrise, sunset, length_of_day, age, phase, illum, **w))
 
 def get_extended_forecast(w, f):
   ef = []
@@ -695,13 +712,29 @@ def get_night_hrs(w):
 
 def get_web_weather(w):
   url = w['current_observation']['forecast_url']
-  webbrowser.open(url)
+  #webbrowser.open(url)
+  return url
+
+def get_alerts(w, f):
+  # Get any severe weather alerts for current city
+  num = len(f['alerts'])
+  
+  if num != 0:
+    current = w['current_observation']
+    the_city = current['display_location']['full']
+    alert = '\n{0}\nSevere Weather Alert for {1}:\n{0}'.format('='*40, the_city)
+    for i in range(num):
+      msg = f['alerts'][i]['message']
+      alert = '{}{}'.format(alert, msg)
+  else:
+    alert = ''
+  return alert
 
 # Used only for console display
 def main():
   console.clear()
   w, f = pick_your_weather()
-
+  
   # Get array of weather icons
   icons = get_console_icons(w, f, icon_path)
 
@@ -749,6 +782,11 @@ def main():
     ans = console.alert('Weather Icon(s) Missing:','','Download Them Now')
     if ans == 1:
       download_weather_icons(icon_path)
+  
+  alerts = get_alerts(w, f)
+  if len(alerts) != 0:
+    print alerts
 
 if __name__ == '__main__':
   main()
+
