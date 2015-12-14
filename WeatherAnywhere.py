@@ -1,56 +1,68 @@
 # coding: utf-8
-
-# Name: WeatherAnywhere.py
-# Author: John Coomler
-# v1.0: 02/07/2015 to 02/15/2015-Created
-# v1.1: 02/19/2015-Tightened up code and made
-# function calls to retrieve weather data for
-# printing from main(). Many thanks to @cclauss for
-# his continued expertise, input, & support in
-# sorting out and improving the code.
-# v1.2: 02/20/2015-More code cleanup, improved
-# string formatting techniques, & much improved
-# error handling.
-# v1.3: 02/21/2015-Added function to download
-# weather icons if any or all are missing. More
-# code cleanup.
-# v1.4: 02/23/2015-Conversion functions renamed &
-# now return numbers instead of strings, added
-# ability to convert from imperial to metric units.
-# v1.5: 02/24/2015-Cleanup of date string
-# formatting & now show all precip types.
-# v1.6: 03/04/2015-Added ability to store weather
-# icons in a sub folder of script folder. Created 2
-# new functions, 'pick_your_weather' &
-# 'get_weather_icons' to aid in porting script over
-# to a scene.
-# v1.7: 03/05/2015-Improved code in icon download
-# process to prevent IO errors.
-# v1.8: 03/07/2015-03/25/2015-Numerous changes &
-# code cleanup to accomodate scene development &
-# api changeover to www.wunderground.com
-# v1.9: 04/04/2015-String formatting enhancements
-# v2.0: 04/11/2015-Code readability & string
-# formatting improvements
-# v2.1: 11/21/2015-Added code for record highs &
-# lows and length of day in weather 'now' section
-# v2.2: 11/28/2015-Added code for precip daily
-# average and min-max range. Added code for average
-# high & low daily temp and record high & low daily
-# temp. Also added dew point and heat index
-# readings.
-# v2.3: 12/03/2015-Fixed problem with moon stats.
-# When planner api module was combined with the
-# astronomy api module in the weather url query the
-# moon stats were incorrect for the current time
-# period. Moved planner module to the forecast url
-# query and that solved the issue. Added % clouds
-# to current forecast stats.
-# v2.4: 12/06/2015-Added function to get severe
-# weather alerts when necessary. Added code to get
-# name & stats for weather station that is
-# reporting.
 '''
+Name: WeatherAnywhere.py
+Author: John Coomler
+
+v1.0: 02/07/2015 to 02/15/2015-Created.
+
+v1.1: 02/19/2015-Tightened up code and made
+function calls to retrieve weather data for
+printing from main(). Many thanks to @cclauss for
+his continued expertise, input, & support in
+sorting out and improving the code.
+
+v1.2: 02/20/2015-More code cleanup, improved string
+formatting techniques, & much improved error
+handling.
+
+v1.3: 02/21/2015-Added function to download weather
+icons if any or all are missing. More code cleanup.
+
+v1.4: 02/23/2015-Conversion functions renamed &
+now return numbers instead of strings, added
+ability to convert from imperial to metric units.
+
+v1.5: 02/24/2015-Cleanup of date string formatting
+& now show all precip types.
+
+v1.6: 03/04/2015-Added ability to store weather
+icons in a sub folder of script folder. Created 2
+new functions, 'pick_your_weather' &
+'get_weather_icons' to aid in porting script over
+to a scene.
+
+v1.7: 03/05/2015-Improved code in icon download
+process to prevent IO errors.
+
+v1.8: 03/07/2015-03/25/2015-Numerous changes &
+code cleanup to accomodate scene development &
+api changeover to www.wunderground.com.
+
+v1.9: 04/04/2015-String formatting enhancements.
+
+v2.0: 04/11/2015-Code readability & string
+formatting improvements.
+
+v2.1: 11/21/2015-Added code for record highs &
+lows and length of day in weather 'now' section.
+
+v2.2: 11/28/2015-Added code for precip daily
+average and min-max range. Added code for average
+high & low daily temp and record high & low daily
+temp. Also added dew point and heat index readings.
+
+v2.3: 12/03/2015-Fixed problem with moon stats.
+When planner api module was combined with the
+astronomy api module in the weather url query the
+moon stats were incorrect for the current time
+period. Moved planner module to the forecast url
+query and that solved the issue. Added % clouds
+to current forecast stats.
+
+v2.4: 12/06/2015-Added function to get severe
+weather alerts when necessary. Added code to get
+name & stats for weather station that is reporting.
+
 This script provides current & multi day weather
 forecasts for any city you name, or coordinates you
 are currently located in, using the api available
@@ -421,7 +433,7 @@ def download_weather_icons(icon_path):
 def get_current_weather(w, f):
   current = w['current_observation']
   forecast_time = current['observation_time']
-  
+
   simple_f = f['forecast']['simpleforecast']['forecastday'][0]
 
   # Get high temp & apply conversion units
@@ -437,13 +449,13 @@ def get_current_weather(w, f):
   record_low = '{}°{}'.format(record_low, unit[0].title())
 
   location = current['observation_location']
-  
+
   # Reporting weather station stats
   w_station = location['city']
   lat = location['latitude']
   lon = location['longitude']
   elevation = location['elevation']
-  
+
   # Relative humidity
   humidity =  current['relative_humidity']
   # Barometric pressure
@@ -482,10 +494,10 @@ def get_current_weather(w, f):
 
   # Get visibility
   visibility = '{} {}'.format(current['visibility_' + unit[10]], unit[11])
-  
+
   # Get percentage of cloudiness from first hour of hourly forecast
   clouds = w['hourly_forecast'][0]['sky']
-  
+
   # Heat Index
   heat_index = current['heat_index_' + unit[0]]
   heat_index = '{}°{}'.format(heat_index, unit[0].title())
@@ -494,12 +506,12 @@ def get_current_weather(w, f):
 
   # Get times for sunrise & sunset & day length
   sunrise, sunset, length_of_day = get_sunrise_sunset(w)
-  
+
   moon = w['moon_phase']
   age = moon['ageOfMoon']
   phase = moon['phaseofMoon']
   illum = moon['percentIlluminated']
-  
+
   # Text to display in console or scene
   return('''Now...{0}:
 \nToday's Forecast: High: {1}    Low: {2}
@@ -507,7 +519,7 @@ Today's Averages: High: {3}    Low: {4}
 Today's Records: High: {5} [{6}]    Low: {7} [{8}]
 Reporting Station: {9}
 Lat: {10}     Lon: {11}     Elevation: {12}
-Humidity: {13}     Dew Point: {14}   
+Humidity: {13}     Dew Point: {14}
 Barometric Pressure: {15}
 Wind: {16}
 Feels Like: {17}
@@ -718,7 +730,7 @@ def get_web_weather(w):
 def get_alerts(w, f):
   # Get any severe weather alerts for current city
   num = len(f['alerts'])
-  
+
   if num != 0:
     current = w['current_observation']
     the_city = current['display_location']['full']
@@ -734,7 +746,7 @@ def get_alerts(w, f):
 def main():
   console.clear()
   w, f = pick_your_weather()
-  
+
   # Get array of weather icons
   icons = get_console_icons(w, f, icon_path)
 
@@ -782,11 +794,10 @@ def main():
     ans = console.alert('Weather Icon(s) Missing:','','Download Them Now')
     if ans == 1:
       download_weather_icons(icon_path)
-  
+
   alerts = get_alerts(w, f)
   if len(alerts) != 0:
     print alerts
 
 if __name__ == '__main__':
   main()
-
