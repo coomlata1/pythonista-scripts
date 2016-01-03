@@ -1,27 +1,41 @@
 #coding: utf-8
-# Name: PhotoToDropbox.py
-# Author: John Coomler
-# v1.0: 01/28/2015-Created
-# v1.1: 02/01/2015-Fixed bug in
-# 'GetDimensions()' function for square
-# photos.
-# v1.2: 02/05/2015-Added code to geo-tag
-# photos with date, time, and place that
-# photo was taken & a timer function to
-# track the processing time for script.
-# v1.3: 02/09/2015-Reduced geo-tag font
-# size for smaller photos.
-# v1.4: 02/09/2015-Many thanks to cclaus
-# for detailed code cleanup & insightful
-# comments.
-# v1.5: 02/22/2015-More code cleanup &
-# better string formatting
-# v1.6: 03/25/2015-Fixed bug in main()
-# where photo with no geotag was not being
-# appended to 'no_gps' list.
-# v1.7: 04/13/2015-Code tightening with
-# help & thanks to @cclauss.
 '''
+Name: PhotoToDropbox.py
+Author: John Coomler
+
+v1.0: 01/28/2015-Created
+
+v1.1: 02/01/2015-Fixed bug in 'GetDimensions()'
+function for square photos.
+
+v1.2: 02/05/2015-Added code to geo-tag photos with
+date, time, and place that photo was taken & a
+timer function to track the processing time for
+script.
+
+v1.3: 02/09/2015-Reduced geo-tag font size for
+smaller photos.
+
+v1.4: 02/09/2015-Many thanks to cclaus for detailed
+code cleanup & insightful comments.
+
+v1.5: 02/22/2015-More code cleanup & better string
+formatting
+
+v1.6: 03/25/2015-Fixed bug in main()
+where photo with no geotag was not being appended
+to 'no_gps' list.
+
+v1.7: 04/13/2015-Code tightening with help & thanks
+to @cclauss.
+
+v1.8: 08/20/2015-Fixed several bugs in geo-tag
+function
+
+v1.9: 01/01/2016-Resize photo before geo-tag stamp
+rather than after, for more consistent placement &
+font size for tag.
+
 This Pythonista script will RESIZE,
 RENAME, GEO-TAG & UPLOAD all selected
 photos in the iPhone camera roll to new
@@ -49,6 +63,10 @@ both reading from and writing to the
 metadata of image files. Many thanks to
 Ben Leslie for maintaining the pexif
 module at github.
+
+Script also requires DropboxLogin.py, available at
+https://gist.github.com/omz/4034526, which allows
+login access to dropbox.
 '''
 import console
 import location
@@ -96,6 +114,7 @@ def GetDateTime(meta):
 def GetDimensions(meta, scale, img_name, min):
   # Add default for exif
   exif = meta.get('{Exif}', None)
+  #print exif
   # Original dimensions
   w = int(exif.get('PixelXDimension'))
   h = int(exif.get('PixelYDimension'))
@@ -165,6 +184,7 @@ def GetDegreesToRotate(d):
 
 def GetLocation(meta):
   gps = meta.get('{GPS}', None)
+
   if gps:
     lat = gps.get('Latitude',0.0)
     lon = gps.get('Longitude',0.0)
@@ -182,11 +202,21 @@ def GetLocation(meta):
     # Dictionary of location data
     # ccc: pick results[0] right away
     results = location.reverse_geocode(coordinates)[0]
+
     name = results['Name']
-    street = results['Thoroughfare']
-    city = results['City']
+    try:
+      street = results['Thoroughfare']
+    except KeyError:
+      street = ''
+    try:
+      city = results['City']
+    except KeyError:
+      city = ''
     state = results['State']
-    zipcode = results['ZIP']
+    try:
+      zipcode = results['ZIP']
+    except KeyError:
+      zipcode = ''
 
     # If name is an address then use street name only
     if find_number(name):
@@ -320,6 +350,7 @@ def main():
 
     # Open image, resize it, and write new image to scripts dir
     img = Image.open('with_meta.jpg')
+    img = img.resize((new_w, new_h),Image.ANTIALIAS)
 
     if geoTag:
       # Get geo-tagging info
@@ -330,7 +361,6 @@ def main():
 
         # Find out if photo is oriented for landscape or portrait
         orientation = meta.get('Orientation')  # ccc: add a default?
-
         '''
         Get degrees needed to rotate photo
         for it's proper orientation. See
@@ -347,20 +377,24 @@ def main():
 
         # Rotate so tag is on bottom of photo regardless of orientation
         img = img.rotate(degrees).convert('RGBA')
-
         # Tuple
-        w, h= img.size
+        w, h = img.size
         draw = ImageDraw.Draw(img)
-        '''
-        Font for geo-tag of smaller photos
-        will be 28 point Helvetica, while
-        the rest will be 56 point.
-        '''
-        fontsize = 56 if w > 1200 else 28
+
+        # Font for geo-tag will be 28 pt Helvetica
+        #fontsize = 56 if w > 1300 else 28
+        fontsize = 28
         font = ImageFont.truetype('Helvetica', fontsize)
 
+        # Determine y axis for geotag
+        #if h < 1000:
+            #y = h - 35
+        #else:
+            #y = h - 75
+        y = h - 35
+
         # Put red text @ bottom left of photo
-        draw.text((25, h-75), theLocation,(255, 0, 0), font = font)
+        draw.text((25, y), theLocation,(255, 0, 0), font = font)
 
         # Rotate back to original position
         img = img.rotate(-degrees)
@@ -371,10 +405,9 @@ def main():
       print '\nPhoto will not be geotagged. Flag is set to false.'
 
     meta = ''
-    resized = img.resize((new_w, new_h),Image.ANTIALIAS)
-
-    resized.save('without_meta.jpg')
-    resized = ''
+    #img = img.resize((new_w, new_h),Image.ANTIALIAS)
+    # Save new image
+    img.save('without_meta.jpg')
 
     if keepMeta:
       '''
@@ -402,7 +435,7 @@ def main():
     with open(jpgFile,'r') as img:
       response = drop_client.put_file(new_filename, img)
 
-    # Give Dropbox server time to process
+      # Give Dropbox server time to process
       time.sleep(5)
     response = jpgFile = theLocation = img = theDate = theTime = theYear = new_filename = old_filename = ''
     print '\nUpload successful.'
