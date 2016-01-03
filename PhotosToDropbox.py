@@ -1,7 +1,7 @@
 #coding: utf-8
 '''
-Name: PhotoToDropbox.py
-Author: John Coomler
+PhotoToDropbox.py
+@coomlata1
 
 v1.0: 01/28/2015-Created
 
