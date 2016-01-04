@@ -230,17 +230,23 @@ def main(ref):
   # Make list for multiple book references
   books = []
   
-  # Pick your desired Bible version & uncomment it
-  #version = 'amp' # Amplified Version
-  #version = 'akjv' # KJV Easy Read
-  #version = 'asv' # American Standard Version
-  #version = 'basicenglish' # Basic English Bible
-  #version = 'darby' # Darby
-  #version = 'kjv' # King James Version
-  version = 'nasb' # New American Standard
-  #version = 'wb' # Webster's Bible
-  #version = 'web' # World English Bible
-  #version = 'ylt' # Young's Literal Translation
+  # List of Bible versions
+  versions = ['amp', 'akjv', 'asv', 'basicenglish', 'darby', 'kjv', 'nasb', 'wb', 'web', 'ylt']
+  
+  # Pick your desired Bible version by number
+  #0 = amp...Amplified Version
+  #1 = akjv...KJV Easy Read
+  #2 = asv...American Standard Version
+  #3 = basicenglish...Basic English Bible
+  #4 = darby...Darby
+  #5 = kjv...King James Version
+  #6 = nasb...New American Standard
+  #7 = wb...Webster's Bible
+  #8 = web...World English Bible
+  #9 = ylt...Young's Literal Translation
+  
+  # Change number to match desired version
+  version = versions[6]
 
   # Loop each reference and check book names to insure proper syntax
   for ref in lines:
