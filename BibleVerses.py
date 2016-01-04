@@ -3,7 +3,7 @@
 BibleVerses.py
 @coomlata1
 
-This python script will retrieve any bible verse or
+This Pythonista script will retrieve any bible verse or
 verses and copy them to the clipboard or 1Writer,
 Editorial, or Drafts via a url. The script uses the
 getBible.net api as the query source for scripture.
