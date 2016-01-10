@@ -3,21 +3,22 @@
 BibleVerses.py
 @coomlata1
 
-This Pythonista script will retrieve any bible verse or
-verses and copy them to the clipboard or 1Writer,
-Editorial, or Drafts via a url. The script uses the
-getBible.net api as the query source for scripture.
-More info is available at https://getbible.net/api.
+This Pythonista script will retrieve any bible
+verse or verses and copy them to the clipboard or
+1Writer, Editorial, or Drafts via a url. The script
+uses the getBible.net api as the query source for
+scripture. More info is available at https://
+getbible.net/api.
 
 The script can be initialized stand alone from
 Pythonista or from a url action in 1Writer,
-Editorial, or Drafts. 
+Editorial, or Drafts.
 
 If run stand alone, the script will copy the
 verse(s) returned from the query to the clipboard
 and print them to the console. You can then copy
 the verses to any application you wish using the
-clipboard. 
+clipboard.
 
 If the script is called from one of the 3 text
 editors mentioned above via a url, the scripture
@@ -26,7 +27,7 @@ will be appended to the calling editor's open doc.
 Examples of the calling URLs:
 From 1Writer: pythonista://
 {{BibleVerses.py}}?action=run&argv=onewriter
-  
+
 From Editorial: pythonista://
 BibleVerses.py?action=run&argv=editorial
 
@@ -37,13 +38,19 @@ From Drafts: pythonista://
 The script will prompt you for the desired verse
 references. Possible formats for the references
 include:
+  Book or multiple books:
+    Matthew
+    Luke;Mark
+  Chapters or multiple chapters:
+    Luke 3;Mark 4
+    Luke 3;4
   Multiple books with consecutive or single verses:
-  1 John 5:3-5,7-10,14;Mark 7:4-6;8:3-6,10
-  1 John 5:3-5,7-10,14;Mark 7:4-6;Mark 8:3-6,10
+    1 John 5:3-5,7-10,14;Mark 7:4-6;8:3-6,10
+    1 John 5:3-5,7-10,14;Mark 7:4-6;Mark 8:3-6,10
   Consecutive verses:
-  Mark 7:4-6
+    Mark 7:4-6
   Single verse:
-  Mark 7:4
+    Mark 7:4
 
 Seperate different books or chapters with a
 semicolon. Seperate verses in same book with a
@@ -53,11 +60,23 @@ references with a space. Book names with both
 numeric and alpha characters(1 John), can be listed
 as 1John or 1 John and the script will handle it.
 
+Examples:
+    Luke 2;4;1:2-7,9
+      This would return Chapters 2 & 4 of Luke;
+      Chapter 1 verses 2 to 7 & verse 9 from Luke
+
+    Matthew 1:2-8;5;Genesis 1;3:4-8;6:2;Mark
+      This would return Matthew chapter 1; Matthew
+      chapter 2 verses 2 to 8; Matthew chapter 5;
+      Genesis chapter 1; Genesis chapter 3 verses 4
+      to 8; Genesis chapter 6 verse 2; the entire
+      book of Mark.
+
 The script allows you to select between 10
 different English language bible versions. The
 default setting is the New American Standard.
-  
-Inspiration for this script came from 
+
+Inspiration for this script came from
 @pfcbenjamin and his script, 'BibleDraft.py'.
 More info on his projects is available at:
 http://sweetnessoffreedom.wordpress.com/projects
@@ -69,6 +88,7 @@ import re
 import webbrowser
 import console
 import clipboard
+import difflib
 
 def passage_query(ref, version):
   ref = ref.replace(' ','%20')
@@ -77,10 +97,16 @@ def passage_query(ref, version):
   t = r.text
   return t
 
-def check_book(ref):
+def check_book(ref, err):
+  books = ['1 Chronicles', '1 Corinthians', '1 John', '1 Kings', '1 Peter', '1 Samuel', '1 Thessalonians', '1 Timothy', '2 Chronicles', '2 Corinthians', '2 John', '2 Kings', '2 Peter', '2 Samuel', '2 Thessalonians', '2 Timothy', '3 John', 'Acts', 'Amos', 'Colossians', 'Daniel', 'Deuteronomy', 'Ecclesiastes', 'Ephesians', 'Esther', 'Exodus', 'Ezekiel', 'Ezra' 'Galatians', 'Genesis', 'Habakkuk', 'Haggai', 'Hebrews', 'Hosea', 'Isaiah', 'James', 'Jeremiah', 'Job', 'Joel', 'John', 'Jonah', 'Joshua', 'Jude', 'Judges', 'Lamentations', 'Leviticus', 'Luke', 'Malachi', 'Mark', 'Matthew', 'Micah', 'Nahum', 'Nehemiah', 'Numbers', 'Obadiah', 'Philemon', 'Philippians', 'Proverbs', 'Psalms', 'Revelation', 'Romans', 'Ruth', 'Song of Solomon', 'Titus', 'Zechariah', 'Zephaniah']
+
   book = ''
-  # Make sure we have space between end of book name and chapter number and fix if necessary
-  # Loop backwards through each character in ref
+
+  '''
+  Make sure we have space between end of book name
+  and chapter number and fix if necessary.  Loop
+  backwards through each character in ref.
+  '''
   for i in reversed(xrange(len(ref))):
     # If a letter
     if ref[i].isalpha():
@@ -95,56 +121,83 @@ def check_book(ref):
   # Strip out any white spaces in book & verses...
   # ie '1 John 5:4- 7'
   book = ref[:pos + 1].strip().replace(' ','')
+  # Check for spelling...return the closest match
+  the_book = difflib.get_close_matches(book, books, 1)
+
+  # Convert list to text and strip out white spaces
+  try:
+    the_book = the_book[0].title().replace(' ', '')
+  except IndexError:
+    err = True
+    the_book = book
+
   verses = ref[pos + 1:].strip().replace(' ','')
-  
-  # Add unwhitened book & verses back to ref
-  ref = '{} {}'.format(book, verses).title()
-  
-  return ref, book
-  
+
+  # If verse has no colon,
+  if verses.find(':') == -1:
+    # but contains a dash...
+    if verses.find('-') != -1:
+      # Syntax error
+      err = True
+
+  if not err:
+    # Add unwhitened book & verses back to ref
+    ref = '{} {}'.format(the_book, verses)
+  return ref, the_book, err
+
 def replace_all(t, dic):
   for j, k in dic.iteritems():
     t = t.replace(j, k)
   return t
 
 def cleanup(t, ref, version):
-  # Chapter number is between space and colon
-  chapter = ref[ref.find(' ') + 1:ref.find(':')]
-  # If comma(s) in ref
-  if ref.find(',') != -1:
-    # First passage is between colon & 1st comma
-    fp = ref[ref.find(':') + 1:ref.find(',')].strip()
-    # Last passage is between last comma and end
-    lp = ref[ref.rfind(',', 0, len(ref)) + 1:].strip()
-    
-    # If dash in first passage
-    if fp.find('-') != -1:
-      # First verse between colon & dash
-      first_verse = fp[fp.find(':') + 1:fp.find('-')].strip()
+  if ref.find(':') != -1:
+    verses_in_ref = True
+    # Chapter number is between space and colon
+    chapter = ref[ref.find(' ') + 1:ref.find(':')]
+    # If comma(s) in ref
+    if ref.find(',') != -1:
+      # First passage is between colon & 1st comma
+      fp = ref[ref.find(':') + 1:ref.find(',')].strip()
+      # Last passage is between last comma and end
+      lp = ref[ref.rfind(',', 0, len(ref)) + 1:].strip()
+
+      # If dash in first passage
+      if fp.find('-') != -1:
+        # First verse between colon & dash
+        first_verse = fp[fp.find(':') + 1:fp.find('-')].strip()
+      else:
+        # No dash so first verse is first passage
+        first_verse = fp
+
+      # If dash in last passage
+      if lp.find('-') != -1:
+        # Last verse is everything after dash
+        last_verse = lp[lp.find('-') + 1:].strip()
+      else:
+        # No dash so last verse is last passage
+        last_verse = lp
+    # No commas in ref
     else:
-      # No dash so first verse is first passage
-      first_verse = fp
-    
-    # If dash in last passage
-    if lp.find('-') != -1:
-      # Last verse is everything after dash
-      last_verse = lp[lp.find('-') + 1:].strip()
-    else:
-      # No dash so last verse is last passage
-      last_verse = lp
-  # No commas in ref
+      # If dash in ref
+      if ref.find('-') != -1:
+        # First verse is between colon & dash
+        first_verse = ref[ref.find(':') + 1:ref.find('-')].strip()
+        # Last verse is everything after dash
+        last_verse = ref[ref.find('-') + 1:].strip()
+      else:
+        # First verse & last verse are same...everything after colon
+        first_verse = ref[ref.find(':') + 1:].strip()
+        last_verse = first_verse
   else:
-    # If dash in ref
-    if ref.find('-') != -1:
-      # First verse is between colon & dash
-      first_verse = ref[ref.find(':') + 1:ref.find('-')].strip()
-      # Last verse is everything after dash
-      last_verse = ref[ref.find('-') + 1:].strip()
+    verses_in_ref = False
+    if ref.find(' ') != -1:
+      book = ref[:ref.find(' ')].strip()
+      chapter = ref[ref.find(' ') + 1:]
     else:
-      # First verse & last verse are same...everything after colon
-      first_verse = ref[ref.find(':') + 1:].strip()
-      last_verse = first_verse
-    
+      book == ref
+      chapter == ''
+
   # Create dictionaries to clean up passages
   dic_c = {'{':'', '}':'', '"':'', '\\':'', '*': ''}
   dic_w = {'verse:':'', ':verse_nr:':'verse '}
@@ -153,34 +206,58 @@ def cleanup(t, ref, version):
   t = replace_all(t, dic_c)
   # Replace unwanted words
   t = replace_all(t, dic_w)
-  
-  # More cleaning...
-  for i in range(int(last_verse)):
-    t = t.replace(',{0}verse {0},'.format(i + 1),' [{}] '.format(i + 1))
-    if int(first_verse) == i + 1:
-      t = t.replace('chapter_nr:{0},chapter:{1}verse {1},'.format(chapter, i + 1), '[{}:{}] '.format(chapter, i + 1))
-    else:
-      t = t.replace('chapter_nr:{0},chapter:{1}verse {1},'.format(chapter, i + 1), ' [{}] '.format(i + 1))
-       
-  t = t.replace('],direction:LTR,type:verse,version:{});'.format(version),'')
 
-  header_end_pos = t.find('[{}:{}]'.format(chapter, first_verse))
-  header = t[:header_end_pos]
-  # Uncomment to debug
-  #print header
-  t = t.replace(header, '')
-  header = header.replace('(book:', '').replace('[', '')
-  header = ',{}'.format(header)
-  # Uncomment to debug
-  #print header
-  t = t.replace(header, '')
+  # More cleaning...
+  if verses_in_ref:
+    for i in range(int(last_verse)):
+      t = t.replace(',{0}verse {0},'.format(i + 1),' [{}] '.format(i + 1))
+      if int(first_verse) == i + 1:
+        t = t.replace('chapter_nr:{0},chapter:{1}verse {1},'.format(chapter, i + 1), '[{}:{}] '.format(chapter, i + 1))
+      else:
+        t = t.replace('chapter_nr:{0},chapter:{1}verse {1},'.format(chapter, i + 1), ' [{}] '.format(i + 1))
+
+    t = t.replace('],direction:LTR,type:verse,version:{});'.format(version),'')
+
+    header_end_pos = t.find('[{}:{}]'.format(chapter, first_verse))
+    header = t[:header_end_pos]
+    # Uncomment to debug
+    #print header
+    t = t.replace(header, '')
+    header = header.replace('(book:', '').replace('[', '')
+    header = ',{}'.format(header)
+    # Uncomment to debug
+    #print header
+    t = t.replace(header, '')
+  else:
+    first_verse = 1
+    # Covers Psalms 119, the largest chapter in Bible
+    last_verse = 176
+
+    for i in range(int(last_verse)):
+      t = t.replace(',{0}verse {0},'.format(i + 1),' [{}] '.format(i + 1))
+
+      t = t.replace(',{0}:chapter_nr:{0},chapter:1verse 1,'.format(i + 1), '\n\n**[{}:1]** '.format(i + 1))
+
+    # With book & chapter
+    if len(chapter) != 0:
+      t = t.replace('chapter:1verse 1,', ' [{}:1] '.format(chapter))
+      header_end_pos = t.find('[{}:1]'.format(chapter))
+    else:
+      # With book only
+      t = t.replace('1:chapter_nr:1,chapter:1verse 1,', ' [1:1] ')
+      header_end_pos = t.find('[1:1]')
+
+    header = t[:header_end_pos]
+    t = t.replace(header, '')
+
+  t = t.replace('\\', '')
   return t
 
 def get_url(app, fulltext):
   if app == 'drafts4':
     # Write scripture to new draft
     #url = '{}://x-callback-url/create?text={}'.format(app, urllib.quote(fulltext))
-  
+
     # Append scripture to existing open draft
     url = '{}://x-callback-url/append?uuid={}&text={}'.format(app, sys.argv[2], urllib.quote(fulltext))
   elif app == 'onewriter':
@@ -198,12 +275,11 @@ def get_url(app, fulltext):
     5278032428269568/g2tYM1p0OZ4
     '''
     url = '{}://?command=Append%20Open%20Doc'.format(app)
-  
+
   return url
 
 def main(ref):
   user_input = 'Verse(s): {}'.format(ref.title())
-  console.hud_alert('Quering For Verses...')
   '''
   Allow to run script stand alone or from another
   app using command line arguments via URL's.
@@ -212,8 +288,7 @@ def main(ref):
     app = sys.argv[1]
   except IndexError:
     app = ''
-    #print 'Query on:\n{}'.format(ref.title())
-  
+
   # Handle multiple references
   alt_line_split = re.search(';',ref)
   if alt_line_split:
@@ -227,12 +302,12 @@ def main(ref):
   lines = str.splitlines(ref)
   # Make list to spit multiple passages into
   fulltext = []
-  # Make list for multiple book references
+  # Make list for multiple books
   books = []
-  
+
   # List of Bible versions
   versions = ['amp', 'akjv', 'asv', 'basicenglish', 'darby', 'kjv', 'nasb', 'wb', 'web', 'ylt']
-  
+
   # Pick your desired Bible version by number
   #0 = amp...Amplified Version
   #1 = akjv...KJV Easy Read
@@ -240,38 +315,53 @@ def main(ref):
   #3 = basicenglish...Basic English Bible
   #4 = darby...Darby
   #5 = kjv...King James Version
-  #6 = nasb...New American Standard
+  #6 = nasb...New American Standard Bible
   #7 = wb...Webster's Bible
   #8 = web...World English Bible
   #9 = ylt...Young's Literal Translation
-  
+
   # Change number to match desired version
   version = versions[6]
 
-  # Loop each reference and check book names to insure proper syntax
+  # Loop each reference and check book names to insure proper syntax and spelling
   for ref in lines:
+    # Default for error flag
+    err = False
     # Strip any blank spaces at front & back of ref
     ref = ref.strip()
     # If alpha characters in ref then we have a bible book in ref
     if re.search('[a-zA-Z]', ref):
-      # Check book for syntax errors
-      ref, book = check_book(ref)
+      # Check book for syntax & spelling errors
+      ref, book, err = check_book(ref, err)
       # Append book to list of books
       books.append(book)
-    
+
     # If no letters in this ref...
     else:
       # Eliminate blank spaces in verse
       ref = ref.replace(' ','')
       # Add book from last ref that had a book
-      ref = '{} {}'.format(books[len(books) - 1], ref)
-    
-    # Query passage
-    t = passage_query(ref, version)
-    # Uncomment to debug
-    #print t
-    # Pretty up query results
-    bibletext = cleanup(t, ref, version)
+      try:
+        ref = '{} {}'.format(books[len(books) - 1], ref)
+        # Check syntax
+        ref, book, err = check_book(ref, err)
+      except IndexError:
+        err = True
+
+    err_msg = 'No scripture found for "{}"...Check syntax.'.format(ref)
+
+    if not err:
+      # Query passage
+      console.hud_alert('Querying For {}...'.format(ref))
+      t = passage_query(ref, version)
+      # If query returned scripture...
+      if t != 'NULL':
+        # Pretty up query results
+        bibletext = cleanup(t, ref, version)
+      else:
+        bibletext = err_msg
+    else:
+      bibletext = err_msg
     # Add markdown syntax to highlight verse ref
     bibletext = '**{} ({})** {}'.format(ref, version.upper(), bibletext)
     # Add scripture to list
