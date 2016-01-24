@@ -1,7 +1,7 @@
 # coding: utf-8
 '''
 Name: WeatherAnywhereScene.py
-Author: John Coomler
+Author: @coomlata1
 
 v1.0: 03/07/2015 to 03/21/2015-Created
 
@@ -23,6 +23,9 @@ necessary.
 v1.5: 12/10/2015-Weather alerts and web view
 weather are now loaded via textview and webview
 subviews that open & close within the ui view.
+
+v1.6: 01/21/2016-Added code to adjust the appearance of data
+based on the screen size, taking advantage of the extra screen real estate provided by the ability to recognize the native screen resolution of your iOS device in Pythonista 2.0.
 
 This version uses api.wunderground.com as the
 source for weather info & icons. The api here
@@ -83,26 +86,35 @@ def get_weather():
   fmt = '{}\n\nWeather information provided by api.wunderground.com'
   forecast = fmt.format(forecast)
   return w, f, weather, forecast
+
 '''
 Function used to compute y coordinates for
 placement of icons and lines on the screen.
 '''
 def format_plot_weather(forecast):
+  # Which iOS device?
+  iP6p = wa.is_iP6p()
   # Variables to aid in plotting coordinates for text & icons
-  wrap_len = 58
+  if iP6p:
+    wrap_len = 75
+    icon_y = [-245]
+    y1_y2 = [-245]
+  else:
+    wrap_len = 58
+    icon_y = [-410]
+    y1_y2 = [-410]
+
   new_line = count = z = blanks = x = 0
   twf = []
   blank_line = []
-  icon_y = [-410]
   section_lines = []
-  y1_y2 = [-410]
 
   forecast = forecast.split('\n')
   # Loop through each forecast line
   for line in forecast:
     # Look for long lines
     if len(line) > wrap_len and line.find('Precip:') == -1:
-      # Estimate how many wrapped lines here
+    # Estimate how many wrapped lines here
       new_line = int((len(line)/wrap_len))
       # Wrap the text
       line = textwrap.fill(line,width = wrap_len)
@@ -161,22 +173,26 @@ def format_plot_weather(forecast):
           section_lines.append(count)
           x += 1
   twf = '\n'.join(twf)
+
   '''
   Replace anchor point y value with y point for the
   icon that goes with the current weather section.
   '''
-  icon_y = [35 if x == -410 else x for x in icon_y]
+  if iP6p:
+    icon_y = [110 if x == -245 else x for x in icon_y]
+  else:
+    icon_y = [35 if x == -410 else x for x in icon_y]
 
   return twf, icon_y, y1_y2
 
 def get_background_color(day):
   color = {1: [.5, .5, .5],   # Medium grey
-           2: [.5, 0, .75],   # Purple
-           3: [.75, 0, 0],    # Light red
-           4: [.8, .52, .25], # Tan
-           5: [0, .5, .5],    # Medium green
-           6: [1, .5, 0],     # Orange
-           7: [.25, .25, 1]}  # Light blue
+  2: [.5, 0, .75],   # Purple
+  3: [.75, 0, 0],    # Light red
+  4: [.8, .52, .25], # Tan
+  5: [0, .5, .5],    # Medium green
+  6: [1, .5, 0],     # Orange
+  7: [.25, .25, 1]}  # Light blue
 
   # Monday is 1, Sunday is 7
   r, g, b = color[day]
@@ -236,13 +252,6 @@ class MyScene(scene.Scene):
     r, g, b = get_background_color(day)
     scene.background(r, g, b)
 
-    # Vertical lines for sides of main border
-    scene.line(-155, y1_y2[7], -155, 240)
-    scene.line(155, y1_y2[7], 155, 240)
-
-    # Horizontal line constants
-    x1 = -155
-    x2 = 155
     '''
     Set text size for best mix of space &
     apperance...all text defaults to white unless
@@ -250,39 +259,61 @@ class MyScene(scene.Scene):
     '''
     font_sz = 10
 
+    x1 = - ((self.size.w / 2) -2) # -205 for iP6p, -158 for iP5
+    x2 = (self.size.w / 2) -2     # 205 for iP6p, 158 for iP5
+
+    # Determine the screen real estate, is it an iPhone 6+ or an older phone
+    iP6p = wa.is_iP6p()
+
+    # If iPhone 6+ or larger...
+    if iP6p:
+      y_anchor = 325
+      l_margin = x1 + 10
+      # 24 hour temps in a 3x8 matrix
+      rows = 3
+      hrs_per_row = 8
+    else:
+      y_anchor = 240
+      l_margin = x1 + 8
+      # 24 hour temps in a 4x6 matrix
+      rows = 4
+      hrs_per_row = 6
+
+    # Vertical lines for sides of main border
+    scene.line(x1, y1_y2[7], x1, y_anchor)
+    scene.line(x2, y1_y2[7], x2, y_anchor)
     # Display city header and info
-    scene.line(x1, 240, x2, 240)
-    scene.text(city_name, font_size = font_sz * 2, x = 0, y = 220, alignment = 5)
-    scene.text(conditions, font_size = font_sz + 4, x = 0, y = 195, alignment = 5)
-    scene.text(temp_now, font_size = font_sz + 4, x = 0, y = 172, alignment = 5)
-
+    scene.line(x1, y_anchor, x2, y_anchor)
+    scene.text(city_name, font_size = font_sz * 2, x = 0, y = y_anchor - 20, alignment = 5)
+    scene.text(conditions, font_size = font_sz + 4, x = 0, y = y_anchor - 45, alignment = 5)
+    scene.text(temp_now, font_size = font_sz + 4, x = 0, y = y_anchor - 68, alignment = 5)
     # Display header box and current conditions
-    scene.line(x1, 155, x2, 155)
-    scene.line(x1, 130, x2, 130)
-    scene.text(w, font_size = font_sz, x = -150, y = 150, alignment = 3)
-
+    scene.line(x1, y_anchor - 85, x2, y_anchor - 85)
+    scene.line(x1, y_anchor - 110, x2, y_anchor - 110)
+    l_margin = x1 + 10
+    scene.text(w, font_size = font_sz, x = l_margin, y = y_anchor - 90, alignment = 3)
     # Display header box for 24 hr forecast
-    scene.line(x1, -40, x2, -40)
-    scene.text('Next 24 Hours:', font_size = font_sz, x = -150, y = -45, alignment = 3)
-
+    scene.line(x1, y_anchor - 280, x2, y_anchor - 280)
+    scene.text('Next 24 Hours:', font_size = font_sz, x = l_margin, y = y_anchor - 285, alignment = 3)
     # Division lines for 24 hr forecast
-    y = -65
-    for i in range(4):
+    # Divide 24 hrs into 'rows' rows of 'hrs_per_row' hrs each
+    y = y_anchor - 305
+    for i in range(int(rows)):
       scene.line(x1, y, x2, y)
       y = y - 80
 
-    # Divide 24 hrs into 4 rows of 6 hrs each
-    x = -205
-    y = -70
+    x = x1 - 45
+    y = y_anchor - 310
     count = 0
     the_x = []
     the_y = []
+
     for i in range(24):
-      # Display six hours per row
-      if count%6 == 0 and count <> 0:
-        x = -205
+      # Display 'hrs_per_row' hours per row
+      if count%int(hrs_per_row) == 0 and count <> 0:
+        x = x1 - 45
         y = y - 80
-      x = x + 55
+      x = x + 53
       # Get coordinates for icon placement
       the_x.append(x - 4)
       the_y.append(y - 55)
@@ -299,19 +330,28 @@ class MyScene(scene.Scene):
         # Reduce icon size for space
         scene.image(image, the_x[i], the_y[i], 30, 30)
 
-    # Display header box for extended forecast
-    scene.line(x1, -385, x2, -385)
-    scene.text('Next 7 Days:', font_size = font_sz, x = -150, y = -390, alignment = 3)
-
-    # Display extended forecast
-    scene.line(x1, -410, x2, -410)
-    scene.text(txt_wrapped_f, font_size = font_sz, x = -150, y = -402, alignment = 3)
+    if iP6p:
+      # Display header box for extended forecast
+      scene.line(x1, y_anchor - 545, x2, y_anchor - 545)
+      scene.text('Next 7 Days:', font_size = font_sz, x = l_margin, y = y_anchor - 550, alignment = 3)
+      # Display extended forecast
+      scene.line(x1, y_anchor - 570, x2, y_anchor - 570)
+      scene.text(txt_wrapped_f, font_size = font_sz, x = l_margin, y = y_anchor - 563, alignment = 3)
+    else:
+      # Display header box for extended forecast
+      scene.line(x1, y_anchor - 625, x2, y_anchor - 625)
+      scene.text('Next 7 Days:', font_size = font_sz, x = l_margin, y = y_anchor - 630, alignment = 3)
+      # Display extended forecast
+      scene.text(txt_wrapped_f, font_size = font_sz, x = l_margin, y = y_anchor - 642, alignment = 3)
 
     # Insert icons into extended forecast
     for i, image in enumerate(self.images):
       if i >= 24:
         # Tweak icon placement a bit more for best appearance
-        scene.image(image, 113, icon_y[i - 24], 40, 40)
+        if iP6p:
+          scene.image(image, 160, icon_y[i - 24], 40, 40)
+        else:
+          scene.image(image, 113, icon_y[i - 24], 40, 40)
 
     # Division lines for days of week
     for i in range(len(y1_y2)):
@@ -365,8 +405,14 @@ class SceneViewer(ui.View):
 
   # Create close button('X') for webview and textview
   def closebutton(self, view):
-    closebutton = ui.Button(frame=(295,0,25,25), bg_color='grey')
-    closebutton.image=ui.Image.named('ionicons-close-round-32')
+    iP6p = wa.is_iP6p()
+    if iP6p:
+      l_pos = 387
+    else:
+      l_pos = 295
+    # Position x button coordinate based on screen size
+    closebutton = ui.Button(frame = (l_pos,0,25,25), bg_color = 'grey')
+    closebutton.image = ui.Image.named('ionicons-close-round-32')
     closebutton.flex = 'bl'
     closebutton.action = self.closeview
     view.add_subview(closebutton)
@@ -402,7 +448,12 @@ class SceneViewer(ui.View):
     tv.text = alerts
     tv.editable = False
     tv.selectable = False
-    tv.font = ('<system>', 9)
+
+    iP6p = wa.is_iP6p()
+    if iP6p:
+      tv.font = ('<system>', 12)
+    else:
+      tv.font = ('<system>', 9)
 
     self.closebutton(tv)
     self.add_subview(tv)
