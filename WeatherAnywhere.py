@@ -1,7 +1,7 @@
 # coding: utf-8
 '''
 Name: WeatherAnywhere.py
-Author: John Coomler
+Author: @coomlata1
 
 v1.0: 02/07/2015 to 02/15/2015-Created.
 
@@ -63,6 +63,11 @@ v2.4: 12/06/2015-Added function to get severe
 weather alerts when necessary. Added code to get
 name & stats for weather station that is reporting.
 
+v2.5: 01/21/2016-Added code to adjust spacing
+in forecast data based on size of display on
+iOS device, thanks to Pythonista 2.0 recognizing
+the native screen resolution of your device. 
+
 This script provides current & multi day weather
 forecasts for any city you name, or coordinates you
 are currently located in, using the api available
@@ -81,13 +86,14 @@ from PIL import Image
 import requests
 import sys
 import webbrowser
+import ui
 
 # Global variables
 icons = []
 weather_icons = []
 missing_icons = []
 icon_path = './icons/'
-api_key = 'Your API key goes here'
+api_key = '8ae9f4b38d9f3a2e'
 
 # Change to 'metric' if desired
 imperial_or_metric = 'imperial'
@@ -95,12 +101,12 @@ imperial_or_metric = 'imperial'
 # Conversion units
 if imperial_or_metric == 'imperial':
   unit = ['f', 'in', 'in', 'in', 'in', 'mph',
-        'fahrenheit', '', 'in', 'english',
-        'mi', 'miles']
+  'fahrenheit', '', 'in', 'english',
+  'mi', 'miles']
 else:
   unit = ['c', 'mb', 'hPa', 'metric', 'mm', 'kph',
-    'celsius', '_metric', 'cm', 'metric',
-    'km', 'kilometers']
+  'celsius', '_metric', 'cm', 'metric',
+  'km', 'kilometers']
 
 def pick_your_weather():
   city = st = zcode = ''
@@ -155,10 +161,16 @@ def city_zips(filename = 'cities.txt'):
     sys.exit('IOError in city_zips(): {}'.format(e))
   if not zips:
     sys.exit('No cities found in: {}'.format(filename))
+    
+  iP6p = is_iP6p()
+  if iP6p:
+    indent = 12
+  else:
+    indent = 7
 
   for i, zcode in enumerate(zips):
     # Align numbers neatly in printed list of cities & states/countries
-    print('{:>7}. {}, {}'.format(i, zcode[0], zcode[1]))
+    print('{:>{}}. {}, {}'.format(i, int(indent), zcode[0], zcode[1]))
 
   while True:
     try:
@@ -270,6 +282,21 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
       sys.exit('IOError in city_zips(): {}'.format(e))
 
   return weather, forecast
+
+# Determine which device by screen size
+def is_iP6p():
+  iP6p = True
+  min_screen_size = min(ui.get_screen_size())
+
+  #print min_screen_size
+  #iphone6 min = 414
+  #iphone6 max = 736
+  #iphone5 min = 320
+  #iphone5 max = 568
+
+  if min_screen_size < 414:
+    iP6p = False
+  return iP6p
 
 # Called from console version only
 def get_console_icons(w, f, icon_path):
@@ -500,7 +527,8 @@ def get_current_weather(w, f):
 
   # Heat Index
   heat_index = current['heat_index_' + unit[0]]
-  heat_index = '{}°{}'.format(heat_index, unit[0].title())
+  if heat_index != 'NA':
+    heat_index = '{}°{}'.format(heat_index, unit[0].title())
   # UV Index
   uv = current['UV']
 
@@ -512,26 +540,36 @@ def get_current_weather(w, f):
   phase = moon['phaseofMoon']
   illum = moon['percentIlluminated']
 
+  # Determine what device we have
+  iP6p = is_iP6p()
+
+  # Set distance between current weather data based on size of dispaly
+  if iP6p:
+    spaces = 12
+  else:
+    spaces = 6
+
   # Text to display in console or scene
   return('''Now...{0}:
-\nToday's Forecast: High: {1}    Low: {2}
-Today's Averages: High: {3}    Low: {4}
-Today's Records: High: {5} [{6}]    Low: {7} [{8}]
+  \nToday's Forecast: High: {1}{32}Low: {2}
+Today's Averages: High: {3}{32}Low: {4}
+Today's Records: High: {5} [{6}]{32}Low: {7} [{8}]
 Reporting Station: {9}
-Lat: {10}     Lon: {11}     Elevation: {12}
-Humidity: {13}     Dew Point: {14}
+Lat: {10}{32}Lon: {11}{32}Elevation: {12}
+Humidity: {13}{32}Dew Point: {14}
 Barometric Pressure: {15}
 Wind: {16}
 Feels Like: {17}
-Precipitation: {18}    Average: {19}    Range: {20} to {21}
-Visibility: {22}     Cloud Cover: {23}%
-Heat Index: {24}    UV Index: {25}
-Sunrise: {26}      Sunset: {27}      Length Of Day: {28}
-Moon Age: {29} days     Phase: {30}     Illuminated: {31}%
-'''.format(forecast_time, h_temp, l_temp, avg_high, avg_low, record_high, record_high_year, record_low, record_low_year, w_station, lat, lon, elevation, humidity, dew_point, pressure, wind, feels_like, precip, precip_avg, precip_min, precip_max, visibility, clouds, heat_index, uv, sunrise, sunset, length_of_day, age, phase, illum, **w))
+Precipitation: {18}{32}Average: {19}{32}Range: {20} to {21}
+Visibility: {22}{32}Cloud Cover: {23}%
+Heat Index: {24}{32}UV Index: {25}
+Sunrise: {26}{32}Sunset: {27}{32}Length Of Day: {28}
+Moon Age: {29} days{32}Phase: {30}{32}Illuminated: {31}%
+'''.format(forecast_time, h_temp, l_temp, avg_high, avg_low, record_high, record_high_year, record_low, record_low_year, w_station, lat, lon, elevation, humidity, dew_point, pressure, wind, feels_like, precip, precip_avg, precip_min, precip_max, visibility, clouds, heat_index, uv, sunrise, sunset, length_of_day, age, phase, illum, (' ' * int(spaces)), **w))
 
 def get_extended_forecast(w, f):
   ef = []
+
   '''
   Query yields 10 days of weather, but 10 days
   won't display in scene. Last few days are
@@ -546,6 +584,17 @@ def get_extended_forecast(w, f):
 
   simple_f = f['forecast']['simpleforecast']['forecastday']
   txt_f = f['forecast']['txt_forecast']['forecastday']
+
+  # Determine what device we have
+  iP6p = is_iP6p()
+  if iP6p:
+    day_header_spaces = 32
+    night_header_spaces = 24
+    pop_spaces = 30
+  else:
+    day_header_spaces = 17
+    night_header_spaces = 9
+    pop_spaces = 15
 
   for i in range(day_count):
     # Get forecast timestamp & reformat
@@ -564,8 +613,9 @@ def get_extended_forecast(w, f):
       # Get high temp
       temp = 'High: {}° {}'.format(simple_f[i/2]['high'][unit[6]], unit[0].title())
 
-      # Add date, 17 spaces, & high temp to day header
-      title = '{} {}{}{}'.format(title, the_date, (' ' * 17), temp)
+      # Add date, spaces, & high temp to day header
+      title = '{} {}{}{}'.format(title, the_date, (' ' * int(day_header_spaces)), temp)
+
     else:
       # Abbreviate day of week & add 'Night' back to night header
       title = '{} Night'.format(title[:3])
@@ -573,18 +623,18 @@ def get_extended_forecast(w, f):
       # Get low temp
       temp = 'Low: {}° {}'.format(simple_f[i/2]['low'][unit[6]], unit[0].title())
       '''
-      Add date, 9 spaces, & low temp to night
+      Add date, spaces, & low temp to night
       header. Now we have even spacial appearance
       between day & night.
       '''
-      title = '{} {}{}{}'.format(title, the_date, (' ' *9), temp)
+      title = '{} {}{}{}'.format(title, the_date, (' ' *int(night_header_spaces)), temp)
 
     # Get percent of precip
     pop = txt_f[i]['pop']
 
-    # If pop, add 15 more spaces & display it on either header
+    # If pop, add more spaces & display it on either header
     if pop <> '0':
-      ef.append('\n{}{}Precip: {}%'.format(title, (' ' *15), pop))
+      ef.append('\n{}{}Precip: {}%'.format(title, (' ' *int(pop_spaces)), pop))
     else:
       ef.append('\n{}'.format(title))
 
