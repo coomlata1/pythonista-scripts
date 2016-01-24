@@ -25,7 +25,10 @@ weather are now loaded via textview and webview
 subviews that open & close within the ui view.
 
 v1.6: 01/21/2016-Added code to adjust the appearance
-of data based on the screen size, taking advantage of the extra screen real estate provided by the ability to recognize the native screen resolution of your iOS device in Pythonista 2.0.
+of data based on the screen size, taking advantage
+of the extra screen real estate provided by the
+ability to recognize the native screen resolution
+of your iOS device in Pythonista 2.0.
 
 This version uses api.wunderground.com as the
 source for weather info & icons. The api here
