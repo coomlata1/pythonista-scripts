@@ -36,6 +36,10 @@ v1.9: 01/01/2016-Resize photo before geo-tag stamp
 rather than after, for more consistent placement &
 font size for tag.
 
+v2.0: 01/22/2016-Added code to disable auto timer
+to prevent script from stalling on large photo transfers.
+Inspiration for this comes from @cclauss.
+
 This Pythonista script will RESIZE,
 RENAME, GEO-TAG & UPLOAD all selected
 photos in the iPhone camera roll to new
@@ -90,7 +94,7 @@ no_gps = []
 resizeOk = True
 
 # Set this flag to false to resize photos without the metadata
-keepMeta = True
+#keepMeta = True
 
 # Set this flag to false to not stamp geo tags on photos
 geoTag = True
@@ -252,6 +256,10 @@ def Timer(start, end, count):
 
 def main():
   console.clear()
+  
+  # Disable idle timer to cover working with a large batch of photos
+  console.set_idle_timer_disabled(True)
+  
   try:
     '''
     Here we are picking photos from the
@@ -286,6 +294,9 @@ def main():
       scale = 1
   except (IndexError, ValueError):
     sys.exit('No valid entry...Process cancelled.')
+  
+  # Set this flag to false to resize photos without the metadata
+  keepMeta = True 
 
   start = time.clock()
 
@@ -319,6 +330,7 @@ def main():
     else:
       folder_name = 'NoDates'
       new_filename = old_filename
+      keepMeta = False
 
     new_filename = '{}/{}/{}'.format(dest_dir, folder_name, new_filename)
 
