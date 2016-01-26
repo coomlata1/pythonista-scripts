@@ -30,6 +30,12 @@ of the extra screen real estate provided by the
 ability to recognize the native screen resolution
 of your iOS device in Pythonista 2.0.
 
+v1.7: 01/25/2016-Added code to make this script
+backward compatible with Pythonista 1.5. Thanks
+to @cclauss for function to determine Pythonista
+version available at 'https://github.com/cclauss
+/Ten-lines-or-less/blob/master/pythonista_version.py'
+
 This version uses api.wunderground.com as the
 source for weather info & icons. The api here
 yields forecasts that contain a wealth of info
@@ -95,10 +101,11 @@ Function used to compute y coordinates for
 placement of icons and lines on the screen.
 '''
 def format_plot_weather(forecast):
-  # Which iOS device?
-  iP6p = wa.is_iP6p()
-  # Variables to aid in plotting coordinates for text & icons
-  if iP6p:
+  '''
+  If this is Pythonista 2, and an iPhone 6+ or better there is more screen to work with, as Pythonista recognizes the native screen eesolutions of the iOS device being used.
+  '''
+  if wa.pythonista_version()[:1] == '2' and wa.is_iP6p():
+    # Variables to aid in plotting coordinates for text & icons
     wrap_len = 75
     icon_y = [-245]
     y1_y2 = [-245]
@@ -181,7 +188,7 @@ def format_plot_weather(forecast):
   Replace anchor point y value with y point for the
   icon that goes with the current weather section.
   '''
-  if iP6p:
+  if wa.pythonista_version()[:1] == '2' and wa.is_iP6p():
     icon_y = [110 if x == -245 else x for x in icon_y]
   else:
     icon_y = [35 if x == -410 else x for x in icon_y]
@@ -265,11 +272,8 @@ class MyScene(scene.Scene):
     x1 = - ((self.size.w / 2) -2) # -205 for iP6p, -158 for iP5
     x2 = (self.size.w / 2) -2     # 205 for iP6p, 158 for iP5
 
-    # Determine the screen real estate, is it an iPhone 6+ or an older phone
-    iP6p = wa.is_iP6p()
-
-    # If iPhone 6+ or larger...
-    if iP6p:
+    # If Pythonista 2 & iPhone 6+ or larger...
+    if wa.pythonista_version()[:1] == '2' and wa.is_iP6p():
       y_anchor = 325
       l_margin = x1 + 10
       # 24 hour temps in a 3x8 matrix
@@ -333,7 +337,7 @@ class MyScene(scene.Scene):
         # Reduce icon size for space
         scene.image(image, the_x[i], the_y[i], 30, 30)
 
-    if iP6p:
+    if wa.pythonista_version()[:1] == '2' and wa.is_iP6p():
       # Display header box for extended forecast
       scene.line(x1, y_anchor - 545, x2, y_anchor - 545)
       scene.text('Next 7 Days:', font_size = font_sz, x = l_margin, y = y_anchor - 550, alignment = 3)
@@ -345,13 +349,14 @@ class MyScene(scene.Scene):
       scene.line(x1, y_anchor - 625, x2, y_anchor - 625)
       scene.text('Next 7 Days:', font_size = font_sz, x = l_margin, y = y_anchor - 630, alignment = 3)
       # Display extended forecast
-      scene.text(txt_wrapped_f, font_size = font_sz, x = l_margin, y = y_anchor - 642, alignment = 3)
+      scene.line(x1, y_anchor - 650, x2, y_anchor - 650)
+      scene.text(txt_wrapped_f, font_size = font_sz, x = l_margin, y = y_anchor - 643, alignment = 3)
 
     # Insert icons into extended forecast
     for i, image in enumerate(self.images):
       if i >= 24:
         # Tweak icon placement a bit more for best appearance
-        if iP6p:
+        if wa.pythonista_version()[:1] == '2' and wa.is_iP6p():
           scene.image(image, 160, icon_y[i - 24], 40, 40)
         else:
           scene.image(image, 113, icon_y[i - 24], 40, 40)
@@ -408,8 +413,7 @@ class SceneViewer(ui.View):
 
   # Create close button('X') for webview and textview
   def closebutton(self, view):
-    iP6p = wa.is_iP6p()
-    if iP6p:
+    if wa.pythonista_version()[:1] == '2' and wa.is_iP6p():
       l_pos = 387
     else:
       l_pos = 295
@@ -452,8 +456,7 @@ class SceneViewer(ui.View):
     tv.editable = False
     tv.selectable = False
 
-    iP6p = wa.is_iP6p()
-    if iP6p:
+    if wa.pythonista_version()[:1] == '2' and wa.is_iP6p():
       tv.font = ('<system>', 12)
     else:
       tv.font = ('<system>', 9)
