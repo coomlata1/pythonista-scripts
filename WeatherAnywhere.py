@@ -66,7 +66,13 @@ name & stats for weather station that is reporting.
 v2.5: 01/21/2016-Added code to adjust spacing
 in forecast data based on size of display on
 iOS device, thanks to Pythonista 2.0 recognizing
-the native screen resolution of your device. 
+the native screen resolution of your device.
+
+v2.6: 01/25/2016-Added code to make this script
+backward compatible with Pythonista 1.5. Thanks
+to @cclauss for function to determine Pythonista
+version available at 'https://github.com/cclauss
+/Ten-lines-or-less/blob/master/pythonista_version.py'
 
 This script provides current & multi day weather
 forecasts for any city you name, or coordinates you
@@ -87,6 +93,8 @@ import requests
 import sys
 import webbrowser
 import ui
+import os
+import plistlib
 
 # Global variables
 icons = []
@@ -107,6 +115,25 @@ else:
   unit = ['c', 'mb', 'hPa', 'metric', 'mm', 'kph',
   'celsius', '_metric', 'cm', 'metric',
   'km', 'kilometers']
+
+def pythonista_version():  # 2.0.1 (201000)
+  plist = plistlib.readPlist(os.path.abspath(os.path.join(sys.executable, '..', 'Info.plist')))
+  return '{CFBundleShortVersionString} ({CFBundleVersion})'.format(**plist)
+  
+# Determine which device by screen size
+def is_iP6p():
+  iP6p = True
+  min_screen_size = min(ui.get_screen_size())
+
+  #print min_screen_size
+  #iphone6 min = 414
+  #iphone6 max = 736
+  #iphone5 min = 320
+  #iphone5 max = 568
+
+  if min_screen_size < 414:
+    iP6p = False
+  return iP6p
 
 def pick_your_weather():
   city = st = zcode = ''
@@ -162,8 +189,10 @@ def city_zips(filename = 'cities.txt'):
   if not zips:
     sys.exit('No cities found in: {}'.format(filename))
     
-  iP6p = is_iP6p()
-  if iP6p:
+  '''
+  If this is Pythonista 2, and an iPhone 6+ or better there is more screen to work with, as Pythonista recognizes the native screen eesolutions of the iOS device being used.
+  '''
+  if pythonista_version()[:1] == '2' and is_iP6p():
     indent = 12
   else:
     indent = 7
@@ -282,21 +311,6 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
       sys.exit('IOError in city_zips(): {}'.format(e))
 
   return weather, forecast
-
-# Determine which device by screen size
-def is_iP6p():
-  iP6p = True
-  min_screen_size = min(ui.get_screen_size())
-
-  #print min_screen_size
-  #iphone6 min = 414
-  #iphone6 max = 736
-  #iphone5 min = 320
-  #iphone5 max = 568
-
-  if min_screen_size < 414:
-    iP6p = False
-  return iP6p
 
 # Called from console version only
 def get_console_icons(w, f, icon_path):
@@ -539,12 +553,10 @@ def get_current_weather(w, f):
   age = moon['ageOfMoon']
   phase = moon['phaseofMoon']
   illum = moon['percentIlluminated']
-
-  # Determine what device we have
-  iP6p = is_iP6p()
-
-  # Set distance between current weather data based on size of dispaly
-  if iP6p:
+  '''
+  If this is Pythonista 2, and an iPhone 6+ or better there is more screen to work with, as Pythonista recognizes the native screen eesolutions of the iOS device being used.
+  '''
+  if pythonista_version()[:1] == '2' and is_iP6p():
     spaces = 12
   else:
     spaces = 6
@@ -585,9 +597,10 @@ def get_extended_forecast(w, f):
   simple_f = f['forecast']['simpleforecast']['forecastday']
   txt_f = f['forecast']['txt_forecast']['forecastday']
 
-  # Determine what device we have
-  iP6p = is_iP6p()
-  if iP6p:
+  '''
+  If this is Pythonista 2, and an iPhone 6+ or better there is more screen to work with, as Pythonista recognizes the native screen eesolutions of the iOS device being used.
+  '''
+  if pythonista_version()[:1] == '2' and is_iP6p():
     day_header_spaces = 32
     night_header_spaces = 24
     pop_spaces = 30
