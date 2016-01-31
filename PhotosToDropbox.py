@@ -41,8 +41,8 @@ to prevent script from stalling on large photo transfers.
 Inspiration for this comes from @cclauss.
 
 v2.1: 01/30/2016-Added code and a pyui file to support
-the selection of sizing, geotag, and metadata options
-via a form. 
+the selection of dropbox photo directory, sizing, geotag,
+and metadata options via a form.
 
 This Pythonista script will RESIZE,
 RENAME, GEO-TAG & UPLOAD all selected
@@ -279,7 +279,7 @@ def Timer(start, end, count):
 
   return time
 
-def main(choose, keepMeta, geoTag, size):
+def main(choose, keepMeta, geoTag, dest_dir, size):
   minumum_size = True
   resizePercent = 0
   
@@ -307,7 +307,6 @@ def main(choose, keepMeta, geoTag, size):
   drop_client = get_client()
 
   ans = ''
-  dest_dir = '/Photos'
   '''
   When metadata is returned with photo
   the photo is a tuple, with one the
@@ -519,6 +518,14 @@ if __name__ == '__main__':
   # Get option choices for keeping metadata and geotagging photos
   meta = meta.value
   geo = geo.value
+  dest_dir = v['photo_dir'].text
+  
+  # Go with default if textbox is blank
+  if len(dest_dir) == 0:
+    dest_dir = '/Photos'
+  # Check syntax
+  elif dest_dir[:1] != '/':
+    dest_dir = '/' + dest_dir
   
   # If user pressed the close button then cancel script
   if fifty == custom == none == False:
@@ -531,4 +538,4 @@ if __name__ == '__main__':
   elif none:
     size = 'none'
   
-  main(choose, meta, geo, size)
+  main(choose, meta, geo, dest_dir, size)
