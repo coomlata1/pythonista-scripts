@@ -60,8 +60,8 @@
           "text" : "Reduce the selected photo(s) by what percent of their original size?",
           "alignment" : "center",
           "class" : "Label",
-          "font_size" : 18,
-          "name" : "label1"
+          "name" : "label1",
+          "font_size" : 18
         }
       },
       {
@@ -73,13 +73,13 @@
         ],
         "attributes" : {
           "flex" : "HLRTB",
-          "name" : "label2",
+          "font_size" : 18,
           "frame" : "{{45, 104}, {150, 32}}",
           "uuid" : "35057A74-EF43-4D3B-AB85-2D1ECC4F256B",
           "text" : "Keep Metadata:",
           "alignment" : "left",
           "class" : "Label",
-          "font_size" : 18,
+          "name" : "label2",
           "font_name" : "<System>"
         }
       },
@@ -109,13 +109,13 @@
         ],
         "attributes" : {
           "flex" : "HLRTB",
-          "name" : "label3",
+          "font_size" : 18,
           "frame" : "{{45, 104}, {150, 32}}",
           "uuid" : "DF8A7BD2-1CEE-4F22-9521-D16F9E325807",
           "text" : "Geotag Photos:",
           "alignment" : "left",
           "class" : "Label",
-          "font_size" : 18,
+          "name" : "label3",
           "font_name" : "<System>"
         }
       },
@@ -134,8 +134,8 @@
           "text" : "Options:",
           "alignment" : "left",
           "class" : "Label",
-          "name" : "label4",
-          "font_size" : 18
+          "font_size" : 18,
+          "name" : "label4"
         }
       },
       {
@@ -185,8 +185,8 @@
         }
       },
       {
-        "selected" : true,
-        "frame" : "{{205, 107}, {115, 37}}",
+        "selected" : false,
+        "frame" : "{{251, 107}, {104, 37}}",
         "class" : "TextField",
         "nodes" : [
 
@@ -212,32 +212,31 @@
       },
       {
         "selected" : false,
-        "frame" : "{{99, 107}, {98, 37}}",
+        "frame" : "{{99, 107}, {150, 37}}",
         "class" : "Label",
         "nodes" : [
 
         ],
         "attributes" : {
           "flex" : "HLRTB",
-          "name" : "label5",
+          "font_size" : 18,
           "frame" : "{{131, 304}, {150, 32}}",
           "uuid" : "3F2BB4B5-C85D-465B-A020-A59CFDBE0A5D",
           "text" : "Photo Dir:",
           "alignment" : "left",
           "class" : "Label",
-          "font_size" : 18,
+          "name" : "label5",
           "font_name" : "<System>"
         }
       }
     ],
     "attributes" : {
-      "tint_color" : "RGBA(0.000000,0.478000,1.000000,1.000000)",
-      "enabled" : true,
       "border_color" : "RGBA(0.000000,0.000000,0.000000,1.000000)",
+      "enabled" : true,
       "background_color" : "RGBA(1.000000,1.000000,1.000000,1.000000)",
+      "tint_color" : "RGBA(0.000000,0.478000,1.000000,1.000000)",
       "name" : "PhotosToDropbox",
       "flex" : ""
     }
   }
 ]
- 
