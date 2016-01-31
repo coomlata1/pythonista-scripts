@@ -40,6 +40,10 @@ v2.0: 01/22/2016-Added code to disable auto timer
 to prevent script from stalling on large photo transfers.
 Inspiration for this comes from @cclauss.
 
+v2.1: 01/30/2016-Added code and a pyui file to support
+the selection of sizing, geotag, and metadata options
+via a form. 
+
 This Pythonista script will RESIZE,
 RENAME, GEO-TAG & UPLOAD all selected
 photos in the iPhone camera roll to new
@@ -84,6 +88,12 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 from DropboxLogin import get_client
+import ui
+
+# Global variables for pyui file
+global fifty
+global custom
+global none
 
 # Global arrays for photos that will require manual processing
 no_exif = []
@@ -92,13 +102,25 @@ no_gps = []
 
 # Global processing flags
 resizeOk = True
+minumum_size = True
+resizePercent = 0
 
-# Set this flag to false to resize photos without the metadata
-#keepMeta = True
-
-# Set this flag to false to not stamp geo tags on photos
-geoTag = True
-
+def button_tapped(sender):
+  '@type sender: ui.Button'
+  global fifty
+  global custom
+  global none
+  
+  if sender.name == 'fifty':
+    fifty = True
+    v.close()
+  if sender.name == 'custom':
+    custom = True
+    v.close()
+  if sender.name == 'none':
+    none = True
+    v.close()
+  
 def GetDateTime(meta):
   # The defaults
   theYear = theDate = theTime = ''
@@ -216,7 +238,10 @@ def GetLocation(meta):
       city = results['City']
     except KeyError:
       city = ''
-    state = results['State']
+    try:
+      state = results['State']
+    except KeyError:
+      state = ''
     try:
       zipcode = results['ZIP']
     except KeyError:
@@ -254,50 +279,28 @@ def Timer(start, end, count):
 
   return time
 
-def main():
-  console.clear()
+def main(choose, keepMeta, geoTag, size):
+  minumum_size = True
+  resizePercent = 0
+  
+  if size == 'fifty':
+    scale = float(50) / 100
+  elif size == 'custom':
+    msg = 'Enter desired reduction percent for selected photo(s): '
+    try:
+      scale = float(console.input_alert(msg,'Numbers only','35')) / 100
+      # No minumums here...reduce all photos no matter what their size.
+      minumum_size = False
+    except KeyboardInterrupt:
+      sys.exit('Script cancelled.')
+  elif size == 'none':
+    scale = 1
+
+  #john = dialogs.form_dialog(title = 'Photo Options',fields=[{'type':'switch','title':'Geotag'}, {'type':'switch','title':'Keep Metadata'}])
   
   # Disable idle timer to cover working with a large batch of photos
   console.set_idle_timer_disabled(True)
   
-  try:
-    '''
-    Here we are picking photos from the
-    camera roll which, in Pythonista,
-    allows us access to extra media data
-    in photo's metafile. Because raw data
-    is set to true, the image is a string
-    representing the image object, not the
-    object itself.
-    '''
-    choose = photos.pick_image(show_albums = True, multi = True, original = True, raw_data = True,  include_metadata = True)
-  except:
-    sys.exit('No photos choosen...exiting.')
-
-  minumum_size = True
-  resizePercent = 0
-
-  # Pick a scaling percent for selected photo(s)
-  try:
-    ans = console.alert('Reduce the selected photo(s) by what percent of their original size?', '', '50% with a 1600x1200 minumum', 'Custom without a minumum', 'None')
-
-    if ans == 1:
-      scale = float(50) / 100
-    elif ans == 2:
-      msg = 'Enter desired reduction percent for selected photo(s): '
-      scale = float(console.input_alert(msg,'Numbers only','35')) / 100
-
-      # No minumums here...reduce all photos no matter what their size.
-      minumum_size = False
-    elif ans == 3:
-      # Don't resize
-      scale = 1
-  except (IndexError, ValueError):
-    sys.exit('No valid entry...Process cancelled.')
-  
-  # Set this flag to false to resize photos without the metadata
-  keepMeta = True 
-
   start = time.clock()
 
   # Create an instance of Dropbox client
@@ -311,13 +314,13 @@ def main():
   image, and the other the media
   metadata.
   '''
-  for count,photo in enumerate(choose):
-    print '\nProcessing photo...'
+  for count, photo in enumerate(choose):
     # Raw data string and Metadata
     img, meta = photo
     #print meta
     #sys.exit()
-
+    
+    print '\nProcessing photo...'
     # Get date & time photo was taken
     theYear, theDate, theTime = GetDateTime(meta)
 
@@ -367,7 +370,7 @@ def main():
     if geoTag:
       # Get geo-tagging info
       theLocation = GetLocation(meta)
-
+      
       if theLocation:
         print '\nGeo-tagging photo...'
 
@@ -468,4 +471,64 @@ def main():
     print '\n'.join(no_gps)
 
 if __name__ == '__main__':
-  main()
+  console.clear()
+  # Make sure photos are available...
+  if photos.get_count() != 0:
+    '''
+    Here we are picking photos from the
+    camera roll which, in Pythonista,
+    allows us access to extra media data
+    in photo's metafile. Because raw data
+    is set to true, the image is a string
+    representing the image object, not the
+    object itself.
+    '''
+    choose = photos.pick_image(show_albums = True, multi = True, original = True, raw_data = True,  include_metadata = True)
+  else:
+    sys.exit('No photos available.')
+  
+  photo_count = 0
+  
+  for count, photo in enumerate(choose):
+    # Make sure a photo has been selected...Test first photo
+    if photo_count < 1:
+      try:
+        # Raw data string and Metadata
+        img, meta = photo
+        # Increment counter
+        photo_count = photo_count + 1
+      # if we get an error there was no photo to test
+      except TypeError:
+        sys.exit('No photos selected.')
+
+  # Default pic sizes
+  fifty = False
+  custom = False
+  none = False
+  
+  # Load pyui file
+  v = ui.load_view('PhotosToDropbox')
+
+  meta = v['toggle_meta']
+  geo = v['toggle_geotag']
+  
+  # Display ui and wait till user selects something from it
+  v.present()
+  v.wait_modal()
+
+  # Get option choices for keeping metadata and geotagging photos
+  meta = meta.value
+  geo = geo.value
+  
+  # If user pressed the close button then cancel script
+  if fifty == custom == none == False:
+    sys.exit('Script Cancelled')
+  # Otherwise store resizing choice in a variable to pass to main()
+  elif fifty:
+    size = 'fifty'
+  elif custom:
+    size = 'custom'
+  elif none:
+    size = 'none'
+  
+  main(choose, meta, geo, size)
