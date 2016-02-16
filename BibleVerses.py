@@ -98,7 +98,16 @@ def passage_query(ref, version):
   return t
 
 def check_book(ref, err):
-  books = ['1 Chronicles', '1 Corinthians', '1 John', '1 Kings', '1 Peter', '1 Samuel', '1 Thessalonians', '1 Timothy', '2 Chronicles', '2 Corinthians', '2 John', '2 Kings', '2 Peter', '2 Samuel', '2 Thessalonians', '2 Timothy', '3 John', 'Acts', 'Amos', 'Colossians', 'Daniel', 'Deuteronomy', 'Ecclesiastes', 'Ephesians', 'Esther', 'Exodus', 'Ezekiel', 'Ezra' 'Galatians', 'Genesis', 'Habakkuk', 'Haggai', 'Hebrews', 'Hosea', 'Isaiah', 'James', 'Jeremiah', 'Job', 'Joel', 'John', 'Jonah', 'Joshua', 'Jude', 'Judges', 'Lamentations', 'Leviticus', 'Luke', 'Malachi', 'Mark', 'Matthew', 'Micah', 'Nahum', 'Nehemiah', 'Numbers', 'Obadiah', 'Philemon', 'Philippians', 'Proverbs', 'Psalms', 'Revelation', 'Romans', 'Ruth', 'Song of Solomon', 'Titus', 'Zechariah', 'Zephaniah']
+  books = ['1 Chronicles', '1 Corinthians', '1 John', '1 Kings', '1 Peter',
+'1 Samuel', '1 Thessalonians', '1 Timothy', '2 Chronicles', '2 Corinthians',
+'2 John', '2 Kings', '2 Peter', '2 Samuel', '2 Thessalonians', '2 Timothy',
+'3 John', 'Acts', 'Amos', 'Colossians', 'Daniel', 'Deuteronomy', 'Ecclesiastes',
+'Ephesians', 'Esther', 'Exodus', 'Ezekiel', 'Ezra' 'Galatians', 'Genesis',
+'Habakkuk', 'Haggai', 'Hebrews', 'Hosea', 'Isaiah', 'James', 'Jeremiah', 'Job',
+'Joel', 'John', 'Jonah', 'Joshua', 'Jude', 'Judges', 'Lamentations', 'Leviticus',
+'Luke', 'Malachi', 'Mark', 'Matthew', 'Micah', 'Nahum', 'Nehemiah', 'Numbers',
+'Obadiah', 'Philemon', 'Philippians', 'Proverbs', 'Psalms', 'Revelation',
+'Romans', 'Ruth', 'Song of Solomon', 'Titus', 'Zechariah', 'Zephaniah']
 
   book = ''
 
@@ -133,12 +142,10 @@ def check_book(ref, err):
 
   verses = ref[pos + 1:].strip().replace(' ','')
 
-  # If verse has no colon,
-  if verses.find(':') == -1:
-    # but contains a dash...
-    if verses.find('-') != -1:
-      # Syntax error
-      err = True
+  # If verse has no colon, but contains a dash...
+  if not ':' in verses and '-' in verses:
+    # Syntax error
+    err = True
 
   if not err:
     # Add unwhitened book & verses back to ref
@@ -151,19 +158,19 @@ def replace_all(t, dic):
   return t
 
 def cleanup(t, ref, version):
-  if ref.find(':') != -1:
+  if ':' in ref:
     verses_in_ref = True
     # Chapter number is between space and colon
     chapter = ref[ref.find(' ') + 1:ref.find(':')]
     # If comma(s) in ref
-    if ref.find(',') != -1:
+    if ',' in ref:
       # First passage is between colon & 1st comma
       fp = ref[ref.find(':') + 1:ref.find(',')].strip()
       # Last passage is between last comma and end
       lp = ref[ref.rfind(',', 0, len(ref)) + 1:].strip()
 
       # If dash in first passage
-      if fp.find('-') != -1:
+      if '-' in fp:
         # First verse between colon & dash
         first_verse = fp[fp.find(':') + 1:fp.find('-')].strip()
       else:
