@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 # Name: Search IMDB.py
 # Author: John Coomler
 # v1.0: 11/18/2014-Created
@@ -20,6 +20,19 @@
 # more code tightening & cleanup.
 # v2.3: 04/15/2015-More code cleanup &
 # readability improvements from @cclauss
+# v2.4: 04/24/2015-Code changes, courtesy
+# @cclauss, including print as a function
+# and naming convention improvements to
+# get ready for Python 3.
+# v2.5: 07/07/2015-Added code to input year of
+# release.
+# v2.6: 07/14/2015-Added code to allow user
+# a choice of apps to send the query results to.
+# Choices include 1Writer, Editorial, DayOne, and
+# Drafts using URL schemes.
+# v2.7: 11/15/2015-Added code to strip out any
+# unicode characters in the names of directors &
+# actors before querying the names for an Imdb id.
 '''
 This Pythonista script uses the api
 available at www.omdbapi.com to search
@@ -51,17 +64,22 @@ stars, and poster all appear in hypertext
 with a direct link to the IMDB database if
 more info is desired.
 '''
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 import clipboard
 import console
 import requests
 import sys
+import urllib
+import re
+import unicodedata
+import webbrowser
 
 # Initialize global variables
 d = ''
-url_fmt = 'http://www.omdbapi.com/?{}={}&y=&plot=full&tomatoes=true&r=json'
+url_fmt = 'http://www.omdbapi.com/?{}={}&y={}&plot=full&tomatoes=true&r=json'
 
 # Function that returns a query to IMDB database
-def queryData(url):
+def query_data(url):
   return requests.get(url).json()
 
 '''
@@ -69,53 +87,60 @@ Function that returns a Markdown list of
 names(actors & directors) listed in query.
 '''
 def names_md(names):
-  fmt = '[{}](http://www.imdb.com/name/{})'
+  fmt = '[{}](http://www.imdb.com/{})'
   return ', '.join(fmt.format(name.strip(),
     get_imdbID_name(name.strip())) for name in names)
 
 '''
-Function to return the IMDB id number of a
-director or actors name
+Function to return the IMDB id number for a
+director's or actor's name
 '''
 def get_imdbID_name(name):
-  url = 'http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=' + name.replace(' ', '+')
-  d = queryData(url)
-  #print ''
-  #print d
-
+  new_name = name
+  # Remove any unicode (non-ascii) characters in name(ie Téa Leoni->Tea Leoni).
+  if len(re.sub('[ -~]', '', name)) != 0:
+    new_name = unicodedata.normalize('NFD', u'{}'.format(name)).encode('ascii', 'ignore')
+  # Remove apostrophe in a name(ie Jack O'Connell from the movie 'Unbroken').
+  if name.find("'") != -1:
+    new_name = name.replace("'", "")
+  '''
+  Run query on names with any unicode characters &
+  apostrophies removed. Querying data with names
+  containing them will return false id numbers.
+  '''
+  url = 'http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q={}'.format(new_name.replace(' ', '+'))
+  #print(url)
+  d = query_data(url)
+  #print(d)
   try:
     '''
     If 'name_popular' does not appear in
     query results then error will cause a
-    jump to the except to try for
+    jump to the exception to try for
     'name_exact' and so on down the line
     '''
     name_id = d['name_popular'][0]['id']
-    '''
-    If we get hit but it doesn't match
-    name we want then raise an error to
-    try 'name_exact'' and so on down the
-    line
-    '''
-    # Take care of apostrophe in a name, like "Jack O'Donnell"
-    if d['name_popular'][0]['name'].replace('&#x27;',"'") != name:
-      raise Exception
-    #print '{} popular'.format(name)
+    #print('{} popular'.format(name))
   except:
     try:
       name_id = d['name_exact'][0]['id']
-      if d['name_exact'][0]['name'].replace('&#x27;',"'") != name:
-        raise Exception
-      #print '{} exact'.format(name)
+      #print('{} exact'.format(name))
     except:
       try:
         name_id = d['name_approx'][0]['id']
-        #print '{} approx'.format(name)
+        #print('{} approx'.format(name))
       except KeyError:
-        print '{} name not found'.format(name)
+        print('\nAn Imdb id for {} was not found.'.format(name))
         name_id = ''
         pass
-  #print '{} IMDB Id: {}'.format(name, name_id)
+
+  # If no id returned then return text for a url to run a general query on name...
+  if len(name_id) == 0:
+    name_id = 'find?ref_=nv_sr_fn&q={}&s=all'.format(name.replace(' ', '+'))
+  else:
+    # Otherwise return text for a url to query on actual id.
+    print('\nName:{} Id:{} found.'.format(name, name_id))
+    name_id = 'name/{}'.format(name_id)
   return name_id
 
 # Strip out lines containing '(N/A)'
@@ -164,7 +189,7 @@ those results for copying to the
 clipboard.
 '''
 def mine_md_data(d):
-  print '\nGathering director & actor ids for MarkDown text on clipboard'
+  print('\nGathering director & actor ids for MarkDown text.\n\n')
   d['Director'] = names_md(d['Director'].split(','))
   d['Actors']   = names_md(d['Actors'].split(','))
 
@@ -196,12 +221,13 @@ title choices if not satisfied with
 results of 1st query & returns the IMDB id
 for the movie title chosen.
 '''
-def listData(d):
-  #print d
+def list_data(d):
+  #print(d)
   #sys.exit()
 
   the_films = []
   the_ids = []
+  film_id = None
 
   # Loop through list of titles and append all but episodes to film array
   for title in d['Search']:
@@ -213,7 +239,7 @@ def listData(d):
   while True:
     # Print out a new list of film choices
     for index, item in enumerate(the_films):
-      print index, item
+      print(index, item)
     try:
       '''
       Number of film selected will
@@ -232,21 +258,77 @@ def listData(d):
   # Return the film's imdbID to the caller
   return film_id
 
-def main(args):
+'''
+Function to allow a choice of apps for sending the
+query results to.
+'''
+def get_app():
+  the_apps = ['DayOne', 'Drafts4', 'Editorial', '1Writer', 'Clipboard']
+
+  while True:
+    # Print out list of app choices
+    for index, item in enumerate(the_apps):
+      print(index, item)
+
+    try:
+      '''
+      Number of app selected will
+      match the  index number of that
+      app in the_apps array.
+      '''
+      idx = int(raw_input("\nEnter the number of your desired app for query output: ").strip())
+      the_app = the_apps[idx]
+      break
+    except (IndexError, ValueError):
+      choice = raw_input('\nInvalid entry...Continue? (y/n): ').strip().lower()
+      if not choice.startswith('y'):
+        sys.exit('Process cancelled...Goodbye')
+  return the_app
+
+'''
+Function to return a url cmd to send query results
+to the app of choice.
+'''
+def get_url(app, title):
+  # Retrieve query results from clipboard
+  b = clipboard.get()
+  quoted_output = urllib.quote(b, safe = '')
+
+  if app == 'DayOne':
+    # Post query results to a DayOne journal entry
+    cmd = 'dayone://post?entry={}'.format(quoted_output)
+
+  if app == 'Drafts4':
+    # Write query results to new draft text
+    cmd = 'drafts4://x-callback-url/create?text={}'.format(quoted_output)
+
+  if app == 'Editorial':
+    # Write query results to a new Editorial markdown doc named by title of movie
+    cmd = 'editorial://new/{}.md?root=local&content={}'.format(title, quoted_output)
+
+  if app == '1Writer':
+    # Write query results to a new 1Writer markdown doc named by title of movie
+    cmd = 'onewriter://x-callback-url/create?path=Documents&name={}.md&text={}'.format(title, quoted_output)
+
+  if app == 'Clipboard':
+    cmd = ''
+  return cmd
+
+def main():
   console.clear()
   clipboard.set('')
-  '''
-  Tap-and-hold on Pythonista run button to
-  enter movie name as commandline
-  arguments
-  '''
-  myTitle = ' '.join(args) or raw_input('Please enter a movie or TV series title: ').strip()
-  if not myTitle:
+
+  my_title = raw_input('Please enter a movie or TV series title: ').strip()
+  if not my_title:
     sys.exit('No title provided.')
 
-  print "\nConnecting to server...wait"
+  my_year = raw_input('\nPlease enter year of release if known: ')
 
-  s = myTitle.replace(' ', '+')
+  print("\nConnecting to server...wait")
+
+  s = my_title.replace(' ', '+')
+  y = my_year
+
   '''
   Use ?t to search for one item...this
   first pass will give you the most
@@ -255,7 +337,7 @@ def main(args):
   multiple titles with the same name
   '''
   # Call subroutines
-  d = queryData(url_fmt.format('t', s));
+  d = query_data(url_fmt.format('t', s, y))
   print('='*20)
   print(mine_console_data(d))
 
@@ -266,32 +348,40 @@ def main(args):
     if choice.startswith('y'):
       print('='*20)
       # Use ?s for a query that yields multiple titles
-      url = url_fmt.format('s', s)
-      d = queryData(url)
+      y = ''
+      url = url_fmt.format('s', s, y)
+      d = query_data(url)
       '''
       Call function to list all the titles
       in the query and return IMDB id
       for title chosen from list
       '''
-      id = listData(d)
-      print "\nRetrieving data from new query..."
+      id = list_data(d)
+      print("\nRetrieving data from new query...")
       # Use ?i for an exact query on unique imdbID
-      d = queryData(url_fmt.format('i', id));
+      d = query_data(url_fmt.format('i', id, y))
       print('='*20)
       print(mine_console_data(d))
     elif choice.startswith('n'):
       # Clear clipboard, then add formatted text
       clipboard.set('')
       clipboard.set(mine_md_data(d))
-
-      print '''
+      print('='*20)
+      the_app = get_app()
+      title = d['Title'].replace(' ', '%20')
+      cmd = get_url(the_app, title)
+      if cmd:
+        webbrowser.open(cmd)
+        clipboard.set('')
+      else:
+        print('''
 Results of your search were copied
 to the clipboard in MD for use with
 the MD text editor or journaling app
-of your choice.''' + '\n\n'
+of your choice.''' + '\n\n')
       break
     else:
       sys.exit('Search Cancelled')
 
 if __name__ == '__main__':
-  main(sys.argv[1:])  # strip off script name
+  main()

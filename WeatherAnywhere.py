@@ -1,36 +1,79 @@
-#coding: utf-8
-
-# Name: WeatherAnywhere.py
-# Author: John Coomler
-# v1.0: 02/07/2015 to 02/15/2015-Created
-# v1.1: 02/19/2015-Tightened up code and made
-# function calls to retrieve weather data for
-# printing from main(). Many thanks to @cclauss for
-# his continued expertise, input, & support in
-# sorting out and improving the code.
-# v1.2: 02/20/2015-More code cleanup, improved
-# string formatting techniques, & much improved
-# error handling.
-# v1.3: 02/21/2015-Added function to download
-# weather icons if any or all are missing. More
-# code cleanup.
-# v1.4: 02/23/2015-Conversion functions renamed &
-# now return numbers instead of strings, added
-# ability to convert from imperial to metric units.
-# v1.5: 02/24/2015-Cleanup of date string
-# formatting & now show all precip types.
-# v1.6: 03/04/2015-Added ability to store weather
-# icons in a sub folder of script folder. Created 2
-# new functions, 'pick_your_weather' &
-# 'get_weather_icons' to aid in porting script over
-# to a scene.
-# v1.7: 03/05/2015-Improved code in icon download
-# process to prevent IO errors.
-# v1.8: 03/07/2015-03/25/2015-Numerous changes &
-# code cleanup to accomodate scene development &
-# api changeover to www.wunderground.com
-# v1.9: 04/04/2015-String formatting enhancements
+# coding: utf-8
 '''
+Name: WeatherAnywhere.py
+Author: @coomlata1
+
+v1.0: 02/07/2015 to 02/15/2015-Created.
+
+v1.1: 02/19/2015-Tightened up code and made
+function calls to retrieve weather data for
+printing from main(). Many thanks to @cclauss for
+his continued expertise, input, & support in
+sorting out and improving the code.
+
+v1.2: 02/20/2015-More code cleanup, improved string
+formatting techniques, & much improved error
+handling.
+
+v1.3: 02/21/2015-Added function to download weather
+icons if any or all are missing. More code cleanup.
+
+v1.4: 02/23/2015-Conversion functions renamed &
+now return numbers instead of strings, added
+ability to convert from imperial to metric units.
+
+v1.5: 02/24/2015-Cleanup of date string formatting
+& now show all precip types.
+
+v1.6: 03/04/2015-Added ability to store weather
+icons in a sub folder of script folder. Created 2
+new functions, 'pick_your_weather' &
+'get_weather_icons' to aid in porting script over
+to a scene.
+
+v1.7: 03/05/2015-Improved code in icon download
+process to prevent IO errors.
+
+v1.8: 03/07/2015-03/25/2015-Numerous changes &
+code cleanup to accomodate scene development &
+api changeover to www.wunderground.com.
+
+v1.9: 04/04/2015-String formatting enhancements.
+
+v2.0: 04/11/2015-Code readability & string
+formatting improvements.
+
+v2.1: 11/21/2015-Added code for record highs &
+lows and length of day in weather 'now' section.
+
+v2.2: 11/28/2015-Added code for precip daily
+average and min-max range. Added code for average
+high & low daily temp and record high & low daily
+temp. Also added dew point and heat index readings.
+
+v2.3: 12/03/2015-Fixed problem with moon stats.
+When planner api module was combined with the
+astronomy api module in the weather url query the
+moon stats were incorrect for the current time
+period. Moved planner module to the forecast url
+query and that solved the issue. Added % clouds
+to current forecast stats.
+
+v2.4: 12/06/2015-Added function to get severe
+weather alerts when necessary. Added code to get
+name & stats for weather station that is reporting.
+
+v2.5: 01/21/2016-Added code to adjust spacing
+in forecast data based on size of display on
+iOS device, thanks to Pythonista 2.0 recognizing
+the native screen resolution of your device.
+
+v2.6: 01/25/2016-Added code to make this script
+backward compatible with Pythonista 1.5. Thanks
+to @cclauss for function to determine Pythonista
+version available at 'https://github.com/cclauss
+/Ten-lines-or-less/blob/master/pythonista_version.py'
+
 This script provides current & multi day weather
 forecasts for any city you name, or coordinates you
 are currently located in, using the api available
@@ -49,13 +92,16 @@ from PIL import Image
 import requests
 import sys
 import webbrowser
+import ui
+import os
+import plistlib
 
 # Global variables
 icons = []
 weather_icons = []
 missing_icons = []
 icon_path = './icons/'
-api_key = 'Insert www.wunderground.com api key here'
+api_key = 'Your api key goes here'
 
 # Change to 'metric' if desired
 imperial_or_metric = 'imperial'
@@ -63,12 +109,31 @@ imperial_or_metric = 'imperial'
 # Conversion units
 if imperial_or_metric == 'imperial':
   unit = ['f', 'in', 'in', 'in', 'in', 'mph',
-        'fahrenheit', '', 'in', 'english',
-        'mi', 'miles']
+  'fahrenheit', '', 'in', 'english',
+  'mi', 'miles']
 else:
   unit = ['c', 'mb', 'hPa', 'metric', 'mm', 'kph',
-    'celsius', '_metric', 'cm', 'metric',
-    'km', 'kilometers']
+  'celsius', '_metric', 'cm', 'metric',
+  'km', 'kilometers']
+
+def pythonista_version():  # 2.0.1 (201000)
+  plist = plistlib.readPlist(os.path.abspath(os.path.join(sys.executable, '..', 'Info.plist')))
+  return '{CFBundleShortVersionString} ({CFBundleVersion})'.format(**plist)
+  
+# Determine which device by screen size
+def is_iP6p():
+  iP6p = True
+  min_screen_size = min(ui.get_screen_size())
+
+  #print min_screen_size
+  #iphone6 min = 414
+  #iphone6 max = 736
+  #iphone5 min = 320
+  #iphone5 max = 568
+
+  if min_screen_size < 414:
+    iP6p = False
+  return iP6p
 
 def pick_your_weather():
   city = st = zcode = ''
@@ -123,10 +188,18 @@ def city_zips(filename = 'cities.txt'):
     sys.exit('IOError in city_zips(): {}'.format(e))
   if not zips:
     sys.exit('No cities found in: {}'.format(filename))
+    
+  '''
+  If this is Pythonista 2, and an iPhone 6+ or better there is more screen to work with, as Pythonista recognizes the native screen eesolutions of the iOS device being used.
+  '''
+  if pythonista_version()[:1] == '2' and is_iP6p():
+    indent = 12
+  else:
+    indent = 7
 
   for i, zcode in enumerate(zips):
     # Align numbers neatly in printed list of cities & states/countries
-    print('{:>7}. {}, {}'.format(i, zcode[0], zcode[1]))
+    print('{:>{}}. {}, {}'.format(i, int(indent), zcode[0], zcode[1]))
 
   while True:
     try:
@@ -135,7 +208,7 @@ def city_zips(filename = 'cities.txt'):
       city, st, zcode = zips[ans]
       return city, st, zcode
     except (IndexError, ValueError):
-      print('Please enter a vaild number.')
+      print('Please enter a valid number.')
 
 def update_zips(new_line, filename = 'cities.txt'):
   try:
@@ -146,7 +219,7 @@ def update_zips(new_line, filename = 'cities.txt'):
     # Sort list
     with open(filename, 'r') as f:
       lines = [line for line in f]
-  
+
     lines.sort()
 
     # Rewrite newly sorted list
@@ -168,8 +241,12 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
     fmt = '{},{}'
     query = fmt.format(lat, lon)
 
-  w_url = url_fmt.format(api_key, 'geolookup/conditions/hourly/astronomy', query)
-  f_url = url_fmt.format(api_key, 'forecast10day', query)
+  # Set today's month and day for Planner module
+  month_day = time.strftime('%m%d')
+
+  # Create urls
+  w_url = url_fmt.format(api_key, 'geolookup/conditions/hourly/astronomy/almanac/', query)
+  f_url = url_fmt.format(api_key, 'forecast10day/planner_{0}{0}/alerts/'.format(month_day), query)
   #print w_url
   #print f_url
 
@@ -194,7 +271,7 @@ def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
     # Check if query returned ambiguous results. If so, use zipcode link to redefine query.
     if weather['response']['results']:
       zcode = 'zmw:{}'.format(weather['response']['results'][0]['zmw'])
-      w_url = url_fmt.format(api_key, 'conditions/hourly/astronomy', zcode)
+      w_url = url_fmt.format(api_key, 'conditions/hourly/astronomy/almanac/planner_{0}{0}/'.format(month_day), zcode)
       f_url = url_fmt.format(api_key, 'forecast10day', zcode)
       # Requery using zipcode link
       weather = requests.get(w_url).json()
@@ -394,15 +471,40 @@ def download_weather_icons(icon_path):
         print('ConnectionError on {}: {}'.format(i, e))
     print('Done.')
 
-def get_current_weather(w):
+def get_current_weather(w, f):
   current = w['current_observation']
+  forecast_time = current['observation_time']
 
-  # Apply conversion units to some of data
-  temp = int(current['temp_' + unit[0]])
-  temp = '{}°{}'.format(temp, unit[0].title())
+  simple_f = f['forecast']['simpleforecast']['forecastday'][0]
 
+  # Get high temp & apply conversion units
+  h_temp = '{}°{}'.format(simple_f['high'][unit[6]], unit[0].title())
+  # Get low temp & apply conversion units
+  l_temp = '{}°{}'.format(simple_f['low'][unit[6]], unit[0].title())
+
+  # Get temperature records & apply conversions
+  avg_high, avg_low, record_high, record_high_year, record_low, record_low_year = get_records(w)
+  avg_high = '{}°{}'.format(avg_high, unit[0].title())
+  record_high = '{}°{}'.format(record_high, unit[0].title())
+  avg_low = '{}°{}'.format(avg_low, unit[0].title())
+  record_low = '{}°{}'.format(record_low, unit[0].title())
+
+  location = current['observation_location']
+
+  # Reporting weather station stats
+  w_station = location['city']
+  lat = location['latitude']
+  lon = location['longitude']
+  elevation = location['elevation']
+
+  # Relative humidity
+  humidity =  current['relative_humidity']
   # Barometric pressure
   pressure = '{} {}'.format(current['pressure_' + unit[1]], unit[2])
+
+  # Dew point
+  dew_point = int(current['dewpoint_' + unit[0]])
+  dew_point = '{}°{}'.format(dew_point, unit[0].title())
 
   # Wind
   wind = current['wind_string']
@@ -420,40 +522,66 @@ def get_current_weather(w):
   # Add degrees symbol & conversion unit
   feels_like = '{}°{}'.format(feels_like, unit[0].title())
 
-  # Get precip amount for day
+  # Get precip amount
   precip = '{}'.format(current['precip_today_' + unit[3]])
   if not precip or precip == '-9999.00':
     precip = '0.00'
   precip = '{} {}'.format(precip, unit[4])
 
+  # Get precip avg and range for day from planner api module
+  precip_avg = '{} {}'.format(f['trip']['precip']['avg'][unit[4]], unit[4])
+  precip_min = '{}'.format(f['trip']['precip']['min'][unit[4]])
+  precip_max = '{} {}'.format(f['trip']['precip']['max'][unit[4]], unit[4])
+
   # Get visibility
   visibility = '{} {}'.format(current['visibility_' + unit[10]], unit[11])
 
-  # Get times for sunrise & sunset
-  sunrise, sunset = get_sunrise_sunset(w)
+  # Get percentage of cloudiness from first hour of hourly forecast
+  clouds = w['hourly_forecast'][0]['sky']
 
-  #return('''Today's Weather in {current_observation[display_location][full]}:
+  # Heat Index
+  heat_index = current['heat_index_' + unit[0]]
+  if heat_index != 'NA':
+    heat_index = '{}°{}'.format(heat_index, unit[0].title())
+  # UV Index
+  uv = current['UV']
+
+  # Get times for sunrise & sunset & day length
+  sunrise, sunset, length_of_day = get_sunrise_sunset(w)
+
+  moon = w['moon_phase']
+  age = moon['ageOfMoon']
+  phase = moon['phaseofMoon']
+  illum = moon['percentIlluminated']
+  '''
+  If this is Pythonista 2, and an iPhone 6+ or better there is more screen to work with, as Pythonista recognizes the native screen eesolutions of the iOS device being used.
+  '''
+  if pythonista_version()[:1] == '2' and is_iP6p():
+    spaces = 12
+  else:
+    spaces = 6
 
   # Text to display in console or scene
-  return('''Now...{current_observation[observation_time]}:
-\nWeather: {current_observation[weather]}
-Temperature: {0}
-Humidity: {current_observation[relative_humidity]}
-Barometric Pressure: {1}
-Wind: {2}
-Feels Like: {3}
-Precipitation Today: {4}
-Visibility: {5}
-UV Index: {current_observation[UV]}
-Sunrise: {6}
-Sunset: {7}
-Moon Age: {moon_phase[ageOfMoon]} days since new moon
-Moon Phase: {moon_phase[phaseofMoon]}
-Moon Illuminated: {moon_phase[percentIlluminated]}%
-'''.format(temp, pressure, wind, feels_like, precip, visibility, sunrise, sunset, **w))
+  return('''Now...{0}:
+  \nToday's Forecast: High: {1}{32}Low: {2}
+Today's Averages: High: {3}{32}Low: {4}
+Today's Records: High: {5} [{6}]{32}Low: {7} [{8}]
+Reporting Station: {9}
+Lat: {10}{32}Lon: {11}{32}Elevation: {12}
+Humidity: {13}{32}Dew Point: {14}
+Barometric Pressure: {15}
+Wind: {16}
+Feels Like: {17}
+Precipitation: {18}{32}Average: {19}{32}Range: {20} to {21}
+Visibility: {22}{32}Cloud Cover: {23}%
+Heat Index: {24}{32}UV Index: {25}
+Sunrise: {26}{32}Sunset: {27}{32}Length Of Day: {28}
+Moon Age: {29} days{32}Phase: {30}{32}Illuminated: {31}%
+'''.format(forecast_time, h_temp, l_temp, avg_high, avg_low, record_high, record_high_year, record_low, record_low_year, w_station, lat, lon, elevation, humidity, dew_point, pressure, wind, feels_like, precip, precip_avg, precip_min, precip_max, visibility, clouds, heat_index, uv, sunrise, sunset, length_of_day, age, phase, illum, (' ' * int(spaces)), **w))
 
 def get_extended_forecast(w, f):
   ef = []
+
   '''
   Query yields 10 days of weather, but 10 days
   won't display in scene. Last few days are
@@ -468,6 +596,18 @@ def get_extended_forecast(w, f):
 
   simple_f = f['forecast']['simpleforecast']['forecastday']
   txt_f = f['forecast']['txt_forecast']['forecastday']
+
+  '''
+  If this is Pythonista 2, and an iPhone 6+ or better there is more screen to work with, as Pythonista recognizes the native screen eesolutions of the iOS device being used.
+  '''
+  if pythonista_version()[:1] == '2' and is_iP6p():
+    day_header_spaces = 32
+    night_header_spaces = 24
+    pop_spaces = 30
+  else:
+    day_header_spaces = 17
+    night_header_spaces = 9
+    pop_spaces = 15
 
   for i in range(day_count):
     # Get forecast timestamp & reformat
@@ -486,8 +626,9 @@ def get_extended_forecast(w, f):
       # Get high temp
       temp = 'High: {}° {}'.format(simple_f[i/2]['high'][unit[6]], unit[0].title())
 
-      # Add date, 17 spaces, & high temp to day header
-      title = '{} {}{}{}'.format(title, the_date, (' ' * 17), temp)
+      # Add date, spaces, & high temp to day header
+      title = '{} {}{}{}'.format(title, the_date, (' ' * int(day_header_spaces)), temp)
+
     else:
       # Abbreviate day of week & add 'Night' back to night header
       title = '{} Night'.format(title[:3])
@@ -495,18 +636,18 @@ def get_extended_forecast(w, f):
       # Get low temp
       temp = 'Low: {}° {}'.format(simple_f[i/2]['low'][unit[6]], unit[0].title())
       '''
-      Add date, 9 spaces, & low temp to night
+      Add date, spaces, & low temp to night
       header. Now we have even spacial appearance
       between day & night.
       '''
-      title = '{} {}{}{}'.format(title, the_date, (' ' *9), temp)
+      title = '{} {}{}{}'.format(title, the_date, (' ' *int(night_header_spaces)), temp)
 
     # Get percent of precip
     pop = txt_f[i]['pop']
 
-    # If pop, add 15 more spaces & display it on either header
+    # If pop, add more spaces & display it on either header
     if pop <> '0':
-      ef.append('\n{}{}Precip: {}%'.format(title, (' ' *15), pop))
+      ef.append('\n{}{}Precip: {}%'.format(title, (' ' *int(pop_spaces)), pop))
     else:
       ef.append('\n{}'.format(title))
 
@@ -587,8 +728,9 @@ def get_scene_header(w):
 
 def get_sunrise_sunset(w):
   fmt = '{hour}:{minute}'
+  # Get times from astronomy api module
   sunrise = fmt.format(**w['sun_phase']['sunrise'])
-  sunset  = fmt.format(**w['sun_phase']['sunset']))
+  sunset = fmt.format(**w['sun_phase']['sunset'])
 
   # Add any date here...we eventually want time only
   fmt = '04/30/2014 {}'
@@ -596,14 +738,38 @@ def get_sunrise_sunset(w):
   new_time = time.strptime(sunrise, '%m/%d/%Y %H:%M')
   timestamp = time.mktime(new_time)
   sunrise = timestamp
+  t1 = datetime.datetime.fromtimestamp(int(sunrise)).strftime('%H:%M')
   sunrise = datetime.datetime.fromtimestamp(int(sunrise)).strftime('%I:%M %p')
 
   sunset = fmt.format(sunset)
   new_time = time.strptime(sunset, '%m/%d/%Y %H:%M')
   timestamp = time.mktime(new_time)
   sunset = timestamp
+  t2 = datetime.datetime.fromtimestamp(int(sunset)).strftime('%H:%M')
   sunset = datetime.datetime.fromtimestamp(int(sunset)).strftime('%I:%M %p')
-  return sunrise, sunset
+
+  t1 = t1.split(':')
+  t2 = t2.split(':')
+
+  # Compute time difference between sunrise & sunset...length of day
+  t1_mins = int(t1[1]) + (int(t1[0]) * 60)
+  t2_mins = int(t2[1]) + (int(t2[0]) * 60)
+
+  hrs = (t2_mins - t1_mins) / 60
+  mins = (t2_mins - t1_mins) - (hrs * 60)
+
+  length_of_day = '{}h {}m'.format(hrs, mins)
+  return sunrise, sunset, length_of_day
+
+def get_records(w):
+  a = w['almanac']
+  avg_high = a['temp_high']['normal'][unit[0].upper()]
+  record_high = a['temp_high']['record'][unit[0].upper()]
+  record_high_year = a['temp_high']['recordyear']
+  avg_low = a['temp_low']['normal'][unit[0].upper()]
+  record_low = a['temp_low']['record'][unit[0].upper()]
+  record_low_year = a['temp_low']['recordyear']
+  return avg_high, avg_low, record_high, record_high_year, record_low, record_low_year
 
 def get_night_hrs(w):
   hour_now = w['current_observation']['local_time_rfc822']
@@ -612,7 +778,7 @@ def get_night_hrs(w):
   hour_now = int(hour_now)
 
   # Get times, split hrs & min, return hrs only
-  sunrise, sunset = get_sunrise_sunset(w)
+  sunrise, sunset, daylight_hrs = get_sunrise_sunset(w)
   sunrise = sunrise.split(':')
   sunrise_hr = int(sunrise[0].strip())
   sunset = sunset.split(':')
@@ -621,7 +787,23 @@ def get_night_hrs(w):
 
 def get_web_weather(w):
   url = w['current_observation']['forecast_url']
-  webbrowser.open(url)
+  #webbrowser.open(url)
+  return url
+
+def get_alerts(w, f):
+  # Get any severe weather alerts for current city
+  num = len(f['alerts'])
+
+  if num != 0:
+    current = w['current_observation']
+    the_city = current['display_location']['full']
+    alert = '\n{0}\nSevere Weather Alert for {1}:\n{0}'.format('='*40, the_city)
+    for i in range(num):
+      msg = f['alerts'][i]['message']
+      alert = '{}{}'.format(alert, msg)
+  else:
+    alert = ''
+  return alert
 
 # Used only for console display
 def main():
@@ -641,9 +823,10 @@ def main():
   except:
     missing_icons.append(icons[0])
 
-  print(get_current_weather(w))
+  print(get_current_weather(w, f))
   #print(get_forecast(w, f))
   #sys.exit()
+
   '''
   Printing the extended forecast to the console
   involves a bit more code because we are inserting
@@ -674,6 +857,10 @@ def main():
     ans = console.alert('Weather Icon(s) Missing:','','Download Them Now')
     if ans == 1:
       download_weather_icons(icon_path)
+
+  alerts = get_alerts(w, f)
+  if len(alerts) != 0:
+    print alerts
 
 if __name__ == '__main__':
   main()
