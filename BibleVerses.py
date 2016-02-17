@@ -178,7 +178,7 @@ def cleanup(t, ref, version):
         first_verse = fp
 
       # If dash in last passage
-      if lp.find('-') != -1:
+      if '-' in lp:
         # Last verse is everything after dash
         last_verse = lp[lp.find('-') + 1:].strip()
       else:
@@ -187,7 +187,7 @@ def cleanup(t, ref, version):
     # No commas in ref
     else:
       # If dash in ref
-      if ref.find('-') != -1:
+      if '-' in ref:
         # First verse is between colon & dash
         first_verse = ref[ref.find(':') + 1:ref.find('-')].strip()
         # Last verse is everything after dash
@@ -198,7 +198,7 @@ def cleanup(t, ref, version):
         last_verse = first_verse
   else:
     verses_in_ref = False
-    if ref.find(' ') != -1:
+    if ' ' in ref:
       book = ref[:ref.find(' ')].strip()
       chapter = ref[ref.find(' ') + 1:]
     else:
