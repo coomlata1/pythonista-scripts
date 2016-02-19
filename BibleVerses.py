@@ -266,10 +266,12 @@ def get_url(app, fulltext):
     #url = '{}://x-callback-url/create?text={}'.format(app, urllib.quote(fulltext))
 
     # Append scripture to existing open draft
-    url = '{}://x-callback-url/append?uuid={}&text={}'.format(app, sys.argv[2], urllib.quote(fulltext))
+    fmt = '{}://x-callback-url/append?uuid={}&text={}'
+    url = fmt.format(app, sys.argv[2], urllib.quote(fulltext))
   elif app == 'onewriter':
     # Append scripture to open 1Writer doc
-    url = '{}://x-callback-url/append?path=/Documents%2F&name=Notepad.txt&type=Local&text={}'.format(app, urllib.quote(fulltext))
+    fmt = '{}://x-callback-url/append?path=/Documents%2F&name=Notepad.txt&type=Local&text={}'
+    url = fmt.format(app, urllib.quote(fulltext))
   elif app == 'editorial':
     # Copy scripture to clipboard
     clipboard.set('')
@@ -313,7 +315,7 @@ def main(ref):
   books = []
 
   # List of Bible versions
-  versions = ['amp', 'akjv', 'asv', 'basicenglish', 'darby', 'kjv', 'nasb', 'wb', 'web', 'ylt']
+  versions = 'amp akjv asv basicenglish darby kjv nasb wb web ylt'.split()
 
   # Pick your desired Bible version by number
   #0 = amp...Amplified Version
@@ -399,7 +401,8 @@ journaling app of your choice.\n''')
 
 if __name__ == '__main__':
   try:
-    ref = console.input_alert('Bible Verses', 'Please enter bible verse(s) in the following format: Luke 3:1-3,5,6;1 John 2:1-4,6 to query scripture and return desired passages:\n\n', '', 'Go').strip()
+    msg = 'Please enter bible verse(s) in the following format: Luke 3:1-3,5,6;1 John 2:1-4,6 to query scripture and return desired passages:\n\n'
+    ref = console.input_alert('Bible Verses', msg, '', 'Go').strip()
   except:
     # Cancel back to calling app if applicable
     try:
