@@ -58,7 +58,8 @@ def is_iP6p():
   if min_screen_size < 414:
     iP6p = False
   return iP6p
-
+  
+# Loads pyui file with menu and objects to control user weather choices
 def pick_your_weather():
   city_typed_in = st = zcode = ''
   lat = lon = 0
