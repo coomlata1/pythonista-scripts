@@ -3,20 +3,40 @@
 Title: Search IMDB3.py
 Author: @coomlata1
 Created: 11/18/2014
-Last Modified: 02/27/2016
+Last Modified: 02/28/2016
 
-This Pythonista script uses the api available at www.omdbapi.com to search for your desired movie or TV series title. The query will first return the most popular result for what matches that title. The script will display most of the pertinent info in a ui.TextView screen about that movie/TV series including release date, imdb rating, box office returns, writers, director, actors and plot.
+This Pythonista script uses the api available at www.omdbapi.com
+to search for your desired movie or TV series title. The query
+will first return the most popular result for what matches that
+title. The script will display most of the pertinent info in a
+ui.TextView screen about that movie/TV series including release
+date, imdb rating, box office returns, writers, director, actors
+and plot.
 
-That may not be the results you are looking for. You can then refine your search and the query will return a list of titles and their release year that match or are close to matching the desired title. When you select a title from the list you will get a new set of results for that title. You can keep refining your search until you get the results you are looking for. The info is displayed in a ui TextView screen and formatted for Markdown.
+That may not be the results you are looking for. You can then
+refine your search and the query will return a list of titles and
+their release year that match or are close to matching the
+desired title. When you select a title from the list you will get
+a new set of results for that title. You can keep refining your
+search until you get the results you are looking for. The info is
+displayed in a ui TextView screen and formatted for Markdown.
 
-You can export the results to 1Writer, DayOne, Drafts, Editorial or the clipboard. The results can also be imported to these apps if this script is called via a url from the app itself.
+You can export the results to 1Writer, DayOne, Drafts, Editorial
+or the clipboard. The results can also be imported to these apps
+if this script is called via a url from the app itself.
 
-When exported to a Markdown capable editor the movie title & poster appear in hypertext with a direct link to the IMDB database if more info is desired.
+When exported to a Markdown capable editor the movie title &
+poster appear in hypertext with a direct link to the IMDB
+database if more info is desired.
 
-This script is also capable of displayng the query results in markdown TextView as a result of MarkdownView.py, a script placed in the site-packages folder, and called as a module in this script.
+This script is also capable of displayng the query results in
+markdown TextView as a result of MarkdownView.py, a script placed
+in the site-packages folder, and called as a module in this
+script.
 
 Markdown.py is available at:
-https://github.com/mikaelho/pythonista-markdownview. Be sure to read the readme.md file for installation instructions.
+https://github.com/mikaelho/pythonista-markdownview. Be sure to
+read the readme.md file for installation instructions.
 '''
 #from __future__ import (absolute_import, division, print_function, unicode_literals)
 import clipboard
@@ -32,7 +52,8 @@ import MarkdownView as mv
 url_fmt = 'http://www.omdbapi.com/?{}={}&y={}&plot=full&tomatoes=true&r=json'
 
 '''
-Allow to run script stand alone or from another app using command line arguments via URL's.
+Allow to run script stand alone or from another app using command
+line arguments via URL's.
 '''
 try:
   arg = sys.argv[1]
@@ -119,7 +140,10 @@ class MyView(ui.View):
 
     console.hud_alert('Querying IMDB for {}'.format(my_title))
     '''
-    Use ?t to search for one item. This first pass will give you the most popular result for query, but not always the one you desire when there are multiple titles that are the same or similar to the title you are looking for. .
+    Use ?t to search for one item. This first pass will give you
+    the most popular result for query, but not always the one you
+    desire when there are multiple titles that are the same or
+    similar to the title you are looking for.
     '''
     # Call subroutines
     d = query_data(url_fmt.format('t', t, y))
@@ -243,7 +267,8 @@ def strip_na_lines(data):
                      if 'N/A' not in line) + '\n'
 
 '''
-Function to mine query results for desired movie info & return a text of those results to the caller for display in a TextView.
+Function to mine query results for desired movie info & return a
+text of those results to the caller for display in a TextView.
 '''
 def mine_console_data(d):
   try:
@@ -276,8 +301,8 @@ Rotten Tomatoes Review: {tomatoConsensus}
 '''.format(**d))
 
 '''
-Function to mine query results for desired movie info & return a Markdown text of those results for copying to the
-clipboard.
+Function to mine query results for desired movie info & return a
+Markdown text of those results for copying to the clipboard.
 '''
 def mine_md_data(d):
   return strip_na_lines('''**Title:** [{Title}](http://www.imdb.com/title/{imdbID}/)
@@ -303,7 +328,9 @@ def mine_md_data(d):
 '''.format(**d))
 
 '''
-Function that returns a list of multiple titles that contain the film-tv name if not satisfied with results of 1st query, and a list of each title's respective IMDB id.
+Function that returns a list of multiple titles that contain the
+film-tv name if not satisfied with results of 1st query, and a
+list of each title's respective IMDB id.
 '''
 def list_data(d):
   # For debug
@@ -322,7 +349,9 @@ def list_data(d):
   return the_films, the_ids
 
 '''
-Function to return a url cmd to send query results to the app, either named in the arg that called this script, or picked from export app list in this script
+Function to return a url cmd to send query results to the app,
+either named in the arg that called this script, or picked from
+export app list in this script
 '''
 def get_url(app, source, title):
   import urllib
@@ -375,6 +404,7 @@ def get_url(app, source, title):
 
 def main():
   v = MyView()
+  # Lock screen and title bar in portrait orientation
   v.present(style = 'full_screen', title_bar_color = 'cyan', orientations = ['portrait'])
   sys.exit('Finished!')
 if __name__ == '__main__':
