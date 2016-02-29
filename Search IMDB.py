@@ -1,6 +1,6 @@
 #coding: utf-8
 '''
-Title: Search IMDB3.py
+Title: Search IMDB.py
 Author: @coomlata1
 Created: 11/18/2014
 Last Modified: 02/28/2016
@@ -105,7 +105,8 @@ class MyView(ui.View):
     self.lb2.text = 'Enter Year Of Release If Known:'
     self.lb2.font = ('<system-bold>', 18)
     self.lb2.flex = 'WHLRTB'
-
+    
+    # Gif file needs to be in the same directory as this script
     self.iv.image = ui.Image.named('thin_blue_line.gif')
 
     self.add_subview(self.tf1)
