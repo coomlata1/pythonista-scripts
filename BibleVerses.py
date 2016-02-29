@@ -81,21 +81,28 @@ Inspiration for this script came from
 More info on his projects is available at:
 http://sweetnessoffreedom.wordpress.com/projects
 '''
-import requests
-import urllib
-import sys
-import re
-import webbrowser
-import console
+
 import clipboard
+import console
 import difflib
+import re
+import requests
+import sys
+import urllib
+import webbrowser
+
+try:
+    xrange          # Python 2
+    py3 = False
+except NameError:
+    xrange = range  # Python 3
+    py3 = True
+
 
 def passage_query(ref, version):
-  ref = ref.replace(' ','%20')
-  url = 'https://getbible.net/json?p={}&v={}'.format(ref, version)
-  r = requests.get(url)
-  t = r.text
-  return t
+  url = 'https://getbible.net/json?p={}&v={}'.format(ref.replace(' ', '%20'), version)
+  return requests.get(url).text
+
 
 def check_book(ref, err):
   books = ['1 Chronicles', '1 Corinthians', '1 John', '1 Kings', '1 Peter',
@@ -152,10 +159,12 @@ def check_book(ref, err):
     ref = '{} {}'.format(the_book, verses)
   return ref, the_book, err
 
+
 def replace_all(t, dic):
-  for j, k in dic.iteritems():
+  for j, k in dic.items():
     t = t.replace(j, k)
   return t
+
 
 def cleanup(t, ref, version):
   if ':' in ref:
@@ -198,12 +207,8 @@ def cleanup(t, ref, version):
         last_verse = first_verse
   else:
     verses_in_ref = False
-    if ' ' in ref:
-      book = ref[:ref.find(' ')].strip()
-      chapter = ref[ref.find(' ') + 1:]
-    else:
-      book == ref
-      chapter == ''
+    book, _, chapter = ref.strip().partition(' ')
+    chapter = chapter.strip()
 
   # Create dictionaries to clean up passages
   dic_c = {'{':'', '}':'', '"':'', '\\':'', '*': ''}
@@ -260,6 +265,7 @@ def cleanup(t, ref, version):
   t = t.replace('\\', '')
   return t
 
+
 def get_url(app, fulltext):
   if app == 'drafts4':
     # Write scripture to new draft
@@ -287,6 +293,7 @@ def get_url(app, fulltext):
 
   return url
 
+
 def main(ref):
   user_input = 'Verse(s): {}'.format(ref.title())
   '''
@@ -303,12 +310,13 @@ def main(ref):
   if alt_line_split:
     ref = re.sub(';','\n',ref)
   # Converts Unicode to String
-  ref = ref.encode()
+  if not py3:
+    ref = ref.encode()
   # Convert to title case
   ref = ref.title()
 
   # Count lines in ref
-  lines = str.splitlines(ref)
+  lines = ref.splitlines()
   # Make list to spit multiple passages into
   fulltext = []
   # Make list for multiple books
@@ -380,7 +388,8 @@ def main(ref):
   fulltext = '\n\n'.join(fulltext)
   # Prepend verses and line feeds to scripture
   fulltext = '{}\n\n{}'.format(user_input, fulltext)
-  fulltext = fulltext.encode()
+  if not py3:
+      fulltext = fulltext.encode()
   # Uncomment to debug
   #print fulltext
 
@@ -397,7 +406,7 @@ The results of the scripture query are
 shown below and copied to the clipboard
 for pasting into the MD text editor or
 journaling app of your choice.\n''')
-    print fulltext
+    print(fulltext)
 
 if __name__ == '__main__':
   try:
