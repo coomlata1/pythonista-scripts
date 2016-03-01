@@ -1,9 +1,9 @@
-#coding: utf-8
+# coding: utf-8
 '''
 Title: Search IMDB.py
 Author: @coomlata1
 Created: 11/18/2014
-Last Modified: 02/28/2016
+Last Modified: 02/29/2016
 
 This Pythonista script uses the api available at www.omdbapi.com
 to search for your desired movie or TV series title. The query
@@ -64,7 +64,9 @@ except IndexError:
 class MyView(ui.View):
   def __init__(self):
     self.width, self.height = ui.get_screen_size()
+    #self.frame = (0, 0, 424, 736)
     self.background_color = 'orange'
+    self.flex = 'WHLRTB'
 
     # Accomodate iPhone 6p and smaller phones as well
     if is_iP6p():
@@ -114,7 +116,6 @@ class MyView(ui.View):
     self.add_subview(self.lb1)
     self.add_subview(self.lb2)
     self.add_subview(self.iv)
-    self.flex = 'WHLRTB'
     #self.tf1.begin_editing()
 
   def textfield_did_change(self, tf1):
@@ -182,23 +183,28 @@ class MyView(ui.View):
     the_films, the_ids = list_data(rd)
 
     items = the_films
-    movie_pick = dialogs.list_dialog('Pick Your Desired Movie Or Tv Show:', items)
+    id = ''
+    
+    # If more than one item in query results...
+    if len(items) != 1:
+      movie_pick = dialogs.list_dialog('Pick Your Desired Movie Or Tv Show:', items)
 
-    if movie_pick is not None:
-      #console.hud_alert('Now quering for {}'.format(movie_pick))
+      if movie_pick is not None:
+        #console.hud_alert('Now quering for {}'.format(movie_pick))
+        for i, item in enumerate(items):
+          if item.strip() == movie_pick.strip():
+            id = the_ids[i].strip()
+            break
 
-      for i, item in enumerate(items):
-        if item == movie_pick:
-          id = the_ids[i]
-          break
-
-      # Use ?i for an exact query on unique imdbID
-      rd = query_data(url_fmt.format('i', id, y))
-      results = mine_console_data(rd)
-      d = rd
-      self.mv.text = results
+        # Use ?i for an exact query on unique imdbID
+        rd = query_data(url_fmt.format('i', id, y))
+        results = mine_console_data(rd)
+        d = rd
+        self.mv.text = results
+      else:
+        console.hud_alert('Nothing Selected')
     else:
-      console.hud_alert('Nothing Selected')
+      console.hud_alert('Only One Film-TV Series In Query')
 
   def no_refine(self, sender):
     # Clear clipboard, then add formatted text
@@ -339,14 +345,23 @@ def list_data(d):
   #sys.exit()
 
   the_films = []
+  the_sorted_films = set()
   the_ids = []
-
+  
   # Loop through query results and append the title, year, and type of every media but 'episodes' to film-tv list.
   for title in d['Search']:
     if title['Type'] != 'episode':
-      the_films.append(', '.join([title['Title'], title['Year'], title['Type']]))
-      # Add film's imdbID to the ids list
-      the_ids.append(title['imdbID'])
+      #the_films.append(', '.join([title['Title'], title['Year'], title['Type']]))
+      # Add film-tv shows to a set for sorting by year made
+      the_sorted_films.add(','.join([title['Year'], title['Title'], title['Type'], title['imdbID']]))
+  
+  # Loop sorted media & added it back into a list in sorted order
+  for film in sorted(the_sorted_films):
+    film = film.split(',')
+    the_films.append(', '.join([film[1], film[0], film[2]]))
+    # Add film's imdbID to the ids list
+    the_ids.append(film[3])  
+      
   return the_films, the_ids
 
 '''
