@@ -1,9 +1,5 @@
 # coding: utf-8
 
-'''
-Is it valid to have verses but no chapter? 'Mark:1-3' --> 'Mark 1:1-3'?
-'''
-
 
 def parse_ref(bible_reference='1 John 5:3-5,7-10,14'):
     '''
@@ -42,6 +38,12 @@ def parse_refs(bible_reference):
     ...     {'book': 'Mark', 'chapter': 7, 'verses': '4-6'},
     ...     {'book': 'Mark', 'chapter': 8, 'verses': '3-6,10'}]
     True
+
+    >>> parse_refs('Mark 1:1-4;5;8') == [
+    ...     {'book': 'Mark', 'chapter': 1, 'verses': '1-4', },
+    ...     {'book': 'Mark', 'chapter': 5},
+    ...     {'book': 'Mark', 'chapter': 8}]
+    True
     '''
     ref_list = []  # build up a list of dicts
     prev_book = ''
@@ -58,3 +60,4 @@ def parse_refs(bible_reference):
 refs = '1   John   5 : 3 - 5 , 7 - 10 , 14 ; Mark   7 : 4 - 6 ; 8 : 3 - 6 , 10'
 if __name__ == '__main__':
     print(parse_refs(refs))
+    print(parse_refs('Mark 1:1-4;5;8'))
