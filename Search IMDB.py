@@ -348,14 +348,14 @@ def list_data(d):
   the_sorted_films = set()
   the_ids = []
   
-  # Loop through query results and append the title, year, and type of every media but 'episodes' to film-tv list.
+  # Loop through query results and append the year, title, type, and IMDB Id of every media but 'episodes' to film-tv list.
   for title in d['Search']:
     if title['Type'] != 'episode':
       #the_films.append(', '.join([title['Title'], title['Year'], title['Type']]))
       # Add film-tv shows to a set for sorting by year made
       the_sorted_films.add(','.join([title['Year'], title['Title'], title['Type'], title['imdbID']]))
   
-  # Loop sorted media & added it back into a list in sorted order
+  # Loop sorted media & added it back into a list in sorted chronological order...oldest to newest
   for film in sorted(the_sorted_films):
     film = film.split(',')
     the_films.append(', '.join([film[1], film[0], film[2]]))
