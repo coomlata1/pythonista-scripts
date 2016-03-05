@@ -27,13 +27,12 @@ def convert_dict(srce):
 def passage_as_dict(ref, version='nasb'):
     '''getbible.net does not valid json so we convert (content); to [content]'''
     fmt = 'https://getbible.net/json?p={}&v={}'
-    url = fmt.format(ref.replace(' ', '%20'), version)
+    url = fmt.format(ref.strip().replace(' ', '%20'), version.strip())
     return convert_dict(json.loads(requests.get(url).text[1:-2]))
 
 
 def passages_as_dicts(ref, version='nasb'):
-    return [passage_as_dict(p.strip(), version)
-            for p in ref.split(';') if p.strip()]
+    return [passage_as_dict(p, version) for p in ref.split(';') if p.strip()]
 
 
 # Matthew is 'type': 'book', Mark is 'chapter', Luke and John are 'verse'
