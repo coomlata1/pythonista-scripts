@@ -2,7 +2,7 @@
 '''
 BibleVerses.py
 @coomlata1
-Last Updated: 03-06-2016 @ 18:40 PST
+Last Updated: 03-06-2016 @ 21:20 PST
 
 This Pythonista script will retrieve any bible
 verse or verses and copy them to the clipboard or
@@ -82,7 +82,7 @@ Inspiration for this script came from
 More info on his projects is available at:
 http://sweetnessoffreedom.wordpress.com/projects
 
-The 2 parsing and API passage capturing routines
+The 2 parsing and API passage querying routines
 are courtesy of @cclauss, https://github.com/cclauss, 
 who has also contributed much to code cleanup and
 proper syntax. 
@@ -96,6 +96,7 @@ import clipboard
 import urllib
 import difflib
 
+# Credit to @cclauss for this query function
 def passage_as_dict(ref, version):
   '''getbible.net does not valid json so we convert (content); to [content]'''
   fmt = 'https://getbible.net/json?p={}&v={}'
@@ -147,6 +148,7 @@ def check_book(book, chapter):
     sys.exit(err)
   return the_book, the_chapter
 
+# Parsing routines courtesy of @cclauss
 def parse_ref(bible_reference='1 John 5:3-5,7-10,14'):
   '''
   >>> parse_ref(' John ') == {'book': 'John'}
@@ -203,10 +205,10 @@ def parse_refs(bible_reference):
 
 def get_url(app, fulltext):
   if app == 'drafts4':
-  # Write scripture to new draft
-  #url = '{}://x-callback-url/create?text={}'.format(app, urllib.quote(fulltext))
+    # Write scripture to new draft
+    #url = '{}://x-callback-url/create?text={}'.format(app, urllib.quote(fulltext))
 
-  # Append scripture to existing open draft
+    # Append scripture to existing open draft
     fmt = '{}://x-callback-url/append?uuid={}&text={}'
     url = fmt.format(app, sys.argv[2], urllib.quote(fulltext))
 
@@ -299,6 +301,7 @@ def book_chapter_verses(p, verses):
       split_verse = the_verses[s].split('-')
       i = split_verse[0]
       j = split_verse[1]
+      # Add 1 to high end of range (j) due to zero base
       for k in range(int(i), int(j) + 1):
         t.append('[{}] {}'.format(k, p[0]['book'][count]['chapter'][str(k)]['verse']))
     else:
@@ -398,7 +401,6 @@ def main(ref):
 
     # Add markdown syntax to highlight verse ref
     t = '**{} ({})**\n{}'.format(ref, version.upper(), t)
-    #print t
     # Add scripture to list
     fulltext.append(t)
 
@@ -414,6 +416,7 @@ def main(ref):
   if app:
     url = get_url(app, fulltext)
     webbrowser.open(url)
+    sys.exit('Query results exported to {}.'.format(app))
   else:
     # Clear clipboard, then add formatted text
     clipboard.set('')
