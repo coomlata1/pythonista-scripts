@@ -2,7 +2,7 @@
 '''
 BibleVerses.py
 @coomlata1
-Last Updated: 03-02-2016 @ 12:36
+Last Updated: 03-06-2016 @ 18:40 PST
 
 This Pythonista script will retrieve any bible
 verse or verses and copy them to the clipboard or
@@ -82,7 +82,10 @@ Inspiration for this script came from
 More info on his projects is available at:
 http://sweetnessoffreedom.wordpress.com/projects
 
-The 2 parsing and API passage capturing routines are courtesy of @cclauss, https://github.com/cclauss, who has also contributed much to code cleanup and proper syntax. 
+The 2 parsing and API passage capturing routines
+are courtesy of @cclauss, https://github.com/cclauss, 
+who has also contributed much to code cleanup and
+proper syntax. 
 '''
 import json
 import requests
@@ -272,22 +275,25 @@ def book_chapter_verses(p, verses):
   #p = Luke 2:1-5,6,8,12-16
   t = []
   count = 0
-  # If only one verse that isn't a series...
   the_verses = verses
   
   if ',' in verses:
     # Multiple verses
     the_verses = verses.split(',')
   else:
-    # Only one verse in list and it's a series
+    # Only one verse with no comma and it's a series
     if '-' in verses:
       the_verses = verses.split('-')
       i = the_verses[0]
       j = the_verses[1]
       for k in range(int(i), int(j) + 1):
         t.append('[{}] {}'.format(k, p[0]['book'][count]['chapter'][str(k)]['verse']))
-      return t
-
+    else:
+      # Only one verse with no comma
+      t.append('[{}] {}'.format(the_verses, p[0]['book'][count]['chapter'][the_verses]['verse']))
+    return t
+  
+  # Multiple verses...loop them
   for s in range(len(the_verses)):
     if '-' in the_verses[s]:
       split_verse = the_verses[s].split('-')
