@@ -60,7 +60,7 @@ def time_toggled(self):
       lbl.text = change_date(dp)
 
 # Load pyui file
-v = ui.load_view('date_time_picker')
+v = ui.load_view('DateTimePicker')
 v.background_color = 'cyan'
 
 date_only = v['date_only']
