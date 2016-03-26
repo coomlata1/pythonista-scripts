@@ -1,6 +1,6 @@
 # coding: utf-8
 '''
-#---Script: date_time_picker.py
+#---Script: DateTimePicker.py
 #---Author: @coomlata1
 #---Created: 03/23/16
 #---Last Modified: 03/25/2016 @ 07:14PM
@@ -11,9 +11,9 @@ logging entries in a diary or journal. The script can be run
 stand alone or it can be called from apps such as 1Writer and
 Drafts using their respective URL schemes as shown below.
 
-Drafts: 'pythonista://date_time_picker&action=run&argv=drafts4&argv=[[uuid]]'
+Drafts: 'pythonista://DateTimePicker&action=run&argv=drafts4&argv=[[uuid]]'
 
-1Writer:'pythonista://date_time_picker?action=run&argv=onewriter'
+1Writer:'pythonista://DateTimePicker?action=run&argv=onewriter'
 '''
 import ui
 import datetime
