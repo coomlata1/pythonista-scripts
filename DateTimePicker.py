@@ -75,7 +75,7 @@ lbl = v['label1']
 # Sync label display with date picker
 lbl.text = change_date(dp)
 
-# Display ui locked in portrait orientation and wait till user selects something from it.
+# Display ui locked in portrait orientation and wait till user closes view.
 v.present(orientations = ['portrait'])
 v.wait_modal()
 
