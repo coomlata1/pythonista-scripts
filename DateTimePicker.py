@@ -3,7 +3,7 @@
 #---Script: DateTimePicker.py
 #---Author: @coomlata1
 #---Created: 03/23/16
-#---Last Modified: 03/25/2016 @ 07:14PM
+#---Last Modified: 03/26/2016 @ 10:30PM
 
 Script & accompanying pyui file allows for the selection of any
 date, time, or combination therein using the Datepicker ui view.
@@ -106,7 +106,8 @@ try:
     of clipboard to open draft at the cursor position. If
     any text is appended to open draft it is inserted at the
     bottom of the existing text. I prefer to insert the text at
-    the cursor, which requires the Drafts action 'ClipboardAtCursor' available at 'https://drafts4-actions.agiletortoise.com/a/1j7'
+    the cursor, which requires the Drafts action 'ClipboardAtCursor'
+    available at 'https://drafts4-actions.agiletortoise.com/a/1j7'
     '''
     cmd = 'drafts4://x-callback-url/append?uuid={}&text={}&action=ClipboardAtCursor'.format(sys.argv[2],'')
   else:
