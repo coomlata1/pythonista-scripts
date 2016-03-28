@@ -3,7 +3,7 @@
 Title: Search IMDB.py
 Author: @coomlata1
 Created: 11/18/2014
-Last Modified: 02/29/2016
+Last Modified: 03/27/2016
 
 This Pythonista script uses the api available at www.omdbapi.com
 to search for your desired movie or TV series title. The query
@@ -50,15 +50,6 @@ import dialogs
 import MarkdownView as mv
 
 url_fmt = 'http://www.omdbapi.com/?{}={}&y={}&plot=full&tomatoes=true&r=json'
-
-'''
-Allow to run script stand alone or from another app using command
-line arguments via URL's.
-'''
-try:
-  arg = sys.argv[1]
-except IndexError:
-  arg = ''
 
 # The ui
 class MyView(ui.View):
@@ -207,6 +198,8 @@ class MyView(ui.View):
       console.hud_alert('Only One Film-TV Series In Query')
 
   def no_refine(self, sender):
+    global app
+    
     # Clear clipboard, then add formatted text
     clipboard.set('')
     clipboard.set(mine_md_data(d))
@@ -218,11 +211,12 @@ class MyView(ui.View):
     self.right_button_items = [b7, b6, b5]
 
     # If script called from another app...
-    if arg:
-      cmd = get_url(arg, source = 'called', title = '')
+    if app:
+      cmd = get_url(app, source = 'called', title = '')
       import webbrowser
       webbrowser.open(cmd)
       self.close()
+      sys.exit('Returning to caller.')
 
   def new_query(self, sender):
     self.remove_subview(self.mv)
@@ -240,6 +234,7 @@ class MyView(ui.View):
         import webbrowser
         webbrowser.open(cmd)
         self.close()
+        sys.exit('Exporting query results to chosen app.')
       else:
         msg = 'Results of your search were copied to the clipboard in MD for use with the MD text editor or journaling app of your choice.' + '\n\n'
         self.mv.text = self.mv.text + msg
@@ -419,9 +414,37 @@ def get_url(app, source, title):
   return cmd
 
 def main():
+  global app
+  
   v = MyView()
-  # Lock screen and title bar in portrait orientation
+  
+  '''
+  Allow to run script stand alone or from another app using command
+  line arguments via URL's.
+  '''
+try:
+  app = sys.argv[1]
+except IndexError:
+  app = None
+  
+  # Lock screen and title bar in portrait orientation and wait for view to close
   v.present(style = 'full_screen', title_bar_color = 'cyan', orientations = ['portrait'])
-  sys.exit('Finished!')
+  v.wait_modal()
+  
+  '''
+  If view was closed with the 'X' on title bar & script was
+  called from another app, then return to calling app & exit
+  script, otherwise just cancel script.
+  '''
+  if app:
+    if app == '1Writer':
+      app = 'onewriter'
+    app = app.lower()
+    cmd = '{}://'.format(app)
+    import webbrowser
+    webbrowser.open(cmd)
+    sys.exit('Returning to caller.')
+  else:
+    sys.exit('Cancelled')
 if __name__ == '__main__':
   main()
