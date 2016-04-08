@@ -25,7 +25,7 @@ import sys
 
 def get_local_tz():
   # Get local time zone for right now
-  localtz  dateutil.tz.tzlocal()
+  localtz = dateutil.tz.tzlocal()
   t_zone = localtz.tzname(datetime.datetime.now(localtz))
   return t_zone
 
