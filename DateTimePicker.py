@@ -3,7 +3,7 @@
 #---Script: DateTimePicker.py
 #---Author: @coomlata1
 #---Created: 03/23/16
-#---Last Modified: 03/26/2016 @ 10:30PM
+#---Last Modified: 04/06/2016 @ 09:53 PM
 
 Script & accompanying pyui file allows for the selection of any
 date, time, or combination therein using the Datepicker ui view.
@@ -18,28 +18,45 @@ Drafts: 'pythonista://DateTimePicker&action=run&argv=drafts4&argv=[[uuid]]'
 '''
 import ui
 import datetime
+import dateutil.tz
 import clipboard
 import webbrowser
 import sys
 
+def get_local_tz():
+  # Get local time zone for right now
+  localtz  dateutil.tz.tzlocal()
+  t_zone = localtz.tzname(datetime.datetime.now(localtz))
+  return t_zone
+
 def change_date(self):
-  # Sync label text with date picker to match selected date & time options on segmented control
+  # Sync label text with date picker to match selected date & time options on segmented controls
   the_date = self.date
-  if sc.selected_index == 0:
-    # Format 'Wednesday Jan 1, 2016'
-    dt_fmt = '%A %b %d, %Y'
-  elif sc.selected_index == 1:
-    # Format '03:15:00PM'
-    dt_fmt = '%I:%M:%S%p'
-  elif sc.selected_index == 2:
-    # Format 'Wednesday Jan 1, 2016 03:15:00PM'
-    dt_fmt = '%A %b %d, %Y %I:%M:%S%p'
+  # Get local time zone, usually either standard or daylight savings
+  tz = get_local_tz()
+  
+  if sc1.selected_index == 0:
+    # Format 'Wed Jan 1, 2016'
+    dt_fmt = '%a %b %d, %Y'
+  elif sc1.selected_index == 1 and sc2.selected_index == 0:
+    # Format for 12 hour clock: '03:15:00 PM PST'
+    dt_fmt = '%I:%M:%S %p {}'.format(tz)
+  elif sc1.selected_index == 1 and sc2.selected_index == 1:
+    # Format for 24 hour clock: '15:15:00 PST'
+    dt_fmt = '%H:%M:%S {}'.format(tz)
+  elif sc1.selected_index == 2 and sc2.selected_index == 0:
+    # Format 12 hour clock: 'Wed Jan 1, 2016 03:15:00 PM PST'
+    dt_fmt = '%a %b %d, %Y %I:%M:%S %p {}'.format(tz)
+  elif sc1.selected_index == 2 and sc2.selected_index == 1:
+    # Format 24 hour clock: 'Wed Jan 1, 2016 15:15:00 PST'
+    dt_fmt = '%a %b %d, %Y %H:%M:%S {}'.format(tz)  
+  
   the_date = the_date.strftime(dt_fmt)
   lbl.text = str(the_date)
   return str(the_date)
 
-#  Action called when a selection change is made on segmented control.
-def seg_selected(self):
+#  Action called when a selection change is made on Date-Time-Both segmented control.
+def seg1_selected(self):
   if self.selected_index == 0:
     # Set date picker control to Date only
     dp.mode = ui.DATE_PICKER_MODE_DATE
@@ -50,6 +67,10 @@ def seg_selected(self):
     # Set date picker control to Both
     dp.mode = ui.DATE_PICKER_MODE_DATE_AND_TIME
   # Sync label with change
+  lbl.text = change_date(dp)
+
+# Action called when a selection change is made on 12 hr-24 hr segmented control
+def seg2_selected(self)
   lbl.text = change_date(dp)
 
 # Action for 'Set To Current Date-Time' button
@@ -66,9 +87,15 @@ def done(self):
 v = ui.load_view('DateTimePicker')
 v.background_color = 'cyan'
 
-sc = v['segmentedcontrol1']
-sc.selected_index = 2
-sc.action = seg_selected
+sc1 = v['segmentedcontrol1']
+# Default to both date and time
+sc1.selected_index = 2
+sc1.action = seg1_selected
+
+sc2 = v['segmentedcontrol2']
+# Default to 12 hour clock
+sc2.selected_index = 0
+sc2.action = seg2_selected
 
 dp = v['datepicker1']
 lbl = v['label1']
