@@ -436,11 +436,11 @@ if __name__ == '__main__':
     # Grab all photos in camera roll
     all_assets = photos.get_assets()
     # Allow multiple selects
-    assets = photos.pick_asset(all_assets,title = 'Select Desired Photos', multi=True)
+    assets = photos.pick_asset(all_assets, title = 'Select Desired Photos', multi=True)
   else:
     sys.exit('Camera roll is empty.')
     
-  # Where any photos selected?
+  # Were any photos selected?
   try:
     count = len(assets)
   except TypeError:
