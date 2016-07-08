@@ -3,7 +3,7 @@
 #---Script: PhotosToDropbox.py
 #---Author: @coomlata1
 #---Created: 01/28/2015
-#---Last Updated: 07/07/2016
+#---Last Updated: 07/08/2016
 
 This script now supports Pythonista 2.1 & the accompanying
 changes to the 'Photo' module and requires Pythonista 2.1 or
