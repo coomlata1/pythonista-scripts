@@ -13,12 +13,12 @@ This script and it's 2 pyui files, 'PhotosToDropbox.pyui' and
 'PhotosToScale.pyui', will RESIZE, RENAME, GEO-TAG & UPLOAD
 all selected photos in the iPhone camera roll to new folders
 in your Dropbox account. The main folder will be named after
-the year the photo was taken in the format 'yyyy', & the
+the year the photo was created in the format 'yyyy', & the
 subfolders will be named for the date the photo was created
 in the format mm.dd.yyyy. The photos themselves will have the
-exact time the photo was taken amended to the front of their
-names in the format hh.mm.ss.XXXX.jpg, where XXXX is the
-original name. All metadata in the original photo will be
+exact time the photo was created amended to the front of
+their names in the format hh.mm.ss.XXXX.jpg, where XXXX is
+the original name. All metadata in the original photo will be
 copied to the resized & renamed copy in Dropbox if desired.
 The script allows you to select your desired photo scaling
 options.
@@ -263,9 +263,14 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
 
   for asset in assets:
     print '\nProcessing photo...'
-    # Get date & time photo was taken
+    '''
+    Get date & time photo was created on YOUR iOS device.
+    Note that in some cases the creation date may not be the
+    date the photo was taken (ie you got it via text, email,
+    Facebook, etc.), but rather the date the photo was saved
+    to the photo roll on your device.
+    '''
     the_year, the_date, the_time = get_date_time(asset.creation_date)
-    
     file_name = ''
     # Formulate file name for photo
     old_filename = str(ObjCInstance(asset).filename())
