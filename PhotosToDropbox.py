@@ -39,7 +39,9 @@ will need to be tweaked slightly to look good on an iPad.
 
 Many thanks to @cclauss for excellent help and advice with
 tightening the code and improving the program flow of the
-script.
+script.  Thanks also to @JonB, @omz, & @cvp for help via
+the Pythonista forum with getting the code to work with
+the changes in the Photos module in Pythonista 2.1.
 '''
 import console
 import location
