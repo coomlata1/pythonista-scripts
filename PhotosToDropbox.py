@@ -146,22 +146,10 @@ def get_location(meta):
     results = location.reverse_geocode(meta)[0]
 
     name = results['Name']
-    try:
-      street = results['Thoroughfare']
-    except KeyError:
-      street = ''
-    try:
-      city = results['City']
-    except KeyError:
-      city = ''
-    try:
-      state = results['State']
-    except KeyError:
-      state = ''
-    try:
-      zipcode = results['ZIP']
-    except KeyError:
-      zipcode = ''
+    street = results.get('Thoroughfare', '')
+    city = results.get('City', '')
+    state = results.get('State', '')
+    zipcode = results.get('ZIP', '')
 
     # If name is an address then use street name only, because address is close but not always exact as to where location actually is.
     if find_number(name):
@@ -176,18 +164,7 @@ def find_number(a):
   return re.findall(r'^\.?\d+',a)
   
 def get_degrees_to_rotate(d):
-  if d == '1':
-    degrees = 0
-  elif d == '3':
-    degrees = -180
-  elif d == '6':
-    degrees = -90
-  elif d == '8':
-    degrees = 90
-  else:
-    degrees = 0
-  
-  return degrees
+  return {'1': 0, '3': -180, '6': -90, '8': 90}.get(d, 0)
     
 def copy_meta(meta_src, meta_dst, x, y):
   '''
@@ -323,15 +300,12 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
     orientation = str(ObjCInstance(asset).orientation())
     
     # Landscape
-    if orientation == '1' or orientation == '3':
+    if orientation in ('1', '3'):
       img = img.resize((new_w, new_h),Image.ANTIALIAS)
       # Occasionally metadata will say the photo orientation is 1 even though the width is less than the height of photo. 
-      if new_w < new_h:
-        oriented = 'portrait'
-      else:
-        oriented = 'landscape'
+      oriented = 'portrait' if new_w < new_h else 'landscape'
     # Portrait
-    elif orientation == '6' or orientation == '8':
+    elif orientation in ('6', '8'):
       img = img.resize((new_h, new_w), Image.ANTIALIAS)
       oriented = 'portrait'
     # Unavailable
