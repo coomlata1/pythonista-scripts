@@ -377,8 +377,15 @@ class MyView(ui.View):
 
   # Action called from 'Export' button on title bar
   def export(self, sender):
-    the_apps = ['DayOne', 'Drafts4', 'Editorial', '1Writer', 'Clipboard']
-    self.load_apps_tableview(the_apps)
+    if app:
+      cmd = get_url(app, source = 'called', title = '')
+      import webbrowser
+      webbrowser.open(cmd)
+      self.close()
+      sys.exit('Returning to caller')
+    else:
+      the_apps = ['DayOne', 'Drafts4', 'Editorial', '1Writer', 'Clipboard']
+      self.load_apps_tableview(the_apps)
 
   def load_webview(self, url):
     self.wv = ui.WebView()
