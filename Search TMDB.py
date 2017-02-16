@@ -12,7 +12,7 @@
     using Stash and pip. Caches repetetive hits to api.
     2. Markdown.py available at:
     https://github.com/mikaelho/pythonista-markdownview.
-    Provides marksdown viewing & editing. Be sure to read the 
+    Provides markdown viewing & editing. Be sure to read the 
     readme.md file for installation instructions. 
 
 #---Purpose: This Pythonista script uses the api available at
