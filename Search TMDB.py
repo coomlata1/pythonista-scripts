@@ -379,20 +379,6 @@ class MyView(ui.View):
   def export(self, sender):
     the_apps = ['DayOne', 'Drafts4', 'Editorial', '1Writer', 'Clipboard']
     self.load_apps_tableview(the_apps)
-    sys.exit()
-    
-    app_pick = dialogs.list_dialog('Pick An App To Export Query Results To:', the_apps)
-    if app_pick is not None:
-      cmd = get_url(app_pick, source = 'picked', title = self.tf1.text.strip())
-      if cmd:
-        import webbrowser
-        webbrowser.open(cmd)
-        self.close()
-        sys.exit('Exporting query results to chosen app.')
-      else:
-        msg = '\n\nResults of your search were copied to the clipboard in MD for use with the MD text editor or journaling app of your choice.' + '\n\n'
-        self.mv.text = self.mv.text + msg
-        self.no_export(self)
 
   def load_webview(self, url):
     self.wv = ui.WebView()
