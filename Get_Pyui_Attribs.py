@@ -334,7 +334,7 @@ def human_size(size_bytes, no_suffixs=False):
     return formatted_size
 
 def to_abs_path(*value):
-  import os
+  #import os
   
   abs_path = os.path.join(os.path.expanduser('~'),'Documents')
   for _value in value:
@@ -385,7 +385,7 @@ def get_attribs(pyui_file):
   for s in r[0]['attributes']:
     attrib =  r[0]['attributes'][s]
     # Add parenthesis for some text based attributes
-    if s == 'flex' or s == 'title' or s == 'name' or s == 'text' or s == 'font_name':
+    if s in('flex', 'title', 'name', 'text', 'font_name'):
         attrib = "'{}'".format(attrib)
     # Colors
     if 'color' in s:
@@ -416,10 +416,10 @@ def get_attribs(pyui_file):
     # Now get the balance of subview attributes & convert to a format suited to code in a py file when necessary
     for s in nodes[i]['attributes']:
       # Filter out the redundant & unwanted attributes
-      if not s == 'frame' and not s == 'class' and not s == 'uuid':
+      if not s in ('frame', 'class', 'uuid'):
         attrib = nodes[i]['attributes'][s]
         # Add parenthesis for some text based attributes
-        if s == 'flex' or s == 'title' or s == 'name' or s == 'text' or s == 'font_name':
+        if s in ('flex', 'title', 'name', 'text', 'font_name'):
           attrib = "'{}'".format(attrib)
         # Segmented controls
         if s == 'segments':
