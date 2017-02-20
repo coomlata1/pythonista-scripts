@@ -1,6 +1,6 @@
 # coding: utf-8
 '''
-#---Script: get_pyui_attribs.py
+#---Script: Get_Pyui_Attribs.py
 #---Author: @coomlata1
 #---Created: 02/19/2017
 #---Last Modified: 02/20/2017
