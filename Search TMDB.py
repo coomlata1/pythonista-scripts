@@ -195,6 +195,7 @@ class MyView(ui.View):
       console.hud_alert('No api caching available')
     
     console.show_activity()
+    console.hud_alert('Searching for {}...'.format(self.tf1.text))
     
     # Clear keyboard from screen
     self.tf1.end_editing()
@@ -574,6 +575,8 @@ def query_person(person):
   
   movie_credits = set()
   tv_credits = set()
+  console.hud_alert('Gathering Info...')  
+    
   c = r['cast']
   for i in range(len(c)):
     if c[i]['media_type'] == 'movie':
@@ -600,6 +603,8 @@ def query_person(person):
         #tv_credits.add('{}; {}; {}'.format(c[i]['first_air_date'], c[i]['name'], c[i]['character']))
         tv_credits.add('{}; {}; {}; {}'.format(first_date, c[i]['name'], c[i]['character'], episodes))
   
+  console.hud_alert('Search Complete...')
+    
   movie_crew = set()
   tv_crew = set()
   c = r['crew']
@@ -979,7 +984,6 @@ def main():
 
   # Lock screen and title bar in portrait orientation and wait for view to close
   v.present(style = 'full_screen', title_bar_color = 'cyan', orientations = ['portrait'])
-  v.wait_modal()
   
 if __name__ == '__main__':
   main()
