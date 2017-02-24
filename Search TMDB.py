@@ -3,7 +3,7 @@
 #---Script: Search TMDB.py
 #---Author: @coomlata1
 #---Created: 02/04/2017
-#---Last Modified: 02/21/2017
+#---Last Modified: 02/23/2017
 
 #---Requirements: API key from www.themoviedb.org
     
@@ -675,24 +675,17 @@ def movie_info(id):
     revenue = 'N/A'
     
   # Initialize list objects
-  the_cast = []
   the_producers = []
+  the_cast = []
   
-  for s in r['production_companies']:
-    the_producers.append('{}'.format(s['name']))
-  the_producers = ', '.join(the_producers)
+  the_producers = ', '.join([s['name'] for s in r['production_companies']])
   
-  for s in r['credits']['cast']:
-    # Debug
-    #print (s['name'], s['character'])
-    the_cast.append('{} as {}'.format(s['name'], s['character']))
-  the_cast = ', '.join(the_cast)
+  the_cast = ', '.join(['{} as {}'.format(s['name'], s['character']) for s in r['credits']['cast']])
   
   title = r['title']
+ 
   the_genres = []
-    
-  for s in r['genres']:
-    the_genres.append('{}'.format(s['name']))
+  the_genres = ', '.join([s['name'] for s in r['genres']])
     
   rating = '{}/10'.format(r['vote_average'])
   runtime = '{} minutes'.format(r['runtime'])
@@ -703,10 +696,7 @@ def movie_info(id):
     poster = 'N/A'
     
   the_languages = []
-  for s in r['spoken_languages']:
-    # Debug
-    #print s['name']
-    the_languages.append('{}'.format(s['name']))
+  the_languages = ', '.join([s['name'] for s in r['spoken_languages']])
     
   certification = ''
   for s in r['releases']['countries']:
@@ -722,19 +712,9 @@ def movie_info(id):
   the_directors = []
   the_writers = []
     
-  for s in r['credits']['crew']:
-    # Debug
-    #print (s['name'], s['job'])
-    if s['job'] == 'Director':
-      the_directors.append('{}'.format(s['name']))
-      
-    if s['job'] == 'Screenplay' or s['job'] == 'Writer' or s['job'] == 'Novel' or s['job'] == 'Author':
-      the_writers.append('{} ({})'.format(s['name'], s['job']))
-        
-  the_genres = ', '.join(the_genres)
-  the_languages = ', '.join(the_languages)
-  the_directors = ', '.join(the_directors)
-  the_writers = ', '.join(the_writers)
+  the_directors = ', '.join([s['name'] for s in r['credits']['crew'] if s['job'] == 'Director'])
+  
+  the_writers = ', '.join(['{} ({})'.format(s['name'], s['job']) for s in r['credits']['crew'] if s['job'] == 'Screenplay' or s['job'] == 'Writer' or s['job'] == 'Novel' or s['job'] == 'Author'])
   
   url = url_reviews.format(id, api_key)
   reviews = requests.get(url).json()
@@ -806,19 +786,13 @@ def tv_info(id):
   i = requests.get(url).json()
   imdb_id = i['imdb_id']
 
-  for s in r['genres']:
-    the_genres.append('{}'.format(s['name']))
-  the_genres = ', '.join(the_genres)
+  the_genres = ', '.join([s['name'] for s in r['genres']])
   
   rating = r['vote_average']
   
-  for s in r['episode_run_time']:
-    the_runtimes.append('{}'.format(s))
-  the_runtimes = ', '.join(the_runtimes)
+  the_runtimes = ', '.join(['{}'.format(s) for s in r['episode_run_time']])
   
-  for s in r['networks']:
-    the_networks.append('{}'.format(s['name']))
-  the_networks = ', '.join(the_networks)
+  the_networks = ', '.join([s['name'] for s in r['networks']])
   
   if r['poster_path']:
     poster = '[{}](https://image.tmdb.org/t/p/w500{})'.format('Click Here', r['poster_path'])
