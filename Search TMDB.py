@@ -830,21 +830,13 @@ def person_info(bio, movies, tv, movie_crew, tv_crew):
   the_tv_crew = []
   age_error = False
   
-  for s in movies:
-    the_movies.append('\n{}\n'.format(s))
-  the_movies = '\n'.join(the_movies)
+  the_movies = '\n'.join(['\n{}\n'.format(s) for s in movies])
   
-  for s in tv:
-    the_tv. append('\n{}\n'.format(s))
-  the_tv = '\n'.join(the_tv)
+  the_tv = '\n'.join(['\n{}\n'.format(s) for s in tv])
     
-  for s in movie_crew:
-    the_movie_crew.append('\n{}\n'.format(s))
-  the_movie_crew = '\n'.join(the_movie_crew)
+  the_movie_crew = '\n'.join(['\n{}\n'.format(s) for s in movie_crew])
     
-  for s in tv_crew:
-    the_tv_crew.append('\n{}\n'.format(s))
-  the_tv_crew = '\n'.join(the_tv_crew)
+  the_tv_crew = '\n'.join(['\n{}\n'.format(s) for s in tv_crew])
   
   try:
     if r['deathday']:
