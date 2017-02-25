@@ -63,7 +63,7 @@ def get_weather(lat, lon, bold):
   Register for your free key at
   http://www.wunderground.com/weather/api
   '''
-  api_key = '8ae9f4b38d9f3a2e'
+  api_key = ''
 
   # Change to 'metric' if desired
   imperial_or_metric = 'imperial'
