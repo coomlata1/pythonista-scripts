@@ -1,39 +1,44 @@
 # coding: utf-8
 '''
-SendGpsData.py
+#---Script: SendGpsData.py
+#---Author: @coomlata1
+#---Created: 07/25/2015
+#---Last Modified: 02/24/2017
 
-A Pythonista script for texting your GPS location
-and current weather using clipboard, email, or SMS
-messaging. Requires Launch Center Pro to be able
-to email and SMS msg the text, and an api key
-from http://www.wunderground.com/weather/api
-to retrieve the weather data. The script
-can be run stand alone from Pythonista or be
-called from 1Writer, Editorial, or Drafts via a
-URL, in which case the text will be appended to the
-caller's open doc for use in journaling, logs, etc.
+#---Purpose: A Pythonista script for texting your GPS 
+    location and current weather using clipboard, email, or 
+    SMS messaging. Requires Launch Center Pro to be able to 
+    email and SMS msg the text, and an api key from:
+    http://www.wunderground.com/weather/api to retrieve the 
+    weather data. The script can be run stand alone from 
+    Pythonista or be called from 1Writer, Editorial, or 
+    Drafts via a URL, in which case the text will be appended 
+    to the caller's open doc for use in journaling, logs, 
+    etc.
 
-Examples of the calling URLs:
-From 1Writer: pythonista://{{SendGpsData.py}}?action=run&argv={{onewriter}}
-From Editorial: pythonista://SendGpsData.py?action=run&argv=editorial
-From Drafts: pythonista://SendGpsData.py?action=run&argv=drafts4&argv=[[uuid]]
+    Examples of the calling URLs:
+      From 1Writer: pythonista://{{SendGpsData.py}}?action=run&argv={{onewriter}}
+      
+      From Editorial: pythonista://SendGpsData.py?action=run&argv=editorial
+      
+      From Drafts: pythonista://SendGpsData.py?action=run&argv=drafts4&argv=[[uuid]]
 
-Used code and ideas from:
-  location.py at:
-  https://gist.github.com/drdrang/8329584
+#---Contributions: Used code and ideas from:
+    location.py at:
+      https://gist.github.com/drdrang/8329584
+    
+    insert_location.py at:
+      https://gist.github.com/hiilppp/8268816
+    
+    gps.py at:
+      https://gist.github.com/n8henrie/60b2e9390355bc8e24dd
+    
+    py_forecast.py at:
+      https://gist.github.com/miklb/8346411
 
-  insert_location.py at:
-  https://gist.github.com/hiilppp/8268816
-
-  gps.py at:
-  https://gist.github.com/n8henrie/60b2e9390355bc8e24dd
-
-  py_forecast.py at:
-  https://gist.github.com/miklb/8346411
-
-Many thanks to @drdrang, @hiilppp, @n8henrie, and
-@miklb for their inspiration and to @cclauss for
-tightening up code.
+    Many thanks to @drdrang, @hiilppp, @n8henrie, and @miklb 
+    for their inspiration and to @cclauss for tightening up 
+    code.
 '''
 import location
 import time
@@ -90,6 +95,7 @@ def get_weather(lat, lon, bold):
     except KeyError:
       err = True
       w_data = '\n\nNo weather data was returned. You will need to register for a free API key @ http://www.wunderground.com/weather/api to access the weather stats.'
+    
     # And on we go...
     if not err:
       # Apply conversion units to temperature
