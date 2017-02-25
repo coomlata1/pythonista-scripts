@@ -3,7 +3,7 @@
 #---Script: BibleVerses.py
 #---Author: @coomlata1
 #---Created: 03/10/16
-#---Last Modified: 02/24/2017
+#---Last Modified: 02/25/2017
 
 #---Purpose: This Pythonista script will retrieve any bible
     verse or verses and copy them to the clipboard or 
@@ -25,7 +25,7 @@
 
     Examples of the calling URLs:
     From 1Writer:
-      pythonista://{{BibleVerses.py}}?action=run&argv=onewriter
+      pythonista://{{BibleVerses.py}}?action=run&argv=onewriter&argv={[text]}&argv={[path]}&argv={[name]}
 
     From Editorial:
       pythonista://BibleVerses.py?action=run&argv=editorial
@@ -67,9 +67,9 @@
       Genesis chapter 3 verses 4 to 8; Genesis chapter 6 
       verse 2; the entire book of Mark.
 
-    The script allows you to select between 10 different 
+    The script allows you to select between 8 different 
     English language bible versions. The default setting is 
-    the New American Standard.
+    the American Standard.
 
     Contributions: Inspiration for this script came from 
     @pfcbenjamin and his script, 'BibleDraft.py'. More info 
@@ -89,7 +89,7 @@ import sys
 import webbrowser
 import console
 import clipboard
-import urllib
+import urllib2
 import difflib
 import MarkdownView as mv
 
@@ -210,10 +210,12 @@ def get_url(app, fulltext):
     url = fmt.format(app, sys.argv[2], urllib.quote(fulltext))
 
   elif app == 'onewriter':
+    the_path = sys.argv[3]
+    the_file = sys.argv[4]
     # Append scripture to open 1Writer doc
-    #fmt = '{}://x-callback-url/append?path=/Documents%2F&name=Notepad.txt&type=Local&text={}'
-    fmt = '{}://x-callback-url/replace-selection?path=/Documents%2F&name=Notepad.txt&type=Local&text={}'
-    url = fmt.format(app, urllib.quote(fulltext))
+    #fmt = '{}://x-callback-url/append?path={}%2F&name={}&type=Local&text={}'
+    fmt = '{}://x-callback-url/replace-selection?path={}%2F&name={}&type=Local&text={}'
+    url = fmt.format(app, the_path, the_file, urllib.quote(fulltext))
 
   elif app == 'editorial':
     # Copy scripture to clipboard
@@ -327,23 +329,20 @@ def main(ref):
   fulltext = []
 
   # List of Bible versions
-  versions = 'amp akjv asv basicenglish darby kjv nasb wb web ylt'.split()
+  versions = 'akjv asv basicenglish darby kjv wb web ylt'.split()
 
   # Pick your desired Bible version by number
-  #0 = amp...Amplified Version
-  #1 = akjv...KJV Easy Read
-  #2 = asv...American Standard Version
-  #3 = basicenglish...Basic English Bible
-  #4 = darby...Darby
-  #5 = kjv...King James Version
-  #6 = nasb...New American Standard Bible
-  #7 = wb...Webster's Bible
-  #8 = web...World English Bible
-  #9 = ylt...Young's Literal Translation
+  #0 = akjv...KJV Easy Read
+  #1 = asv...American Standard Version
+  #2 = basicenglish...Basic English Bible
+  #3 = darby...Darby
+  #4 = kjv...King James Version
+  #5 = wb...Webster's Bible
+  #6 = web...World English Bible
+  #7 = ylt...Young's Literal Translation
 
   # Change number to match desired version
-  version = versions[6]
-
+  version = versions[1]
   the_refs = parse_refs(ref)
 
   for r in the_refs:
