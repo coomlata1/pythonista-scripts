@@ -1,34 +1,39 @@
 #coding: utf-8
-
 '''
-ListToFantastical2.py
-Parses BOTH reminders and events from comma
-seperated text passed from URL's in LCP, 1Writer,
-or Drafts and posts them in Fantastical.
-Thanks to Fantastical's natural language parsing,
-your 'tasks' can be reminders or events.  The
-reminders must start with a 'Task', 'Todo',
-'Reminder', or 'Remind me' pre-text followed by the
-todo itself.  Events don't need the pre-text. For
-more on this see:
-   http://www.geekswithjuniors.com/note/5-awesome-things-from-fantastical-2-that-can-improve-your-wo.html
-and:
-   http://plobo.net/recursive-actions-with-launchcenterpro-and-pythonista
-for well documented intros to the proper syntax.
-Example caller URL's:
-  1Writer:
-    pythonista://ListToFantastical2?action=run&argv=[text]&argv=onewriter
-  Drafts:
-    pythonista://ListToFantastical2?action=run&argv=[[draft]]&argv=drafts4
-  LCP:
-    pythonista://{{ListToFantastical2}}?action=run&argv=[prompt-list:Enter Todos, Reminders, Events:]&argv=launch
-Credit Due:
-list2Fantastical.py
-https://gist.github.com/pslobo/25af95742e1480210e2e
-Thanks to @pslobo for his contribution to GitHub
-Thanks to @cclauss for code tightening and cleanup
-'''
+#---Script: ListToFantastical2.py
+#---Author: @coomlata1
+#---Created: 07/26/2015
+#---Last Modified: 02/24/2017
 
+#---Purpose: Parses BOTH reminders and events from comma
+    seperated text passed from URL's in LCP, 1Writer, or 
+    Drafts and posts them in Fantastical. Thanks to 
+    Fantastical's natural language parsing, your 'tasks' can 
+    be reminders or events.  The reminders must start with a 
+    'Task', 'Todo', 'Reminder', or 'Remind me' pre-text 
+    followed by the todo itself.  Events don't need the 
+    pretext.
+    
+    Example caller URL's:
+    1Writer:
+      pythonista://ListToFantastical2?action=run&argv=[text]&argv=onewriter
+    Drafts:
+      pythonista://ListToFantastical2?action=run&argv=[[draft]]&argv=drafts4
+    LCP:
+      pythonista://{{ListToFantastical2}}?action=run&argv=[prompt-list:Enter Todos, Reminders, Events:]&argv=launch
+    
+    For more on this see:
+      http://www.geekswithjuniors.com/note/5-awesome-things-from-fantastical-2-that-can-improve-your-wo.html
+    and:
+       http://plobo.net/recursive-actions-with-launchcenterpro-and-pythonista for a well documented 
+       intro to the proper syntax.
+
+#---Contributions:
+    list2Fantastical.py
+      https://gist.github.com/pslobo/25af95742e1480210e2e
+    Thanks to @pslobo for his contribution to GitHub
+    Thanks to @cclauss for code tightening and cleanup
+'''
 import sys
 import urllib2
 import webbrowser
