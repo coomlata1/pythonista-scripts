@@ -1,95 +1,84 @@
 # coding: utf-8
 '''
-BibleVerses.py
-@coomlata1
-Last Updated: 03-06-2016 @ 21:20 PST
+#---Script: BibleVerses.py
+#---Author: @coomlata1
+#---Created: 03/10/16
+#---Last Modified: 02/24/2017
 
-This Pythonista script will retrieve any bible
-verse or verses and copy them to the clipboard or
-1Writer, Editorial, or Drafts via a url. The script
-uses the getBible.net api as the query source for
-scripture. More info is available at https://
-getbible.net/api.
+#---Purpose: This Pythonista script will retrieve any bible
+    verse or verses and copy them to the clipboard or 
+    1Writer, Editorial, or Drafts via a url. The script uses 
+    the getBible.net api as the query source for scripture. 
+    More info is available at https://getbible.net/api.
 
-The script can be initialized stand alone from
-Pythonista or from a url action in 1Writer,
-Editorial, or Drafts.
+    The script can be initialized stand alone from Pythonista 
+    or from a url action in 1Writer, Editorial, or Drafts.
 
-If run stand alone, the script will copy the
-verse(s) returned from the query to the clipboard
-and print them to the console. You can then copy
-the verses to any application you wish using the
-clipboard.
+    If run stand alone, the script will copy the verse(s) 
+    returned from the query to the clipboard and print them 
+    to the console. You can then copy the verses to any 
+    application you wish using the clipboard.
 
-If the script is called from one of the 3 text
-editors mentioned above via a url, the scripture
-will be appended to the calling editor's open doc.
+    If the script is called from one of the 3 text editors 
+    mentioned above via a url, the scripture will be appended 
+    to the calling editor's open doc.
 
-Examples of the calling URLs:
-From 1Writer: pythonista://
-{{BibleVerses.py}}?action=run&argv=onewriter
+    Examples of the calling URLs:
+    From 1Writer:
+      pythonista://{{BibleVerses.py}}?action=run&argv=onewriter
 
-From Editorial: pythonista://
-BibleVerses.py?action=run&argv=editorial
+    From Editorial:
+      pythonista://BibleVerses.py?action=run&argv=editorial
 
-From Drafts: pythonista://
-{{BibleVerses.py}}?action=run&argv={{drafts4}}
-&argv={{[[uuid]]}}
+    From Drafts:
+      pythonista://{{BibleVerses.py}}?action=run&argv={{drafts4}}&argv={{[[uuid]]}}
 
-The script will prompt you for the desired verse
-references. Possible formats for the references
-include:
-  Book or multiple books:
-    Matthew
-    Luke;Mark
-  Chapters or multiple chapters:
-    Luke 3;Mark 4
-    Luke 3;4
-  Multiple books with consecutive or single verses:
-    1 John 5:3-5,7-10,14;Mark 7:4-6;8:3-6,10
-    1 John 5:3-5,7-10,14;Mark 7:4-6;Mark 8:3-6,10
-  Consecutive verses:
-    Mark 7:4-6
-  Single verse:
-    Mark 7:4
+    The script will prompt you for the desired verse 
+    references. Possible formats for the references include: 
+    Book or multiple books:
+      Matthew
+      Luke;Mark
+    Chapters or multiple chapters:
+      Luke 3;Mark 4
+      Luke 3;4
+    Multiple books with consecutive or single verses:
+      1 John 5:3-5,7-10,14;Mark 7:4-6;8:3-6,10
+      1 John 5:3-5,7-10,14;Mark 7:4-6;Mark 8:3-6,10
+    Consecutive verses:
+      Mark 7:4-6
+    Single verse:
+      Mark 7:4
 
-Seperate different books or chapters with a
-semicolon. Seperate verses in same book with a
-comma. List verses in numerical order, lowest to
-highest. Seperate the book and it's verse
-references with a space. Book names with both
-numeric and alpha characters(1 John), can be listed
-as 1John or 1 John and the script will handle it.
+    Seperate different books or chapters with a semicolon. 
+    Seperate verses in same book with a comma. List verses in 
+    numerical order, lowest to highest. Seperate the book and 
+    it's verse references with a space. Book names with both 
+    numeric and alpha characters(1 John), can be listed as 
+    1John or 1 John and the script will handle it.
 
-Examples:
+    Examples:
     Luke 2;4;1:2-7,9
       This would return Chapters 2 & 4 of Luke;
       Chapter 1 verses 2 to 7 & verse 9 from Luke
 
     Matthew 1:2-8;5;Genesis 1;3:4-8;6:2;Mark
-      This would return Matthew chapter 1; Matthew
-      chapter 2 verses 2 to 8; Matthew chapter 5;
-      Genesis chapter 1; Genesis chapter 3 verses 4
-      to 8; Genesis chapter 6 verse 2; the entire
-      book of Mark.
+      This would return Matthew chapter 1; Matthew chapter 2 
+      verses 2 to 8; Matthew chapter 5; Genesis chapter 1; 
+      Genesis chapter 3 verses 4 to 8; Genesis chapter 6 
+      verse 2; the entire book of Mark.
 
-The script allows you to select between 10
-different English language bible versions. The
-default setting is the New American Standard.
+    The script allows you to select between 10 different 
+    English language bible versions. The default setting is 
+    the New American Standard.
 
-Inspiration for this script came from
-@pfcbenjamin and his script, 'BibleDraft.py'.
-More info on his projects is available at:
-http://sweetnessoffreedom.wordpress.com/projects
+    Contributions: Inspiration for this script came from 
+    @pfcbenjamin and his script, 'BibleDraft.py'. More info 
+    on his projects is available at: http://sweetnessoffreedom.wordpress.com/projects
 
-The 2 parsing and API passage querying routines
-are courtesy of @cclauss, https://github.com/cclauss, 
-who has also contributed much to code cleanup and
-proper syntax. See 'https://github.com/coomlata1/
-pythonista-scripts/master/bible/BibleParseRefs.py' &
-'https://github.com/coomlata1/pythonista-scripts/
-/master/bible/BiblePassageAsDict.py', as they are the
-sources for the parsing and querying routines.
+    The 2 parsing and API passage querying routines are 
+    courtesy of @cclauss, https://github.com/cclauss,  who 
+    has also contributed much to code cleanup and proper 
+    syntax. See 'https://github.com/coomlata1/pythonista-scripts/master/bible/BibleParseRefs.py' & 'https://github.com/coomlata1/pythonista-scripts/master/bible/BiblePassageAsDict.py', as they are the sources for the parsing and querying routines.
 '''
 import json
 import requests
@@ -99,6 +88,7 @@ import console
 import clipboard
 import urllib
 import difflib
+import MarkdownView as mv
 
 # Credit to @cclauss for this query function
 def passage_as_dict(ref, version):
@@ -218,7 +208,8 @@ def get_url(app, fulltext):
 
   elif app == 'onewriter':
     # Append scripture to open 1Writer doc
-    fmt = '{}://x-callback-url/append?path=/Documents%2F&name=Notepad.txt&type=Local&text={}'
+    #fmt = '{}://x-callback-url/append?path=/Documents%2F&name=Notepad.txt&type=Local&text={}'
+    fmt = '{}://x-callback-url/replace-selection?path=/Documents%2F&name=Notepad.txt&type=Local&text={}'
     url = fmt.format(app, urllib.quote(fulltext))
 
   elif app == 'editorial':
@@ -261,7 +252,7 @@ def book_only(p):
       # Add 1 for zero base
       j = j + 1
       #print('chapter: {} verse: {}'.format(i+1, j+1))
-      t.append('[{}:{}] {}'. format(i, j, p[0]['book'][str(i)]['chapter'][str(j)]['verse']))
+      t.append('**[{}:{}]** {}'. format(i, j, p[0]['book'][str(i)]['chapter'][str(j)]['verse']))
   return t
 
 def book_chapter(p):
@@ -274,7 +265,7 @@ def book_chapter(p):
   for i in range(len(p[0]['chapter'])):
     # Add 1 for zero base
     i += 1
-    t.append('[{}] {}'.format(i, p[0]['chapter'][str(i)]['verse']))
+    t.append('**[{}]** {}'.format(i, p[0]['chapter'][str(i)]['verse']))
   return t
 
 def book_chapter_verses(p, verses):
@@ -282,7 +273,7 @@ def book_chapter_verses(p, verses):
   t = []
   count = 0
   the_verses = verses
-  
+
   if ',' in verses:
     # Multiple verses
     the_verses = verses.split(',')
@@ -293,12 +284,12 @@ def book_chapter_verses(p, verses):
       i = the_verses[0]
       j = the_verses[1]
       for k in range(int(i), int(j) + 1):
-        t.append('[{}] {}'.format(k, p[0]['book'][count]['chapter'][str(k)]['verse']))
+        t.append('**[{}]** {}'.format(k, p[0]['book'][count]['chapter'][str(k)]['verse']))
     else:
       # Only one verse with no comma
-      t.append('[{}] {}'.format(the_verses, p[0]['book'][count]['chapter'][the_verses]['verse']))
+      t.append('**[{}]** {}'.format(the_verses, p[0]['book'][count]['chapter'][the_verses]['verse']))
     return t
-  
+
   # Multiple verses...loop them
   for s in range(len(the_verses)):
     if '-' in the_verses[s]:
@@ -385,7 +376,7 @@ def main(ref):
     # Query passage
     console.hud_alert('Querying For {}...'.format(ref))
     p = passage_as_dict(ref, version)
-    
+
     err_msg = 'No scripture found for "{}"...Check syntax.'.format(ref)
 
     # If query returned scripture...
@@ -411,7 +402,7 @@ def main(ref):
   # Converts list to string
   fulltext = '\n\n'.join(fulltext)
   # Prepend verses and line feeds to scripture
-  fulltext = '{}\n\n{}'.format(user_input, fulltext)
+  #fulltext = '{}\n\n{}'.format(user_input, fulltext)
   fulltext = fulltext.encode()
   # Uncomment to debug
   #print fulltext
@@ -425,18 +416,28 @@ def main(ref):
     # Clear clipboard, then add formatted text
     clipboard.set('')
     clipboard.set(fulltext)
-    print('''
+    fulltext = ('''
 The results of the scripture query are
 shown below and copied to the clipboard
 for pasting into the MD text editor or
-journaling app of your choice.\n''')
-    print fulltext
-
+journaling app of your choice.\n\n''') + fulltext
+    #print fulltext
+    md = mv.MarkdownView()
+    md.background_color = 'orange'
+    md.font = ('<system-bold>', 14)
+    md.text = fulltext
+    md.editable = False
+    md.present()
+    
 if __name__ == '__main__':
+  try:
+    passage = sys.argv[2]
+  except:
+    passage = ''
   try:
     msg = 'Please enter bible verse(s) in the following format: Luke 3:1-3,5,6;1 John 2:1-4,6 to query scripture and return desired passages:\n\n'
 
-    ref = console.input_alert('Bible Verses', msg, '', 'Go').strip()
+    ref = console.input_alert('Bible Verses', msg, passage, 'Go').strip()
   except:
     # Cancel back to calling app if applicable
     try:
