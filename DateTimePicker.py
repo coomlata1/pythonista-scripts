@@ -3,24 +3,20 @@
 #---Script: DateTimePicker.py
 #---Author: @coomlata1
 #---Created: 03/23/16
-#---Last Modified: 01/31/2017 @ 08:36 PM
+#---Last Modified: 02/24/2017
 
-Script allows for the selection of any date, 
-time, or combination therein using the 
-Datepicker ui view. This works well for 
-logging entries in a diary or journal.
+#---Purpose: Script allows for the selection of any date, 
+    time, or combination therein using the Datepicker ui 
+    view. This works well for logging entries in a diary or 
+    journal.  The script can be run stand alone or it can be 
+    called from apps such as 1Writer & Drafts using their 
+    respective URL schemes as shown below.
 
-The script can be run stand alone or it can 
-be called from apps such as 1Writer & Drafts 
-using their respective URL schemes as shown 
-below.
+    Drafts:
+      pythonista://DateTimePicker&action=run&argv=drafts4&argv=[[uuid]]
 
-Drafts: 'pythonista://
-DateTimePicker&action=run&argv=drafts4&argv=[
-[uuid]]'
-
-1Writer:'pythonista://DateTimePicker?
-action=run&argv=onewriter'
+    1Writer:
+      pythonista://DateTimePicker?action=run&argv=onewriter
 '''
 import ui
 import datetime
