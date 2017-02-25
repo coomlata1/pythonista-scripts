@@ -900,12 +900,14 @@ def get_url(app, source, title):
 
   if app == '1Writer':
     if source == 'called':
+      the_path = sys.argv[2]
+      the_file = sys.argv[3]
       # Append query to open 1Writer doc
-      cmd = 'onewriter://x-callback-url/append?path=/Documents%2F&name=Notepad.txt&type=Local&text={}'.format(quoted_output)
+      cmd = 'onewriter://x-callback-url/append?path={}%2F&name={}&type=Local&text={}'.format(the_path, the_file, quoted_output)
     else:
       title = title.replace(' ','%20')
       # Write query results to a new 1Writer markdown doc named by title of movie
-      cmd = 'onewriter://x-callback-url/create?path=/Documents&name={}.md&text={}'.format(title, quoted_output)
+      cmd = 'onewriter://x-callback-url/create?path=%2FDocuments%2F&name={}.md&text={}'.format(title, quoted_output)
 
   if app == 'Editorial':
     if source == 'called':
