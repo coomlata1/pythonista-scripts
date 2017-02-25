@@ -3,7 +3,7 @@
 #---Script: SendGpsData.py
 #---Author: @coomlata1
 #---Created: 07/25/2015
-#---Last Modified: 02/24/2017
+#---Last Modified: 02/25/2017
 
 #---Purpose: A Pythonista script for texting your GPS 
     location and current weather using clipboard, email, or 
@@ -17,7 +17,7 @@
     etc.
 
     Examples of the calling URLs:
-      From 1Writer: pythonista://{{SendGpsData.py}}?action=run&argv={{onewriter}}
+      From 1Writer: pythonista://{{SendGpsData.py}}?action=run&argv={{onewriter}}&argv={[path]}&argv={[name]}
       
       From Editorial: pythonista://SendGpsData.py?action=run&argv=editorial
       
@@ -50,9 +50,9 @@ import sys
 import json
 import requests
 import clipboard
+import os
 
 console.clear()
-console.show_activity()
 
 # Procedure for getting weather from lat & lon
 def get_weather(lat, lon, bold):
@@ -63,7 +63,7 @@ def get_weather(lat, lon, bold):
   Register for your free key at
   http://www.wunderground.com/weather/api
   '''
-  api_key = ''
+  api_key = '8ae9f4b38d9f3a2e'
 
   # Change to 'metric' if desired
   imperial_or_metric = 'imperial'
@@ -115,8 +115,11 @@ def do_args(arg, quoted_output, output):
     cmd = '{}://x-callback-url/'.format(arg)
   else:
     if arg == 'onewriter':
-      # Replace 'Notepad.txt' with the name of your open doc in 1Writer
-      cmd = '{}://x-callback-url/append?path=Documents%2F&name=Notepad.txt&type=Local&text={}'.format(arg, quoted_output)
+      the_path = sys.argv[2]
+      the_file = sys.argv[3]
+  
+      cmd = '{}://x-callback-url/append?path={}%2F&name={}&type=Local&text={}'.format(arg, the_path, the_file, quoted_output)
+    
     if arg == 'editorial':
       clipboard.set(output)
       '''
@@ -125,6 +128,7 @@ def do_args(arg, quoted_output, output):
       http://www.editorial-workflows.com/workflow/5278032428269568/g2tYM1p0OZ4
       '''
       cmd = '{}://?command=Append%20Open%20Doc'.format(arg)
+    
     if arg == 'drafts4':
       '''
       Append gps data to open Draft doc using the
@@ -134,6 +138,7 @@ def do_args(arg, quoted_output, output):
       cmd = '{}://x-callback-url/append?uuid={}&text={}'.format(arg, sys.argv[2], quoted_output)
 
   webbrowser.open(cmd)
+  console.hide_activity()
   sys.exit('Finished!')
 
 def main():
@@ -144,10 +149,23 @@ def main():
   # Allow to run script stand alone
   try:
     arg = sys.argv[1]
+    '''
+    If this script is called from wrench menu there will be 
+    an arg passed by default. The arg will be the script's 
+    full pathname, which will cause the script to behave as 
+    if it was called from a url, so we nullify it.
+    '''
+    if os.path.isfile(arg):
+      arg = ''
   except IndexError:
     arg = ''
-
+  
+  if 'SendGpsData' in arg:
+    arg = ''
+  
   print('\nThis script is now gathering your current GPS coordinates, allowing you to text your location and current weather.\n')
+  
+  console.show_activity()
 
   # Start getting the location
   location.start_updates()
@@ -177,6 +195,7 @@ def main():
         if arg:
           do_args(arg, quoted_output, output)
         else:
+          console.hide_activity()
           sys.exit('Cancelled')
 
       # If initial accuracy is good enough, give user the chance to break
@@ -212,6 +231,7 @@ def main():
     if arg:
       do_args(arg, quoted_output, output)
     else:
+      console.hide_activity()
       sys.exit('Cancelled')
 
   # Set up for Markdown if called from apps
@@ -255,6 +275,7 @@ def main():
       ans = console.alert(title, '', butt1, butt2, butt3)
     except:
       console.clear()
+      console.hide_activity()
       sys.exit('Cancelled')
 
     if ans == 1:
@@ -275,7 +296,8 @@ def main():
     clipboard.set(output)
     console.clear()
     print('Your GPS {} copied to the clipboard.'.format(data_type))
-
+  
+  console.hide_activity()
   sys.exit('Finished!!')
 
 if __name__ == '__main__':
