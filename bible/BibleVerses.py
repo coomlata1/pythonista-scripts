@@ -78,7 +78,10 @@
     The 2 parsing and API passage querying routines are 
     courtesy of @cclauss, https://github.com/cclauss,  who 
     has also contributed much to code cleanup and proper 
-    syntax. See 'https://github.com/coomlata1/pythonista-scripts/master/bible/BibleParseRefs.py' & 'https://github.com/coomlata1/pythonista-scripts/master/bible/BiblePassageAsDict.py', as they are the sources for the parsing and querying routines.
+    syntax. See 'https://github.com/coomlata1/pythonista-scripts/master/bible/BibleParseRefs.py' &
+    'https://github.com/coomlata1/pythonista-scripts/master/bible/BiblePassageAsDict.py'
+    as they are the sources for the parsing and querying 
+    routines.
 '''
 import json
 import requests
