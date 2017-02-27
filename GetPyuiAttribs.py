@@ -25,7 +25,8 @@
     'https://github.com/nekotaroneko/GUI_Helper'
     
     The excellent file-picker code used in this script and in 
-    Gui_Helper.py comes from the script 'File Picker.py' by @omz at 'https://gist.github.com/e3433ebba20c92b63111'
+    Gui_Helper.py comes from the script 'File Picker.py' by
+    @omz at 'https://gist.github.com/e3433ebba20c92b63111'
 ''' 
 import json, pprint, clipboard, os
 
