@@ -1,9 +1,9 @@
 # coding: utf-8
 '''
 #---Script: GetPyuiAttribs.py
-#---Author: @coomlata1
+#---Author: coomlata1
 #---Created: 02/19/2017
-#---Last Modified: 02/24/2017
+#---Last Modified: 02/27/2017
 
 #---Purpose: This Pythonista script allows the selection of a 
     pyui file from any folder in the Pythonista documents 
@@ -20,10 +20,12 @@
     thread on the Pythonista forum here:
     'https://forum.omz-software.com/topic/989/any-ui-module-tutorials-out-there/6'
 
-    The script uses a portion of the code from GUI_Helper.py
-    for browsing the directory tree for pyui files. 
+    Inspiration also came from the script GUI_Helper.py. 
     Thanks to @nekotaroneko for GUI_Helper.py available here:
-    'https://github.com/nekotaroneko/GUI_Helper' 
+    'https://github.com/nekotaroneko/GUI_Helper'
+    
+    The excellent file-picker code used in this script and in 
+    Gui_Helper.py comes from the script 'File Picker.py' by @omz at 'https://gist.github.com/e3433ebba20c92b63111'
 ''' 
 import json, pprint, clipboard, os
 
@@ -385,8 +387,8 @@ def get_attribs(pyui_file):
   for s in r[0]['attributes']:
     attrib =  r[0]['attributes'][s]
     # Add parenthesis for some text based attributes
-    if s in('flex', 'title', 'name', 'text', 'font_name'):
-        attrib = "'{}'".format(attrib)
+    if s in ('flex', 'title', 'name', 'text', 'font_name'):
+      attrib = "'{}'".format(attrib)
     # Colors
     if 'color' in s:
       attrib = attrib.replace('RGBA', '')
