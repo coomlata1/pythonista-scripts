@@ -3,7 +3,14 @@
 #---Script: BibleVerses.py
 #---Author: @coomlata1
 #---Created: 03/10/16
-#---Last Modified: 02/25/2017
+#---Last Modified: 02/27/2017
+
+#---Optional: Thanks to @mikael for Markdown.py at:
+    https://github.com/mikaelho/pythonista-markdownview.
+    Provides markdown viewing & editing as a ui.TextView 
+    replacement. Be sure to read the readme.md file for 
+    installation instructions. More info is available on this 
+    omz forum thread: https://forum.omz-software.com/topic/2514/share-code-markdownview
 
 #---Purpose: This Pythonista script will retrieve any bible
     verse or verses and copy them to the clipboard or 
@@ -12,12 +19,15 @@
     More info is available at https://getbible.net/api.
 
     The script can be initialized stand alone from Pythonista 
-    or from a url action in 1Writer, Editorial, or Drafts.
+    or from a url action in 1Writer, Editorial, or Drafts. It 
+    is ideal to use while taking notes as scripture passages 
+    are discussed in a sermon.
 
     If run stand alone, the script will copy the verse(s) 
     returned from the query to the clipboard and print them 
-    to the console. You can then copy the verses to any 
-    application you wish using the clipboard.
+    to either a MarkdownView if avaiable, or a ui.TextView 
+    for read only viewing. You can also copy the verses to 
+    any markdown capable application using the clipboard.
 
     If the script is called from one of the 3 text editors 
     mentioned above via a url, the scripture will be appended 
@@ -49,9 +59,9 @@
     Single verse:
       Mark 7:4
 
-    Seperate different books or chapters with a semicolon. 
-    Seperate verses in same book with a comma. List verses in 
-    numerical order, lowest to highest. Seperate the book and 
+    Separate different books or chapters with a semicolon. 
+    Separate verses in same book with a comma. List verses in 
+    numerical order, lowest to highest. Separate the book and 
     it's verse references with a space. Book names with both 
     numeric and alpha characters(1 John), can be listed as 
     1John or 1 John and the script will handle it.
@@ -69,14 +79,14 @@
 
     The script allows you to select between 8 different 
     English language bible versions. The default setting is 
-    the American Standard.
+    'akjv', the acronym for 'King James Easy Read'.
 
-    Contributions: Inspiration for this script came from 
+#---Contributions: Inspiration for this script came from 
     @pfcbenjamin and his script, 'BibleDraft.py'. More info 
     on his projects is available at: http://sweetnessoffreedom.wordpress.com/projects
 
     The 2 parsing and API passage querying routines are 
-    courtesy of @cclauss, https://github.com/cclauss,  who 
+    courtesy of @cclauss, https://github.com/cclauss, who 
     has also contributed much to code cleanup and proper 
     syntax. See 'https://github.com/coomlata1/pythonista-scripts/master/bible/BibleParseRefs.py' &
     'https://github.com/coomlata1/pythonista-scripts/master/bible/BiblePassageAsDict.py'
@@ -89,16 +99,27 @@ import sys
 import webbrowser
 import console
 import clipboard
-import urllib2
+import urllib
 import difflib
-import MarkdownView as mv
 
 # Credit to @cclauss for this query function
 def passage_as_dict(ref, version):
   '''getbible.net does not valid json so we convert (content); to [content]'''
   fmt = 'https://getbible.net/json?p={}&v={}'
   url = fmt.format(ref.replace(' ', '%20'), version)
-  return json.loads('[{}]'.format(requests.get(url).text[1:-2]))
+  
+  try:
+    return json.loads('[{}]'.format(requests.get(url).text[1:-2]))
+  except Exception as e:
+    if 'No JSON object' in str(e):
+      console.alert('No json object', "Something went wrong in the request. Check that version '{}' is available in the api. Check for proper verse syntax.".format(version))
+      sys.exit()
+    elif 'Connection aborted' in str(e):
+      console.alert('Failed to connect', 'Check network connection. Server may be down. Try again in a couple of minutes.')
+      sys.exit()
+    else:
+      console.alert('Error', str(e))
+      sys.exit()
 
 def check_book(book, chapter):
   books = ['1 Chronicles', '1 Corinthians', '1 John', '1 Kings', '1 Peter',
@@ -141,8 +162,10 @@ def check_book(book, chapter):
   try:
     the_book = new_book[0].replace(' ', '')
   except IndexError:
-    err = "'{}' is not a bible book...check spelling.".format(the_book)
-    sys.exit(err)
+    err = "'{}' is not a bible book...check the spelling & syntax of your verse.".format(the_book)
+    console.alert('Error', err)
+    sys.exit()
+    
   return the_book, the_chapter
 
 # Parsing routines courtesy of @cclauss
@@ -229,7 +252,6 @@ def get_url(app, fulltext):
     5278032428269568/g2tYM1p0OZ4
     '''
     url = '{}://?command=Append%20Open%20Doc'.format(app)
-
   return url
 
 # whole book, chapter 1, verse 12...Luke
@@ -328,7 +350,7 @@ def main(ref):
   # Make list to spit multiple passages into
   fulltext = []
 
-  # List of Bible versions
+  # List of Bible versions available in the api
   versions = 'akjv asv basicenglish darby kjv wb web ylt'.split()
 
   # Pick your desired Bible version by number
@@ -342,7 +364,7 @@ def main(ref):
   #7 = ylt...Young's Literal Translation
 
   # Change number to match desired version
-  version = versions[1]
+  version = versions[0]
   the_refs = parse_refs(ref)
 
   for r in the_refs:
@@ -378,7 +400,7 @@ def main(ref):
     # Query passage
     console.hud_alert('Querying For {}...'.format(ref))
     p = passage_as_dict(ref, version)
-
+  
     err_msg = 'No scripture found for "{}"...Check syntax.'.format(ref)
 
     # If query returned scripture...
@@ -424,7 +446,13 @@ shown below and copied to the clipboard
 for pasting into the MD text editor or
 journaling app of your choice.\n\n''') + fulltext
     #print fulltext
-    md = mv.MarkdownView()
+    # Check if MarkdownView module is available and go with TextView if necessary.
+    try:
+      import MarkdownView as mv
+      md = mv.MarkdownView()
+    except ImportError:
+      import ui
+      md = ui.TextView()
     md.background_color = 'orange'
     md.font = ('<system-bold>', 14)
     md.text = fulltext
@@ -449,5 +477,4 @@ if __name__ == '__main__':
     except:
       # Initiated stand alone so just exit
       sys.exit('Script cancelled!')
-
   main(ref)
