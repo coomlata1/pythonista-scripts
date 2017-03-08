@@ -3,7 +3,7 @@
 #---Script: SearchTMDB.py
 #---Author: @coomlata1
 #---Created: 02/04/2017
-#---Last Modified: 02/24/2017
+#---Last Modified: 03/07/2017
 
 #---Requirements: API key from www.themoviedb.org
     
@@ -579,6 +579,10 @@ def query_person(person):
     
   c = r['cast']
   for i in range(len(c)):
+    # If i divided by 8 has a zero remainder then flash % of function completed msg on screen.
+    if i%8==0:
+      msg =  "{0:.0f}%".format(float(i+1) / float(len(c)) * 100) 
+      console.hud_alert('{} Complete'.format(msg), 'success', .30)
     if c[i]['media_type'] == 'movie':
         if c[i]['release_date'] != None:
           movie_credits.add('{}; {}; {}'.format(c[i]['release_date'], c[i]['title'], c[i]['character']))
