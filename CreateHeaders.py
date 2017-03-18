@@ -48,13 +48,12 @@ def wrap(d, wrap_len, i):
   for l in d.splitlines():
     # Look for long lines
     if len(l) > wrap_len:
-      # Estimate how many wrapped lines here
-      new_line = int((len(l)/wrap_len))
       # Wrap the text
       l = textwrap.fill(l,width = wrap_len) 
       l = l + '\n'
       b.append(l)
     else:
+      # Seperate all comment fields by a blank line after the first 4
       b.append(d + '\n') if i > 2 else b.append(d)
 
   b = ', '.join(b)
@@ -95,11 +94,13 @@ if header_search:
       # Look for existing field titles in code comments
       if chars in headers:
         field_titles = True
+        # Account for triple quotes
         end = end + 3
         break
 else:
   start = end = 0
 
+# Debug
 #print start
 #print end
   
@@ -210,7 +211,6 @@ comments = fmt.format(**data)
 
 # Debug
 #print comments
-#sys.exit()
 
 # Add new or edited header comments to any existing text
 updated_text = '{}{}{}'.format(beginning_text, comments, remaining_text)
