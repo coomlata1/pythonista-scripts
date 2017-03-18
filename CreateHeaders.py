@@ -7,17 +7,18 @@
 
 #---Description: Pythonista script to automate the process
 of adding or editing header comments to a new or existing
-script. Script was originally written as a template but can
-now be called from the wrench menu.  You can add a set of 
-header comments to a script or edit existing header comments 
-in a script by loading the script in the editor and calling 
-this  script from the wrench menu.
+script via a form dialog. Script was originally written as
+a template but can now be called from the wrench menu. You
+can add a set of header comments to a script or edit
+existing header comments in a script by loading the script
+in the editor and calling this script from the wrench menu.
 
 #---Contributors: @lukaskollmer...wrote original template 
 script and  started a thread in the omz-software forum that 
 furnished inspiration for this script. @ccc...Code cleanup & 
 added function to create a dictionary of fields in original 
-script. 
+script. Links to script and thread are listed in the readme
+file.
 
 #---Requirements: Add this script to the Pythonista wrench
 menu. When you create and name a new script using the '+'
