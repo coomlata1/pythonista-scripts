@@ -3,42 +3,41 @@
 #---Script: PhotosToDropbox.py
 #---Author: @coomlata1
 #---Created: 01/28/2015
-#---Last Updated: 02/20/2017
+#---Last Updated: 03/30/2017
 
-#---Required: 1. Pythonista 2.1 or greater due to changes to 
-    the 'Photo' module.
-    2. The pexif module, available at
-    https://github.com bennoleslie/pexif. It can be imported 
-    into Pythonista. Just copy pexif.py into the Pythonista 
-    'site packages' dir. Pexif allows for both reading from 
-    and writing to the metadata of image files. Many thanks 
-    to Ben Leslie for maintaining the pexif module at github.
-    3. DropboxLogin.py, available at:
-    https:/gist.github.com/omz/4034526, which allows login 
-    access to Dropbox.
-  
-#---Purpose: This script will RESIZE, RENAME, GEO-TAG & 
-    UPLOAD all selected photos in the iPhone camera roll to 
-    new folders in your Dropbox account. The main folder will 
-    be named after the year the photo was created in the 
-    format 'yyyy', & the subfolders will be named for the 
-    date the photo was created in the format mm.dd.yyyy. The 
-    photos themselves will have the exact time the photo was 
-    created amended to the front of their names in the format 
-    hh.mm.ss.XXXX.jpg, where XXXX is the original name. All 
-    metadata in the original photo will be copied to the 
-    resized & renamed copy in Dropbox if desired. The script 
-    allows you to select your desired photo scaling options.
-    
-#---To Do: Ui dimensions were set up for an iPhone and
-    will need to be tweaked slightly to look good on an iPad. 
+#---Purpose: This script will RESIZE, RENAME, GEO-TAG &
+UPLOAD all selected photos in the iPhone camera roll to new
+folders in your Dropbox account. The main folder will be
+named after the year the photo was created in the format
+'yyyy', & the subfolders will be named for the date the
+photo was created in the format mm.dd.yyyy. The photos
+themselves will have the exact time the photo was created
+amended to the front of their names in the format
+hh.mm.ss.XXXX.jpg, where XXXX is the original name. All
+metadata in the original photo will be copied to the resized
+& renamed copy in Dropbox if desired. The script allows you
+to select your desired photo scaling options.
 
-#---Kudos: Many thanks to @cclauss for excellent help and
-    advice with tightening the code and improving the program 
-    flow of the script. Thanks also to @JonB, @omz, & @cvp 
-    for help via the Pythonista forum with getting the code 
-    to work with the changes in the Photos module in 
-    Pythonista 2.1.
+#---Required: 1. Pythonista 2.1 or greater due to changes to
+the 'Photo' module. 2. The pexif module, available at
+https://github.com bennoleslie/pexif. It can be imported
+into Pythonista. Just copy pexif.py into the Pythonista
+'site packages' dir. Pexif allows for both reading from and
+writing to the metadata of image files. Many thanks to Ben
+Leslie for maintaining the pexif module at github. 3.
+DropboxLogin.py, available at:
+https:/gist.github.com/omz/4034526, which allows login
+access to Dropbox.
+
+#---Contributions: Many thanks to @cclauss for excellent
+help and advice with tightening the code and improving the
+program flow of the script. Thanks also to @JonB, @omz, &
+@cvp for help via the Pythonista forum with getting the code
+to work with the changes in the Photos module in Pythonista
+2.1.
+
+#---To Do: Ui dimensions were set up for an iPhone and will
+need to be tweaked slightly to look good on an iPad.
 '''
 import console
 import location
@@ -399,8 +398,12 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
     the_year, the_date, the_time = get_date_time(asset.creation_date)
     
     file_name = ''
+    
     # Formulate file name for photo
     old_filename = str(ObjCInstance(asset).filename())
+    # File extension reveals image type
+    ext = old_filename[-3:]
+    ext = ext.lower()
     
     if the_date:
       folder_name = '{}/{}'.format(the_year, the_date)
@@ -409,6 +412,9 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
       folder_name = 'NoDates'
       new_filename = old_filename
       keep_meta = False
+   
+    # Pexif.py does not handle non jpeg files
+    keep_meta = False if ext != 'jpg' else keep_meta
 
     new_filename = '{}/{}/{}'.format(dest_dir, folder_name, new_filename)
 
@@ -439,11 +445,11 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
     # Fetch asset's image data & return it as a io.BytesIO object and then as a byte string
     img = asset.get_image_data(original = False).getvalue()
     # Write string image of original photo to Pythonista script dir
-    with open('with_meta.jpg', 'wb') as out_file:
+    with open('with_meta.{}'.format(ext), 'wb') as out_file:
       out_file.write(img)
       
     # Open image, resize it, and write new image to scripts dir
-    img = Image.open('with_meta.jpg')
+    img = Image.open('with_meta.{}'.format(ext))
     # Retrieve a number that represents the orientation of photo
     orientation = str(ObjCInstance(asset).orientation())
     
@@ -502,7 +508,7 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
       print '\nPhoto will not be geo_tagged. Flag is set to false.'
 
     # Save new image
-    img.save('without_meta.jpg')
+    img.save('without_meta.{}'.format(ext))
 
     if keep_meta:
       '''
@@ -510,26 +516,25 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
       and call this reprocessed image file
       'meta_resized.jpg'.
       '''
-      copy_meta('with_meta.jpg', 'without_meta.jpg', new_w, new_h)
-
-      jpg_file = 'meta_resized.jpg'
+      copy_meta('with_meta.{}'.format(ext), 'without_meta.{}'.format(ext), new_w, new_h)
+      
+      img_file = 'meta_resized.{}'.format(ext)
 
     else:
       # Use resized photo that has not had metadata added back into it
-      jpg_file = 'without_meta.jpg'
-
+      img_file = 'without_meta.{}'.format(ext)
     print '\nUploading photo to Dropbox...'
     '''
     Upload resized photo with or without original metadata to
     Dropbox...use 'with' statement to open file so file
     closes automatically at end of 'with'.
     '''
-    with open(jpg_file,'r') as img:
+    with open(img_file,'r') as img:
       response = drop_client.put_file(new_filename, img)
 
       # Give Dropbox server time to process...pause time is user defined.
       time.sleep(upload_pause)
-    response = jpg_file = the_location = img = the_date = the_time = the_year = new_filename = old_filename = ''
+    response = img_file = the_location = img = the_date = the_time = the_year = new_filename = old_filename = ''
     print '\nUpload successful.'
 
   finish = time.clock()
@@ -544,7 +549,7 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
     print '\n'.join(no_resize)
 
   if no_gps:
-    print '\nPhotos that did not get geo-tagged because there was no gps info in the photo\'s metadata:'
+    print '\nPhotos that did not get geo-tagged because there was no gps info in the photo\'s metadata or image was not a jpg:'
     print '\n'.join(no_gps)
   
   # Re-enable idle timer
