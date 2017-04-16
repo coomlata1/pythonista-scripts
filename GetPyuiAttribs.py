@@ -472,3 +472,4 @@ def main():
   console.hud_alert('Attributes Successfully Copied to Clipboard', 'success', 2)
 if __name__ == '__main__':
   main()
+
