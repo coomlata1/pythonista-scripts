@@ -3,7 +3,7 @@
 #---Script: GetPyuiAttribs.py
 #---Author: coomlata1
 #---Created: 02/19/2017
-#---Last Modified: 02/27/2017
+#---Last Modified: 04/16/2017
 
 #---Purpose: This Pythonista script allows the selection of a 
     pyui file from any folder in the Pythonista documents 
