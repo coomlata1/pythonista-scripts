@@ -1,43 +1,40 @@
+
 # coding: utf-8
 '''
 #---Script: SendGpsData.py
 #---Author: @coomlata1
 #---Created: 07/25/2015
 #---Last Modified: 02/25/2017
-
-#---Purpose: A Pythonista script for texting your GPS 
-    location and current weather using clipboard, email, or 
-    SMS messaging. Requires Launch Center Pro to be able to 
+#---Purpose: A Pythonista script for texting your GPS
+    location and current weather using clipboard, email, or
+    SMS messaging. Requires Launch Center Pro to be able to
     email and SMS msg the text, and an api key from:
-    http://www.wunderground.com/weather/api to retrieve the 
-    weather data. The script can be run stand alone from 
-    Pythonista or be called from 1Writer, Editorial, or 
-    Drafts via a URL, in which case the text will be appended 
-    to the caller's open doc for use in journaling, logs, 
+    http://www.wunderground.com/weather/api to retrieve the
+    weather data. The script can be run stand alone from
+    Pythonista or be called from 1Writer, Editorial, or
+    Drafts via a URL, in which case the text will be appended
+    to the caller's open doc for use in journaling, logs,
     etc.
-
     Examples of the calling URLs:
       From 1Writer: pythonista://{{SendGpsData.py}}?action=run&argv={{onewriter}}&argv={[path]}&argv={[name]}
-      
-      From Editorial: pythonista://SendGpsData.py?action=run&argv=editorial
-      
-      From Drafts: pythonista://SendGpsData.py?action=run&argv=drafts4&argv=[[uuid]]
 
+      From Editorial: pythonista://SendGpsData.py?action=run&argv=editorial
+
+      From Drafts: pythonista://SendGpsData.py?action=run&argv=drafts4&argv=[[uuid]]
 #---Contributions: Used code and ideas from:
     location.py at:
       https://gist.github.com/drdrang/8329584
-    
+
     insert_location.py at:
       https://gist.github.com/hiilppp/8268816
-    
+
     gps.py at:
       https://gist.github.com/n8henrie/60b2e9390355bc8e24dd
-    
+
     py_forecast.py at:
       https://gist.github.com/miklb/8346411
-
-    Many thanks to @drdrang, @hiilppp, @n8henrie, and @miklb 
-    for their inspiration and to @cclauss for tightening up 
+    Many thanks to @drdrang, @hiilppp, @n8henrie, and @miklb
+    for their inspiration and to @cclauss for tightening up
     code.
 '''
 import location
@@ -47,7 +44,6 @@ import datetime
 import webbrowser
 import urllib
 import sys
-import json
 import requests
 import clipboard
 import os
@@ -80,7 +76,7 @@ def get_weather(lat, lon, bold):
 
   try:
     w = requests.get(w_url).json()
-    #import pprint;pprint.pprint(w)
+    # import pprint;pprint.pprint(w)
 
   # Servers down or no internet
   except requests.ConnectionError:
@@ -94,8 +90,10 @@ def get_weather(lat, lon, bold):
     # If no api key...
     except KeyError:
       err = True
-      w_data = '\n\nNo weather data was returned. You will need to register for a free API key @ http://www.wunderground.com/weather/api to access the weather stats.'
-    
+      w_data = ('\n\nNo weather data was returned. You will need to register '
+                'for a free API key @ http://www.wunderground.com/weather/api '
+                'to access the weather stats.')
+
     # And on we go...
     if not err:
       # Apply conversion units to temperature
@@ -104,8 +102,8 @@ def get_weather(lat, lon, bold):
 
       current_weather = w['current_observation']['weather'].lower()
       humidity = w['current_observation']['relative_humidity']
-
-      w_data = '\n\nCurrent weather here: {}{}, {}, & {} humidity{}.'.format(bold, current_weather, temp, humidity, bold)
+      fmt = '\n\nCurrent weather here: {}{}, {}, & {} humidity{}.'
+      w_data = fmt.format(bold, current_weather, temp, humidity, bold)
 
   return w_data
 
@@ -117,9 +115,9 @@ def do_args(arg, quoted_output, output):
     if arg == 'onewriter':
       the_path = sys.argv[2]
       the_file = sys.argv[3]
-  
-      cmd = '{}://x-callback-url/append?path={}%2F&name={}&type=Local&text={}'.format(arg, the_path, the_file, quoted_output)
-    
+      fmt = '{}://x-callback-url/append?path={}%2F&name={}&type=Local&text={}'
+      cmd = fmt.format(arg, the_path, the_file, quoted_output)
+
     if arg == 'editorial':
       clipboard.set(output)
       '''
@@ -128,14 +126,15 @@ def do_args(arg, quoted_output, output):
       http://www.editorial-workflows.com/workflow/5278032428269568/g2tYM1p0OZ4
       '''
       cmd = '{}://?command=Append%20Open%20Doc'.format(arg)
-    
+
     if arg == 'drafts4':
       '''
       Append gps data to open Draft doc using the
       2nd argument from calling URL as the UUID of
       the open doc
       '''
-      cmd = '{}://x-callback-url/append?uuid={}&text={}'.format(arg, sys.argv[2], quoted_output)
+      fmt = '{}://x-callback-url/append?uuid={}&text={}'
+      cmd = fmt.format(arg, sys.argv[2], quoted_output)
 
   webbrowser.open(cmd)
   console.hide_activity()
@@ -150,21 +149,22 @@ def main():
   try:
     arg = sys.argv[1]
     '''
-    If this script is called from wrench menu there will be 
-    an arg passed by default. The arg will be the script's 
-    full pathname, which will cause the script to behave as 
+    If this script is called from wrench menu there will be
+    an arg passed by default. The arg will be the script's
+    full pathname, which will cause the script to behave as
     if it was called from a url, so we nullify it.
     '''
     if os.path.isfile(arg):
       arg = ''
   except IndexError:
     arg = ''
-  
+
   if 'SendGpsData' in arg:
     arg = ''
-  
-  print('\nThis script is now gathering your current GPS coordinates, allowing you to text your location and current weather.\n')
-  
+
+  print('\nThis script is now gathering your current GPS coordinates, '
+        'allowing you to text your location and current weather.\n')
+
   console.show_activity()
 
   # Start getting the location
@@ -202,7 +202,8 @@ def main():
       if answer == 1:
         break
 
-      # If initial accuracy is not good enough, loop 4 more times and try to improve.
+      # If initial accuracy is not good enough, loop 4 more times and try to
+      # improve.
       elif answer == 2:
         pass
 
@@ -224,7 +225,7 @@ def main():
 
   # Allow a cancel
   try:
-    ans = console.alert(title,'', butt1, butt2)
+    ans = console.alert(title, '', butt1, butt2)
   except:
     console.clear()
     # Call procedure if script called from another app
@@ -240,21 +241,22 @@ def main():
 
   if ans == 1:
     data_type = 'address and weather were'
-    a = location.reverse_geocode({'latitude': lat,'longitude': lon})
+    a = location.reverse_geocode({'latitude': lat, 'longitude': lon})
 
     b = '{0}{Street}, {City} {State} {ZIP}{0}, {Country}'.format(bold, **a[0])
 
     datestamp = datetime.datetime.fromtimestamp(best_loc['timestamp'])
     d = datestamp.strftime('%A, %m-%d-%Y @ %I:%M:%S %p')
-
-    output = 'My location as of {} is {}, with an accuracy of about {} meters.'.format(d, b, best_acc)
+    fmt = 'My location as of {} is {}, with an accuracy of about {} meters.'
+    output = fmt.format(d, b, best_acc)
 
   elif ans == 2:
     data_type = 'coordinates and weather were'
-    output = 'Click on http://maps.apple.com/?q={},{} for a map to my current location.'.format(lat, lon)
+    output = ('Click on http://maps.apple.com/?q={},{} for a map to my '
+              'current location.'.format(lat, lon))
 
   output = output + w_data
-  quoted_output = urllib.quote(output, safe = '')
+  quoted_output = urllib.quote(output, safe='')
 
   # Call procedure if script called from another app
   if arg:
@@ -296,7 +298,7 @@ def main():
     clipboard.set(output)
     console.clear()
     print('Your GPS {} copied to the clipboard.'.format(data_type))
-  
+
   console.hide_activity()
   sys.exit('Finished!!')
 
