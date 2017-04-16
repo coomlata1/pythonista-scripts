@@ -4,7 +4,7 @@
 #---Script: SendGpsData.py
 #---Author: @coomlata1
 #---Created: 07/25/2015
-#---Last Modified: 02/25/2017
+#---Last Modified: 04/16/2017
 #---Purpose: A Pythonista script for texting your GPS
     location and current weather using clipboard, email, or
     SMS messaging. Requires Launch Center Pro to be able to
