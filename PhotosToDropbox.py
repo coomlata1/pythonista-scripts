@@ -3,7 +3,7 @@
 #---Script: PhotosToDropbox.py
 #---Author: @coomlata1
 #---Created: 01/28/2015
-#---Last Updated: 04/16/2017
+#---Last Updated: 10/14/2017
 
 #---Purpose: This script will RESIZE, RENAME, GEO-TAG &
 UPLOAD all selected photos in the iPhone camera roll to new
@@ -54,6 +54,7 @@ from PIL import ImageFont
 from PIL import ImageDraw
 from DropboxLogin import get_client
 import ui
+import dropbox
 
 # Globals for ui controls
 global fifty
@@ -457,7 +458,7 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
 
     # Fetch asset's image data & return it as a io.BytesIO object and then as a
     # byte string
-    img = asset.get_image_data(original=False).getvalue()
+    img = asset.get_image_data(original = False).getvalue()
     # Write string image of original photo to Pythonista script dir
     with open('with_meta.{}'.format(ext), 'wb') as out_file:
       out_file.write(img)
@@ -545,8 +546,12 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
     Dropbox...use 'with' statement to open file so file
     closes automatically at end of 'with'.
     '''
-    with open(img_file, 'r') as img:
-      response = drop_client.put_file(new_filename, img)  # noqa
+    with open(img_file, 'rb') as img:
+      # Dropbox API v1 syntax...no longer valid...shut down in September 2017
+      #response = drop_client.put_file(new_filename, img)
+      # Dropbox API v2 syntax to upload files to dropbox
+      overwrite = dropbox.files.WriteMode('overwrite')
+      response = drop_client.files_upload(img.read(), new_filename, overwrite)
 
       # Give Dropbox server time to process...pause time is user defined.
       time.sleep(upload_pause)
@@ -584,8 +589,8 @@ if __name__ == '__main__':
     # Grab all photos in camera roll
     all_assets = photos.get_assets()
     # Allow multiple selects
-    assets = photos.pick_asset(all_assets, title='Select Desired Photos',
-                               multi=True)
+    assets = photos.pick_asset(all_assets, title = 'Select Desired Photos',
+                               multi = True)
   else:
     console.hud_alert('Camera roll is empty')
     sys.exit()
@@ -602,7 +607,7 @@ if __name__ == '__main__':
 
   # Display ui locked in portrait orientation and wait till user makes choices
   # or quits.
-  v1.present(orientations=['portrait'])
+  v1.present(orientations = ['portrait'])
   v1.wait_modal()
 
   # Get user option choices for keeping metadata and geo_tagging photos
