@@ -3,7 +3,7 @@
 #---Script: SearchTMDB.py
 #---Author: @coomlata1
 #---Created: 02/04/2017
-#---Last Modified: 03/07/2017
+#---Last Modified: 12/27/2017
 
 #---Requirements: API key from www.themoviedb.org
     
@@ -210,9 +210,9 @@ class MyView(ui.View):
       try:
         # Query api for titles
         the_titles = query_titles(my_title, my_year)
-      except:
+      except Exception as e:
         console.hide_activity()
-        console.hud_alert('Search Error', 'error', 3)
+        console.hud_alert('Search Error: ' + str(e), 'error', 3)
         sys.exit()
       
       # If query yields results...
@@ -229,9 +229,9 @@ class MyView(ui.View):
       
       try:
         bio, movies, tv, movie_crew, tv_crew = query_person(name)
-      except:
+      except Exception as e:
         console.hide_activity()
-        console.hud_alert('Nothing Returned', 'error', 3)
+        console.hud_alert('Query Error: ' + str(e), 'error', 3)
         sys.exit()
 
       results = person_info(bio, movies, tv, movie_crew, tv_crew)
@@ -584,8 +584,12 @@ def query_person(person):
       msg =  "{0:.0f}%".format(float(i+1) / float(len(c)) * 100) 
       console.hud_alert('{} Complete'.format(msg), 'success', .30)
     if c[i]['media_type'] == 'movie':
+      try:
+        # Cover non-existent release date
         if c[i]['release_date'] != None:
           movie_credits.add('{}; {}; {}'.format(c[i]['release_date'], c[i]['title'], c[i]['character']))
+      except:
+        movie_credits.add('{}; {}; {}'.format('Date ?', c[i]['title'], c[i]['character']))
     if c[i]['media_type'] == 'tv' and c[i]['name'] != 'The Academy Awards':
       if c[i]['first_air_date'] != None:
         credit_id = c[i]['credit_id']
@@ -615,8 +619,12 @@ def query_person(person):
     
   for i in range(len(c)):
     if c[i]['media_type'] == 'movie':
+      try:
+        # Cover non existent release date
         if c[i]['release_date'] != None:
           movie_crew.add('{}; {}; {}'.format(c[i]['release_date'], c[i]['title'], c[i]['job']))
+      except:
+        movie_crew.add('{}; {}; {}'.format('Date ?', c[i]['title'], c[i]['job']))
     if c[i]['media_type'] == 'tv':
       if c[i]['first_air_date'] != None:
         tv_crew.add('{}; {}; {}'.format(c[i]['first_air_date'], c[i]['name'], c[i]['job']))
