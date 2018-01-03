@@ -24,8 +24,7 @@ import re
 import sys
 import time
 import pexif
-import Image
-#from PIL import Image
+from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 from DropboxLogin import get_client
