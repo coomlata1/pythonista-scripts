@@ -31,7 +31,6 @@ import datetime
 global imdb_id
 # Enter your api key from www.themoviedb.org
 #api_key = ''
-api_key ='ac6091c3fc2e0b58a399eb0b158777b9'
 url_search = 'https://api.themoviedb.org/3/search/{}?api_key={}&query={}'
 url_info = 'https://api.themoviedb.org/3/{}/{}?api_key={}&append_to_response=credits,releases'
 url_ids = 'https://api.themoviedb.org/3/tv/{}/external_ids?api_key={}&language=en-US'
