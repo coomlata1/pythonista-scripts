@@ -3,30 +3,18 @@
 #---Script: SearchTMDB.py
 #---Author: @coomlata1
 #---Created: 02/04/2017
-#---Last Modified: 12/27/2017
+#---Last Modified: 01/05/2018
 
 #---Requirements: API key from www.themoviedb.org
     
-#---Optional: 1. requests-cache available at 
-    https://pypi.python.org/pypi/requests-cache. Install 
-    using Stash and pip. Caches repetetive hits to api.
-    2. Markdown.py available at:
-    https://github.com/mikaelho/pythonista-markdownview.
-    Provides markdown viewing & editing. Be sure to read the 
-    readme.md file for installation instructions. 
+#---Optional: 1. Requests-cache available at https://pypi.python.org/pypi/requests-cache. Install using Stash and pip. Caches repetetive hits to api. 
+2. Markdown.py available at: https://github.com/mikaelho/pythonista-markdownview. Provides marksdown viewing & editing. Be sure to read the readme.md file for installation instructions. 
 
-#---Purpose: This Pythonista script uses the api available at
-    www.themovietb.org to search for and provide pertinent 
-    information about movies, TV series, or movie-tv 
-    people. The returned data is viewable in markdown 
-    format and can be transferred to the md text editor or 
-    md journaling app of your choice using the clipboard or 
-    url schemes. Another level of info is provided through a 
-    WebView() using the IMDB website as an alternate data 
-    source.
+#---Purpose: This Pythonista script uses the api
+available at www.themovietb.org to search for and provide pertinent information about movies, TV series, or movie-tv people. The returned data is viewable in markdown format and can be transferred to the md text editor or md journaling app of your choice using the clipboard or url schemes. Another level of info is provided through a WebView() using the IMDB website as an alternate data source.
     
-#---To Do: Designed on iPhone. Will need (w,h) ui and font 
-    tweaking for iPads, as I don't have one to test.
+#---To Do: Designed on iPhone. Will need (w,h) ui and 
+font tweaking for iPads, as I don't have one to test.
 '''
 import dialogs
 import requests
@@ -42,7 +30,8 @@ import datetime
 # Globals
 global imdb_id
 # Enter your api key from www.themoviedb.org
-api_key = ''
+#api_key = ''
+api_key ='ac6091c3fc2e0b58a399eb0b158777b9'
 url_search = 'https://api.themoviedb.org/3/search/{}?api_key={}&query={}'
 url_info = 'https://api.themoviedb.org/3/{}/{}?api_key={}&append_to_response=credits,releases'
 url_ids = 'https://api.themoviedb.org/3/tv/{}/external_ids?api_key={}&language=en-US'
@@ -178,6 +167,7 @@ class MyView(ui.View):
     else:
       self.right_button_items = []
   
+  @ui.in_background
   # Action for 'Run Query' button
   def query(self, sender):
     global imdb_id
@@ -195,7 +185,7 @@ class MyView(ui.View):
       console.hud_alert('No api caching available')
     
     console.show_activity()
-    console.hud_alert('Searching for {}...'.format(self.tf1.text))
+    console.hud_alert('Searching for {}....'.format(self.tf1.text))
     
     # Clear keyboard from screen
     self.tf1.end_editing()
@@ -231,7 +221,7 @@ class MyView(ui.View):
         bio, movies, tv, movie_crew, tv_crew = query_person(name)
       except Exception as e:
         console.hide_activity()
-        console.hud_alert('Query Error: ' + str(e), 'error', 3)
+        console.hud_alert( 'Query Error: ' + str(e), 'error', 3)
         sys.exit()
 
       results = person_info(bio, movies, tv, movie_crew, tv_crew)
@@ -378,6 +368,7 @@ class MyView(ui.View):
 
   # Action called from 'Export' button on title bar
   def export(self, sender):
+    # If script called from another app...
     if app:
       cmd = get_url(app, source = 'called', title = '')
       import webbrowser
@@ -494,7 +485,7 @@ def query_titles(title, year):
   sorted_titles = set()
   the_titles = []
   the_ids = []
-     
+  
   # Movies 
   url = url_search.format('movie', api_key, title)
   response = requests.get(url).json()
@@ -543,7 +534,7 @@ def query_titles(title, year):
     the_titles.append(', '.join([title[1], title[0], title[2], title[3]]))
   
   return the_titles
-  
+
 def query_person(person):
   url = url_search.format('person', api_key, person)
   response = requests.get(url).json()
@@ -575,17 +566,16 @@ def query_person(person):
   
   movie_credits = set()
   tv_credits = set()
-  console.hud_alert('Gathering Info...')  
-    
+  console.hud_alert('Gathering Info...')
+  
   c = r['cast']
   for i in range(len(c)):
-    # If i divided by 8 has a zero remainder then flash % of function completed msg on screen.
+     # If i divided by 8 has a zero remainder then flash % of function completed msg on screen.
     if i%8==0:
       msg =  "{0:.0f}%".format(float(i+1) / float(len(c)) * 100) 
       console.hud_alert('{} Complete'.format(msg), 'success', .30)
     if c[i]['media_type'] == 'movie':
       try:
-        # Cover non-existent release date
         if c[i]['release_date'] != None:
           movie_credits.add('{}; {}; {}'.format(c[i]['release_date'], c[i]['title'], c[i]['character']))
       except:
@@ -612,7 +602,7 @@ def query_person(person):
         tv_credits.add('{}; {}; {}; {}'.format(first_date, c[i]['name'], c[i]['character'], episodes))
   
   console.hud_alert('Search Complete...')
-    
+  
   movie_crew = set()
   tv_crew = set()
   c = r['crew']
@@ -620,7 +610,7 @@ def query_person(person):
   for i in range(len(c)):
     if c[i]['media_type'] == 'movie':
       try:
-        # Cover non existent release date
+        # Cover a non-existent release date
         if c[i]['release_date'] != None:
           movie_crew.add('{}; {}; {}'.format(c[i]['release_date'], c[i]['title'], c[i]['job']))
       except:
@@ -695,7 +685,7 @@ def movie_info(id):
   the_cast = ', '.join(['{} as {}'.format(s['name'], s['character']) for s in r['credits']['cast']])
   
   title = r['title']
- 
+  
   the_genres = []
   the_genres = ', '.join([s['name'] for s in r['genres']])
     
@@ -709,12 +699,9 @@ def movie_info(id):
     
   the_languages = []
   the_languages = ', '.join([s['name'] for s in r['spoken_languages']])
-    
+  
   certification = ''
   for s in r['releases']['countries']:
-    # Debug
-    #print s
-    #sys.exit()
     if s['iso_3166_1'] == 'US':
       certification = s['certification']
       break
@@ -943,7 +930,6 @@ def get_url(app, source, title):
 
   if app == 'Clipboard':
     cmd = ''
-
   return cmd
 
 def main():
