@@ -10,11 +10,9 @@
 #---Optional: 1. Requests-cache available at https://pypi.python.org/pypi/requests-cache. Install using Stash and pip. Caches repetetive hits to api. 
 2. Markdown.py available at: https://github.com/mikaelho/pythonista-markdownview. Provides marksdown viewing & editing. Be sure to read the readme.md file for installation instructions. 
 
-#---Purpose: This Pythonista script uses the api
-available at www.themovietb.org to search for and provide pertinent information about movies, TV series, or movie-tv people. The returned data is viewable in markdown format and can be transferred to the md text editor or md journaling app of your choice using the clipboard or url schemes. Another level of info is provided through a WebView() using the IMDB website as an alternate data source.
+#---Purpose: This Pythonista script uses the api available at www.themovietb.org to search for and provide pertinent information about movies, TV series, or movie-tv people. The returned data is viewable in markdown format and can be transferred to the md text editor or md journaling app of your choice using the clipboard or url schemes. Another level of info is provided through a WebView() using the IMDB website as an alternate data source.
     
-#---To Do: Designed on iPhone. Will need (w,h) ui and 
-font tweaking for iPads, as I don't have one to test.
+#---To Do: Designed on iPhone. Will need (w,h) ui and font tweaking for iPads, as I don't have one to test.
 '''
 import dialogs
 import requests
@@ -649,10 +647,7 @@ def query_person(person):
   return bio, movies, tv, m_crew, t_crew
   
 '''
-Function to mine query results for desired
-movie & return a Markdown text of those
-results for copying to the clipboard or returning to a 
-application that called this script via a url. 
+Function to mine query results for desired movie & return a Markdown text of those results for copying to the clipboard or returning to an application that called this script via a url. 
 '''
 def movie_info(id):
   global imdb_id
@@ -752,10 +747,7 @@ def movie_info(id):
 **Reviews:** {}'''.format(title, imdb_id, 'Movie', r['release_date'], the_genres, rating, rated, id, imdb_id, poster, runtime, budget, revenue, the_languages, the_producers, the_directors, the_writers, the_cast, r['overview'], the_reviews))
 
 '''
-Function to mine query results for desired
-tv series & return a Markdown text of those
-results for copying to the clipboard or returning to a 
-application that called this script via a url. 
+Function to mine query results for desired tv series & return a Markdown text of those results for copying to the clipboard or returning to an application that called this script via a url. 
 '''
 def tv_info(id):
   global imdb_id
@@ -815,10 +807,7 @@ def tv_info(id):
   **Plot:** {}'''.format(r['name'], imdb_id, 'TV Series', the_genres, rating, id, imdb_id, poster, r['first_air_date'], r['last_air_date'], r['number_of_seasons'], r['number_of_episodes'], the_runtimes, the_networks, r['status'], the_cast, r['overview']))
   
 '''
-Function to mine query results for desired
-movie-tv person & return a Markdown text of those
-results for copying to the clipboard or returning to a 
-application that called this script via a url. 
+Function to mine query results for desired movie-tv person & return a Markdown text of those results for copying to the clipboard or returning to an application that called this script via a url. 
 '''
 def person_info(bio, movies, tv, movie_crew, tv_crew):
   r = bio
@@ -875,10 +864,7 @@ def days_between(d1, d2):
   # Add 1 for today
   return abs((d2 - d1).days) + 1
 '''
-Function to return a url cmd to send query
-results to the app, either named in the arg
-that called this script, or picked from
-export app list in this script
+Function to return a url cmd to send query results to the app, either named in the arg that called this script, or picked from export app list in this script
 '''
 def get_url(app, source, title):
   import urllib
@@ -918,9 +904,7 @@ def get_url(app, source, title):
   if app == 'Drafts4':
     if source == 'called':
       '''
-      Append query to open Draft doc using
-      the 2nd argument from calling URL as
-      the UUID of the open doc
+      Append query to open Draft doc using the 2nd argument from calling URL as the UUID of the open doc
       '''
       cmd = 'drafts4://x-callback-url/append?uuid={}&text={}'.format(sys.argv[2], quoted_output)
     else:
@@ -938,9 +922,7 @@ def main():
   v = MyView()
 
   '''
-  Allow to run script stand alone or from
-  another app using command line arguments
-  via URL's.
+  Allow to run script stand alone or from another app using command line arguments via URL's.
   '''
   try:
     app = sys.argv[1]
