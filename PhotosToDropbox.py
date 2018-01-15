@@ -5,14 +5,48 @@
 #---Created: 01/28/2015
 #---Last Updated: 01/02/2018
 
-#---Purpose: This script will RESIZE, RENAME, GEO-TAG & UPLOAD all selected photos in the iPhone camera roll to new folders in your Dropbox account. The main folder will be named after the year the photo was created in the format 'yyyy', & the subfolders will be named for the date the photo was created in the format mm.dd.yyyy. The photos themselves will have the exact time the photo was created amended to the front of their names in the format hh.mm.ss.XXXX.jpg, where XXXX is the original name. All metadata in the original photo will be copied to the resized & renamed copy in Dropbox if desired. The script allows you to select your desired photo scaling options.
+#---Purpose: This script will RESIZE, RENAME, GEO-TAG
+& UPLOAD all selected photos in the iPhone camera roll
+to new folders in your Dropbox account. The main
+folder will be named after the year the photo was
+created in the format 'yyyy', & the subfolders will be
+named for the date the photo was created in the format
+mm.dd.yyyy. The photos themselves will have the exact
+time the photo was created amended to the front of
+their names in the format hh.mm.ss.XXXX.jpg, where
+XXXX is the original name. All metadata in the
+original photo will be copied to the resized & renamed
+copy in Dropbox if desired. The script allows you to
+select your desired photo scaling options.
 
-#---Required: 1. Pythonista 2.1 or greater due to changes to the 'Photo' module. 2. The pexif module, available at https://github.com bennoleslie/pexif. It can be imported into Pythonista. Just copy pexif.py into the Pythonista 'site packages' dir. Pexif allows for both reading from and writing to the metadata of image files. Many thanks to Ben Leslie for maintaining the pexif module at github. 3. DropboxLogin.py, available at: https:/gist.github.com/omz/4034526, which allows login access to Dropbox. 4. If you are using iOS 11, go to settings in your iOS device snd select 'Camera', select 'Format', and change setting from 'High Efficiency' to 'Most Compatible'. Your camera roll will then store your photos in jpg format. This is a workaround until more support is generated for the new heic photo format in iOS 11.
+#---Required: 1. Pythonista 2.1 or greater due to
+changes to the 'Photo' module. 2. The pexif module,
+available at https://github.com bennoleslie/pexif. It
+can be imported into Pythonista. Just copy pexif.py
+into the Pythonista 'site packages' dir. Pexif allows
+for both reading from and writing to the metadata of
+image files. Many thanks to Ben Leslie for maintaining
+the pexif module at github. 3. DropboxLogin.py,
+available at: https:/gist.github.com/omz/4034526,
+which allows login access to Dropbox. 4. If you are
+using iOS 11, go to settings in your iOS device snd
+select 'Camera', select 'Format', and change setting
+from 'High Efficiency' to 'Most Compatible'. Your
+camera roll will then store your photos in jpg format.
+This is a workaround until more support is generated
+for the new heic photo format in iOS 11.
 
-#---Contributions: Many thanks to @cclauss for excellent help and advice with tightening the code and improving the program flow of the script. Thanks also to @JonB, @omz, & @cvp for help via the Pythonista forum with getting the code to work with the changes in the Photos module in Pythonista
-2.1.
+#---Contributions: Many thanks to @cclauss for
+excellent help and advice with tightening the code and
+improving the program flow of the script. Thanks also
+to @JonB, @omz, & @cvp for help via the Pythonista
+forum with getting the code to work with the changes
+in the Photos module in Pythonista 2.1.
 
-#---To Do: Add support for the heic photo format introduced in iOS 11. Ui dimensions were set up for an iPhone and will need to be tweaked slightly to look good on an iPad.
+#---To Do: Add support for the heic photo format
+introduced in iOS 11. Ui dimensions were set up for an
+iPhone and will need to be tweaked slightly to look
+good on an iPad.
 '''
 from __future__ import absolute_import, division, print_function
 import console
@@ -24,7 +58,8 @@ import re
 import sys
 import time
 import pexif
-from PIL import Image
+import Image
+#from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 from DropboxLogin import get_client
@@ -147,7 +182,9 @@ def get_location(meta):
     zipcode = results.get('ZIP', '')
     
     '''
-    If name is an address then use street name only, because address is close but not always exact as to where location actually is.
+    If name is an address then use street name only,
+    because address is close but not always exact as
+    to where location actually is.
     '''
     if find_number(name):
       name = street
@@ -169,7 +206,9 @@ def get_degrees_to_rotate(d):
 
 def copy_meta(meta_src, meta_dst, x, y):
   '''
-  Copy metadata from original photo to a resized photo that has no media metadata and write the results to a new photo that is resized with the media metadata.
+  Copy metadata from original photo to a resized photo
+  that has no media metadata and write the results to
+  a new photo that is resized with the media metadata.
   '''
   # Source photo
   img_src = pexif.JpegFile.fromFile(meta_src)
@@ -178,7 +217,10 @@ def copy_meta(meta_src, meta_dst, x, y):
   img_dst.import_metadata(img_src)
   # Results photo
   '''
-  After importing metadata from source we need to update the metadata to the new resize dimensions. Thanks to Ben Leslie for updating Pexif to accomodate this.
+  After importing metadata from source we need to
+  update the metadata to the new resize dimensions.
+  Thanks to Ben Leslie for updating Pexif to
+  accomodate this.
   '''
   img_dst.exif.primary.ExtendedEXIF.PixelXDimension = [x]
   img_dst.exif.primary.ExtendedEXIF.PixelYDimension = [y]
@@ -189,7 +231,9 @@ def copy_meta(meta_src, meta_dst, x, y):
 
 def timer(start, end, count, upload_pause):
   '''
-  Calculates the time it takes to run process, based on start and finish times.  Add user defined time for each photo's dropbox upload pause.
+  Calculates the time it takes to run process, based
+  on start and finish times.  Add user defined time
+  for each photo's dropbox upload pause.
   '''
   elapsed = (end - start) + (upload_pause * count)
   # Convert process time, if needed
@@ -343,7 +387,9 @@ v2.add_subview(lb6)
 def main(assets, keep_meta, geo_tag, dest_dir, size):
   minumum_size = True
   '''
-  This is time in seconds to allow for dropbox to process each photo. Older iOS devices will require more time.
+  This is time in seconds to allow for dropbox to
+  process each photo. Older iOS devices will require
+  more time.
   '''
   upload_pause = 4
 
@@ -354,7 +400,8 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
     # Numbers only for textbox entries
     scale.keyboard_type = ui.KEYBOARD_NUMBER_PAD
     '''
-    Display ui locked in portrait orientation and wait till user selects something from it.
+    Display ui locked in portrait orientation and wait
+    till user selects something from it.
     '''
     v2.present(orientations=['portrait'])
     v2.wait_modal()
@@ -383,7 +430,12 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
   for asset in assets:
     print('\nProcessing photo...')
     '''
-    Get date & time photo was created on YOUR iOS device. Note that in some cases the creation date may not be the date the photo was taken (ie you got it via text, email, Facebook, etc), but rather the date the photo was saved to the camera roll on your device.
+    Get date & time photo was created on YOUR iOS
+    device. Note that in some cases the creation date
+    may not be the date the photo was taken (ie you
+    got it via text, email, Facebook, etc), but rather
+    the date the photo was saved to the camera roll on
+    your device.
     '''
     the_year, the_date, the_time = get_date_time(asset.creation_date)
 
@@ -437,7 +489,8 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
     print(fmt.format('resized' if resizeOk else '', addToMsg))
     
     '''
-    Fetch asset's image data & return it as a io.BytesIO object and then as a byte string
+    Fetch asset's image data & return it as a
+    io.BytesIO object and then as a byte string
     '''
     img = asset.get_image_data(original=False).getvalue()
     # Write string image of original photo to Pythonista script dir
@@ -478,7 +531,9 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
         the_time = the_time.replace('.', ':')
         the_location = '{} @ {} in {}'.format(the_date, the_time, the_location)
         '''
-        Get degrees needed to rotate photo for it's proper orientation. See www.impulsesdventue.com/photoexiforientation.html for more details.
+        Get degrees needed to rotate photo for it's
+        proper orientation. See
+        www.impulsesdventue.com/photoexiforientation.html for more details.
         '''
         degrees = get_degrees_to_rotate(orientation)
 
@@ -509,7 +564,9 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
 
     if keep_meta:
       '''
-      Copy metadata from 'with_meta.jpg' to 'without_meta.jpg' and call this reprocessed image file 'meta_resized.jpg'.
+      Copy metadata from 'with_meta.jpg' to
+      'without_meta.jpg' and call this reprocessed
+      image file 'meta_resized.jpg'.
       '''
       copy_meta('with_meta.{}'.format(ext), 'without_meta.{}'.format(ext),
                 new_w, new_h)
@@ -521,7 +578,10 @@ def main(assets, keep_meta, geo_tag, dest_dir, size):
       img_file = 'without_meta.{}'.format(ext)
     print('\nUploading photo to Dropbox...')
     '''
-    Upload resized photo with or without original metadata to Dropbox...use 'with' statement to open file so file closes automatically at end of 'with'.
+    Upload resized photo with or without original
+    metadata to Dropbox...use 'with' statement to open
+    file so file closes automatically at end of
+    'with'.
     '''
     with open(img_file, 'rb') as img:
       # Dropbox api v1 syntax
@@ -614,3 +674,5 @@ if __name__ == '__main__':
     size = 'none'
 
   main(assets, meta, geo, dest_dir, size)
+
+
