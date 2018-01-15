@@ -3,7 +3,7 @@
 #---Script: PhotosToDropbox.py
 #---Author: @coomlata1
 #---Created: 01/28/2015
-#---Last Updated: 01/02/2018
+#---Last Updated: 01/15/2018
 
 #---Purpose: This script will RESIZE, RENAME, GEO-TAG
 & UPLOAD all selected photos in the iPhone camera roll
