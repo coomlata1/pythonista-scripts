@@ -1,41 +1,46 @@
-
 # coding: utf-8
 '''
 #---Script: SendGpsData.py
 #---Author: @coomlata1
 #---Created: 07/25/2015
-#---Last Modified: 04/16/2017
+#---Last Modified: 01/20/2018
+
+#---Required: Requires Launch Center Pro to be able to
+email and SMS msg the text, and an api key from:
+http://www.wunderground.com/weather/api to retrieve
+the weather data.
+
 #---Purpose: A Pythonista script for texting your GPS
-    location and current weather using clipboard, email, or
-    SMS messaging. Requires Launch Center Pro to be able to
-    email and SMS msg the text, and an api key from:
-    http://www.wunderground.com/weather/api to retrieve the
-    weather data. The script can be run stand alone from
-    Pythonista or be called from 1Writer, Editorial, or
-    Drafts via a URL, in which case the text will be appended
-    to the caller's open doc for use in journaling, logs,
-    etc.
-    Examples of the calling URLs:
-      From 1Writer: pythonista://{{SendGpsData.py}}?action=run&argv={{onewriter}}&argv={[path]}&argv={[name]}
+location and current weather using clipboard, email,
+or SMS messaging.  The script can be run stand alone
+from Pythonista or be called from 1Writer, Editorial,
+or Drafts via a URL, in which case the text will be
+appended to the caller's open doc for use in
+journaling, logs, etc.
 
-      From Editorial: pythonista://SendGpsData.py?action=run&argv=editorial
+Examples of the calling URLs:
+From 1Writer: pythonista://{{SendGpsData.py}}?action=run&argv={{onewriter}}&argv={[path]}&argv={[name]}
 
-      From Drafts: pythonista://SendGpsData.py?action=run&argv=drafts4&argv=[[uuid]]
-#---Contributions: Used code and ideas from:
-    location.py at:
-      https://gist.github.com/drdrang/8329584
+From Editorial: pythonista://SendGpsData.py?action=run&argv=editorial
 
-    insert_location.py at:
-      https://gist.github.com/hiilppp/8268816
+From Drafts: pythonista://SendGpsData.py?action=run&argv=drafts4&argv=[[uuid]]
 
-    gps.py at:
-      https://gist.github.com/n8henrie/60b2e9390355bc8e24dd
+#---Contributions: Used code and ideas from 
+location.py at:
+https://gist.github.com/drdrang/8329584
 
-    py_forecast.py at:
-      https://gist.github.com/miklb/8346411
-    Many thanks to @drdrang, @hiilppp, @n8henrie, and @miklb
-    for their inspiration and to @cclauss for tightening up
-    code.
+insert_location.py at:
+https://gist.github.com/hiilppp/8268816
+
+gps.py at:
+https://gist.github.com/n8henrie/60b2e9390355bc8e24dd
+
+py_forecast.py at:
+https://gist.github.com/miklb/8346411
+
+Many thanks to @drdrang, @hiilppp, @n8henrie, and
+@miklb for their inspiration and to @cclauss for
+tightening up code.
 '''
 import location
 import time
@@ -54,12 +59,11 @@ console.clear()
 def get_weather(lat, lon, bold):
   err = ''
   '''
-  You will need to replace the empty quotes
-  below with an API key to get weather data.
-  Register for your free key at
-  http://www.wunderground.com/weather/api
+  You will need to replace the empty quotes below with
+  an API key to get weather data. Register for your
+  free key at http://www.wunderground.com/weather/api
   '''
-  api_key = ''
+  api_key= ''
 
   # Change to 'metric' if desired
   imperial_or_metric = 'imperial'
@@ -129,9 +133,9 @@ def do_args(arg, quoted_output, output):
 
     if arg == 'drafts4':
       '''
-      Append gps data to open Draft doc using the
-      2nd argument from calling URL as the UUID of
-      the open doc
+      Append gps data to open Draft doc using the 2nd
+      argument from calling URL as the UUID of the
+      open doc
       '''
       fmt = '{}://x-callback-url/append?uuid={}&text={}'
       cmd = fmt.format(arg, sys.argv[2], quoted_output)
@@ -149,10 +153,11 @@ def main():
   try:
     arg = sys.argv[1]
     '''
-    If this script is called from wrench menu there will be
-    an arg passed by default. The arg will be the script's
-    full pathname, which will cause the script to behave as
-    if it was called from a url, so we nullify it.
+    If this script is called from wrench menu there
+    will be an arg passed by default. The arg will be
+    the script's full pathname, which will cause the
+    script to behave as if it was called from a url,
+    so we nullify it.
     '''
     if os.path.isfile(arg):
       arg = ''
@@ -202,8 +207,7 @@ def main():
       if answer == 1:
         break
 
-      # If initial accuracy is not good enough, loop 4 more times and try to
-      # improve.
+      # If initial accuracy is not good enough, loop 4 more times and try to improve.
       elif answer == 2:
         pass
 
