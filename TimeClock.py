@@ -44,6 +44,7 @@ def select(self):
   # Lunch time in minutes...set to more, less, or zero as applicable.
   lunch = 30
   
+  # Calculate time elapsed between start & end times, subtracting for any unpaid lunch time as necessary
   tdelta = datetime.datetime.strptime(end, FMT) - datetime.datetime.strptime(start, FMT) - timedelta(hours = 0, minutes = lunch)
   
   '''
