@@ -22,22 +22,22 @@ import datetime
 from datetime import timedelta
 import time
 
-# Action for Start Time DatePicker
+# Action for Start Time DateTimePicker
 def change_start_time(self):
-  # Sync label text with DatePicker to match selected start time
+  # Sync label text with DateTimePicker to match selected start time
   lbl_pick_start.text = self.date.strftime('%I:%M %p')
 
-# Action for End Time TimePicker
+# Action for End Time DateTimePicker
 def change_end_time(self):
-  # Sync label text with DatePicker to match selected end time
+  # Sync label text with DateTimePicker to match selected end time
   lbl_pick_end.text = self.date.strftime('%I:%M %p')
   
-# Action for title bar 'Select' button on ui DatePicker title  bar
+# Action for 'Select' button on title  bar
 def select(self):
   # Formst for 12 hour clock with AM-PM syntax
   FMT = '%I:%M %p'
 
-  # Assign start & end times as selected on the respective DatePickers
+  # Assign start & end times as selected on the respective DateTimePickers
   start = dp_start.date.strftime(FMT)
   end = dp_end.date.strftime(FMT)
   
@@ -58,7 +58,7 @@ def select(self):
                 
   lbl_tpassed.text = '{}'.format(tdelta)
 
-# DatePicker ui
+# DateTimePicker ui
 dp = ui.View(name = 'Pick Start & End Times', frame = (0, 0, 414, 736))
 dp.flex = 'HLRTB'
 dp.background_color = 'cyan'
@@ -142,5 +142,5 @@ dp_end.date = datetime.datetime.now()
 lbl_pick_start.text = dp_start.date.strftime('%I:%M %p')
 lbl_pick_end.text = dp_end.date.strftime('%I:%M %p')
 
-# Show the DatePicker ui
+# Show the DateTimePicker ui
 dp.present(orientations = ['portrait'])
