@@ -5,10 +5,10 @@
 #---Created: 02-17-2018
 #---Last Updated: 02-18-2018
 
-#---Description: Calculates the time elapsed between
-two user selected times. Ideal for calculating hours
-in shift work. Code includes time deductions for
-lunches if applicable.
+#---Description: Calculates the time elapsed in hours
+& minutes between two user selected times. Ideal for
+calculating hours in shift work. Code includes time
+deductions for lunches if applicable.
 
 #---Contributors: Time arithmetic info gathered from:
 https://stackoverflow.com/questions/3096953/how-to-
@@ -41,7 +41,7 @@ def select(self):
   start = dp_start.date.strftime(FMT)
   end = dp_end.date.strftime(FMT)
   
-  # Lunch time in minutes...set to zero if not applicable.
+  # Lunch time in minutes...set to more, less, or zero as applicable.
   lunch = 30
   
   tdelta = datetime.datetime.strptime(end, FMT) - datetime.datetime.strptime(start, FMT) - timedelta(hours = 0, minutes = lunch)
