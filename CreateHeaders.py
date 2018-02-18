@@ -3,7 +3,7 @@
 #---Filename: CreateHeaders.py
 #---Author: coomlata1
 #---Created: 07-10-2016
-#---Last Updated: 03-17-2017
+#---Last Updated: 02-18-2018
 
 #---Description: Pythonista script to automate the process
 of adding or editing header comments to a new or existing
@@ -97,7 +97,8 @@ if header_search:
         # Account for triple quotes
         end = end + 3
         break
-else:
+        
+If not field_titles:
   start = end = 0
 
 # Debug
