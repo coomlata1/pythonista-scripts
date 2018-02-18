@@ -47,7 +47,10 @@ def select(self):
   tdelta = datetime.datetime.strptime(end, FMT) - datetime.datetime.strptime(start, FMT) - timedelta(hours = 0, minutes = lunch)
   
   '''
-  If you want the code to assume the interval crosses midnight (i.e. it should assume the end time is never earlier than the start time), you add the following lines to the above code:
+  If you want the code to assume the interval crosses
+  midnight (i.e. it should assume the end time is
+  never earlier than the start time), you add the
+  following lines to the above code:
   '''
   if tdelta.days < 0:
     tdelta = timedelta(days = 0,
