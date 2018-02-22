@@ -2,6 +2,7 @@
 '''
 Name: WeatherAnywhere.py
 Author: @coomlata1
+Last Updated: 02-21-2018
 
 This script serves only as a placeholder for the functions that are needed to run the 'WeatherAnywhereScene' script. 
 '''
@@ -18,13 +19,12 @@ import webbrowser
 import ui
 import os
 import plistlib
+import keychain
 
 icons = []
 weather_icons = []
 missing_icons = []
 icon_path = './icons/'
-# Insert api key here
-api_key = ''
 
 # Change to 'metric' if desired
 imperial_or_metric = 'imperial'
@@ -38,6 +38,17 @@ else:
   unit = ['c', 'mb', 'hPa', 'metric', 'mm', 'kph',
   'celsius', '_metric', 'cm', 'metric',
   'km', 'kilometers']
+  
+def get_api_key():
+  api_key = keychain.get_password('wunderground', 'api')
+  
+  If api_key == None:
+    api_key = console.input_alert('No API Key', 'You must generate an api key at https://www.wunderground.com and enter it here:', '', 'Ok', hide_cancel_button = False)                              
+    
+    If api_key <> '':
+      api_key = keychain.set_password('wunderground', 'api', api_key)
+      api_key = keychain.get_password('wunderground', 'api')
+  return api_key
 
 # Thanks to @cclauss for this code snippet
 def pythonista_version():  # 2.0.1 (201000)
@@ -260,7 +271,14 @@ def update_city_list(operation, city_line, filename = 'cities.txt'):
       sys.exit(err)
 
 def get_weather_dicts(lat, lon, city = '', st = '', zcode = ''):
+  api_key = get_api_key()
+  
+  if not api_key:
+    console.hud_alert('An api key is required to continue.', 'error', 3)
+    sys.exit()
+                                                                          
   url_fmt = 'http://api.wunderground.com/api/{}/{}/q/{}.json'
+                                      
   if city: # From an entered city
     fmt = '{}/{}'
     query = fmt.format(st, city)
