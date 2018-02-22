@@ -43,7 +43,7 @@ def get_api_key():
   api_key = keychain.get_password('wunderground', 'api')
   
   If api_key == None:
-    api_key = console.input_alert('No API Key', 'You must generate an api key at https://www.wunderground.com and enter it here:', '', 'Ok', hide_cancel_button = False)                              
+    api_key = console.input_alert('No API Key', 'You must register for a free api key at https://www.wunderground.com/weather/api and enter it here:', '', 'Ok', hide_cancel_button = False)                              
     
     If api_key <> '':
       api_key = keychain.set_password('wunderground', 'api', api_key)
