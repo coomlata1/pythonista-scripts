@@ -470,7 +470,7 @@ def get_api_key():
     
     If api_key <> '':
       api_key = keychain.set_password('moviedb', 'api', api_key)
-      api_key = keychain.get_password('moviedb, 'api')
+      api_key = keychain.get_password('moviedb', 'api')
   return api_key
                                       
   # Determine which device by screen size
