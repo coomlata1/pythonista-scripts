@@ -3,7 +3,7 @@
 #---Script: SendGpsData.py
 #---Author: @coomlata1
 #---Created: 07/25/2015
-#---Last Modified: 01/20/2018
+#---Last Modified: 02/18/2018
 
 #---Required: Requires Launch Center Pro to be able to
 email and SMS msg the text, and an api key from:
@@ -52,6 +52,7 @@ import sys
 import requests
 import clipboard
 import os
+import keychain
 
 console.clear()
 
@@ -59,12 +60,19 @@ console.clear()
 def get_weather(lat, lon, bold):
   err = ''
   '''
-  You will need to replace the empty quotes below with
-  an API key to get weather data. Register for your
-  free key at http://www.wunderground.com/weather/api
+  You will need an API key to get weather data.
+  Register for your free key at http://
+  www.wunderground.com/weather/api
   '''
-  api_key= ''
-
+  api_key = keychain.get_password('wunderground', 'api')
+  
+  If api_key == None:
+    api_key = console.input_alert('No API Key', 'You must register for a free api key at https://www.wunderground.com/weather/api and enter it here:', '', 'Ok', hide_cancel_button = False)                              
+    
+    If api_key <> '':
+      api_key = keychain.set_password('wunderground', 'api', api_key)
+      api_key = keychain.get_password('wunderground', 'api')
+  
   # Change to 'metric' if desired
   imperial_or_metric = 'imperial'
 
