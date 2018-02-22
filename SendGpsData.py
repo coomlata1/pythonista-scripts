@@ -3,7 +3,7 @@
 #---Script: SendGpsData.py
 #---Author: @coomlata1
 #---Created: 07/25/2015
-#---Last Modified: 02/18/2018
+#---Last Modified: 02/21/2018
 
 #---Required: Requires Launch Center Pro to be able to
 email and SMS msg the text, and an api key from:
