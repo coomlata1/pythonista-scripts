@@ -1,9 +1,9 @@
 # coding: utf-8
 '''
-#---Script: Search_TMDB.py
+#---Script: SearchTMDB.py
 #---Author: @coomlata1
 #---Created: 02/04/2017
-#---Last Modified: 01/15/2018
+#---Last Modified: 02/19/2018
 
 #---Requirements: API key from www.themoviedb.org
 
@@ -38,11 +38,11 @@ import urllib
 import re
 import unicodedata
 import datetime
+import keychain
 
 # Globals
 global imdb_id
-# Enter your api key from www.themoviedb.org
-api_key = ''
+
 url_search = 'https://api.themoviedb.org/3/search/{}?api_key={}&query={}'
 url_info = 'https://api.themoviedb.org/3/{}/{}?api_key={}&append_to_response=credits,releases'
 url_ids = 'https://api.themoviedb.org/3/tv/{}/external_ids?api_key={}&language=en-US'
@@ -462,7 +462,18 @@ class MyView(ui.View):
     # Displays keyboard
     #self.tf1.begin_editing()
   
-# Determine which device by screen size
+def get_api_key():
+  api_key = keychain.get_password('moviedb', 'api')
+  
+  If api_key == None:
+    api_key = console.input_alert('No API Key', 'You must generate an api key at https://www.themoviedb.org and enter it here:', '', 'Ok', hide_cancel_button = False)                              
+    
+    If api_key <> '':
+      api_key = keychain.set_password('moviedb', 'api', api_key)
+      api_key = keychain.get_password('moviedb, 'api')
+  return api_key
+                                      
+  # Determine which device by screen size
 def is_iP6p():
   iP6p = True
   min_screen_size = min(ui.get_screen_size())
@@ -948,6 +959,13 @@ def get_url(app, source, title):
 
 def main():
   global app
+  global api_key
+                                      
+  api_key = get_api_key()
+  
+  If not api_key:
+    console.hud_alert('An api key is required to continue.', 'error', 3)
+    sys.exit()                                  
   
   # Display ui
   v = MyView()
