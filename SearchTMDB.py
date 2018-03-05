@@ -3,7 +3,7 @@
 #---Script: SearchTMDB.py
 #---Author: @coomlata1
 #---Created: 02/04/2017
-#---Last Modified: 02/19/2018
+#---Last Modified: 03/04/2018
 
 #---Requirements: API key from www.themoviedb.org
 
@@ -285,7 +285,7 @@ class MyView(ui.View):
   def load_apps_tableview(self, items):
     self.tba = ui.TableView()
     self.right_button_items = []
-    b1 = ui.ButtonItem('Select App To Export Data To:', tint_color = 'black')
+    b1 = ui.ButtonItem('Select App To Export To:', tint_color = 'black')
     b2 = ui.ButtonItem('Cancel', action = self.cancel_app_tbl_view, tint_color = 'red')
     self.right_button_items = [b2, b1]
     self.tba.width, self.tba.height = ui.get_screen_size()
